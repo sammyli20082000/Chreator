@@ -2,6 +2,8 @@ package Chreator.UIModule;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 
 import javax.swing.JFrame;
@@ -52,6 +54,7 @@ public class UIHandler {
         prepareTabPanels();
         mainWindow.add(tabPane);
 
+        mainWindow.addComponentListener(getWindowResizeHandler());
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainWindow.setLocationRelativeTo(null);
         mainWindow.setVisible(true);
@@ -69,5 +72,14 @@ public class UIHandler {
         tabPane.addTab(ChessPiecePanel.tabName, chessPiecePanel);
         tabPane.addTab(GameRulePanel.tabName, gameRulePanel);
         tabPane.addTab(AIPanel.tabName, aiPanel);
+    }
+
+    private ComponentAdapter getWindowResizeHandler(){
+        return new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                super.componentResized(e);
+            }
+        };
     }
 }

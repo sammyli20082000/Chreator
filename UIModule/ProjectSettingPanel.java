@@ -53,6 +53,7 @@ public class ProjectSettingPanel extends JPanel {
     private JLabel projectFolderDirNameLabel;
 
     private int componentCounter = 0;
+    private int editTextcolumn = 17;
 
     public ProjectSettingPanel(EventCallback eventCallback) {
         callback = eventCallback;
@@ -108,6 +109,7 @@ public class ProjectSettingPanel extends JPanel {
 
         templateDropDownMenu.setEditable(false);
         fromTemplateRadio.setSelected(true);
+        projectFolderNameInputField.setColumns(editTextcolumn);
 
         newProjectButtonGroup.add(customProjectRadio);
         newProjectButtonGroup.add(fromTemplateRadio);
@@ -123,17 +125,17 @@ public class ProjectSettingPanel extends JPanel {
         newProjectPanel.add(fromTemplateRadio, c);
 
         c.gridy++;
-        c.fill=GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.HORIZONTAL;
         newProjectPanel.add(templateDropDownMenu, c);
 
         c.gridy++;
-        c.fill=GridBagConstraints.NONE;
+        c.fill = GridBagConstraints.NONE;
         c.anchor = GridBagConstraints.WEST;
         newProjectPanel.add(projectFolderDirNameLabel, c);
 
         c.gridy++;
         c.anchor = GridBagConstraints.CENTER;
-        c.fill=GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.HORIZONTAL;
         newProjectPanel.add(projectFolderNameInputField, c);
 
         addToBasePanel(newProjectPanel, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
@@ -157,6 +159,8 @@ public class ProjectSettingPanel extends JPanel {
         JLabel locationLabel = new JLabel("Project Location");
         locationInputField = new JTextField();
         browseLocationButton = new JButton("Browse");
+
+        locationInputField.setColumns(editTextcolumn);
 
         addToBasePanel(locationLabel);
         addToBasePanel(locationInputField, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL);
