@@ -11,8 +11,9 @@ public class ChessPiecePanel extends JPanel {
     }
     public static String tabName="Chess Piece";
     private EventCallback callback;
-    public ChessPiecePanel(EventCallback eventCallback){
+    private UIHandler uiHandler;
+    public ChessPiecePanel(EventCallback eventCallback, UIHandler uiHandler){
         callback = eventCallback;
-
+        this.uiHandler = uiHandler;
     }
 }

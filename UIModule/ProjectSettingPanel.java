@@ -51,12 +51,14 @@ public class ProjectSettingPanel extends JPanel {
     private JButton browseLocationButton, executeButton, compileButton, runButton;
     private JComboBox templateDropDownMenu;
     private JLabel projectFolderDirNameLabel;
+    private UIHandler uiHandler;
 
     private int componentCounter = 0;
     private int editTextcolumn = 17;
 
-    public ProjectSettingPanel(EventCallback eventCallback) {
+    public ProjectSettingPanel(EventCallback eventCallback, UIHandler uiHandler) {
         callback = eventCallback;
+        this.uiHandler =  uiHandler;
         setLayout(new GridBagLayout());
         setupLayout();
     }

@@ -61,11 +61,11 @@ public class UIHandler {
     }
 
     private void prepareTabPanels(){
-        aiPanel = new AIPanel(callback);
-        chessBoardPanel = new ChessBoardPanel(callback);
-        chessPiecePanel = new ChessPiecePanel(callback);
-        gameRulePanel = new GameRulePanel(callback);
-        projectSettingPanel = new ProjectSettingPanel(callback);
+        aiPanel = new AIPanel(callback, this);
+        chessBoardPanel = new ChessBoardPanel(callback, this);
+        chessPiecePanel = new ChessPiecePanel(callback, this);
+        gameRulePanel = new GameRulePanel(callback, this);
+        projectSettingPanel = new ProjectSettingPanel(callback, this);
 
         tabPane.addTab(ProjectSettingPanel.tabName, projectSettingPanel);
         tabPane.addTab(ChessBoardPanel.tabName, chessBoardPanel);
@@ -81,5 +81,9 @@ public class UIHandler {
                 super.componentResized(e);
             }
         };
+    }
+
+    public void refreshWindow(){
+        mainWindow.repaint();
     }
 }

@@ -12,7 +12,9 @@ public class AIPanel extends JPanel {
 
     public static String tabName="Artificial Intelligence";
     private EventCallback callback;
-    public AIPanel(EventCallback eventCallback){
+    private UIHandler uiHandler;
+    public AIPanel(EventCallback eventCallback, UIHandler uiHandler){
         callback = eventCallback;
+        this.uiHandler = uiHandler;
     }
 }
