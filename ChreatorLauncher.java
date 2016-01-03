@@ -11,7 +11,7 @@ public class ChreatorLauncher {
     public static void main (String[] args){new ChreatorLauncher();}
 
     public ChreatorLauncher(){
-        ui = new UIHandler(getUIEventCallback());
+        ui = UIHandler.getInstance(getUIEventCallback());
     }
 
     private UIHandler.EventCallback getUIEventCallback(){

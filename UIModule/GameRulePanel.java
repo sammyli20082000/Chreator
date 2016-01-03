@@ -12,10 +12,8 @@ public class GameRulePanel extends JPanel {
 
     public static String tabName = "General Game Rules";
     private EventCallback callback;
-    private UIHandler uiHandler;
 
-    public GameRulePanel(EventCallback eventCallback, UIHandler uiHandler) {
+    public GameRulePanel(EventCallback eventCallback) {
         callback = eventCallback;
-        this.uiHandler = uiHandler;
     }
 }

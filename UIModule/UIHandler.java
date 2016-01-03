@@ -26,6 +26,7 @@ public class UIHandler {
     public static Dimension screenResolution;
     public static String appName = "Chreator";
     public static double uiScaleRatio = 0.8;
+    private static UIHandler uiHandler;
     private EventCallback callback;
     private JFrame mainWindow;
     private JTabbedPane tabPane;
@@ -36,10 +37,15 @@ public class UIHandler {
     private GameRulePanel gameRulePanel;
     private ProjectSettingPanel projectSettingPanel;
 
-    public UIHandler(EventCallback eventCallback){
-        callback = eventCallback;
-        screenResolution = Toolkit.getDefaultToolkit().getScreenSize();
-        prepareObjectInstance();
+    public static UIHandler getInstance(EventCallback eventCallback){
+        if (uiHandler==null){
+            uiHandler = new UIHandler();
+            screenResolution = Toolkit.getDefaultToolkit().getScreenSize();
+            uiHandler.callback = eventCallback;
+            uiHandler.prepareObjectInstance();
+        }else
+            uiHandler.callback = eventCallback;
+        return uiHandler;
     }
 
     private void prepareObjectInstance(){
@@ -49,7 +55,6 @@ public class UIHandler {
                 (int) (uiScaleRatio * screenResolution.getWidth()),
                 (int) (uiScaleRatio * screenResolution.getHeight())
         );
-
         tabPane = new JTabbedPane();
         prepareTabPanels();
         mainWindow.add(tabPane);
@@ -61,11 +66,11 @@ public class UIHandler {
     }
 
     private void prepareTabPanels(){
-        aiPanel = new AIPanel(callback, this);
-        chessBoardPanel = new ChessBoardPanel(callback, this);
-        chessPiecePanel = new ChessPiecePanel(callback, this);
-        gameRulePanel = new GameRulePanel(callback, this);
-        projectSettingPanel = new ProjectSettingPanel(callback, this);
+        aiPanel = new AIPanel(callback);
+        chessBoardPanel = new ChessBoardPanel(callback);
+        chessPiecePanel = new ChessPiecePanel(callback);
+        gameRulePanel = new GameRulePanel(callback);
+        projectSettingPanel = new ProjectSettingPanel(callback);
 
         tabPane.addTab(ProjectSettingPanel.tabName, projectSettingPanel);
         tabPane.addTab(ChessBoardPanel.tabName, chessBoardPanel);
@@ -83,7 +88,11 @@ public class UIHandler {
         };
     }
 
-    public void refreshWindow(){
-        mainWindow.repaint();
+    public static void refreshWindow(){
+        if(uiHandler!=null)uiHandler.mainWindow.repaint();
+    }
+    public static JFrame getMainWindow(){
+        if (uiHandler !=null) return uiHandler.mainWindow;
+        else return null;
     }
 }
