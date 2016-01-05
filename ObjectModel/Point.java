@@ -1,7 +1,6 @@
 package Chreator.ObjectModel;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 
 import Chreator.UIModule.ChessBoardGraphicAreaPanel;
 
@@ -9,7 +8,7 @@ import Chreator.UIModule.ChessBoardGraphicAreaPanel;
  * Created by him on 2015/12/30.
  */
 public class Point {
-    public class InfoPack {
+    public static class InfoPack {
         public double posX, posY, height, width;
 
         public InfoPack(double posX, double posY, double width, double height) {
@@ -20,17 +19,25 @@ public class Point {
         }
     }
 
-    private static int idCounter = 0;
-    private Map<String, Point> edges;
+    public static class EdgePointPair {
+        public String direction;
+        public Point targetPoint;
+
+        public EdgePointPair(String direction, Point targetPoint) {
+            this.direction = direction;
+            this.targetPoint = targetPoint;
+        }
+    }
+
+    private ArrayList<EdgePointPair> edges;
     private int id;
     private double posXPixel, posYPixel, heightPixel, widthPixel, posXRelative, posYRelative, heightRelative, widthRelative;
     private ChessBoardGraphicAreaPanel graphicAreaPanel;
 
-    public Point(ChessBoardGraphicAreaPanel graphicAreaPanel) {
+    public Point(ChessBoardGraphicAreaPanel graphicAreaPanel, int id) {
         this.graphicAreaPanel = graphicAreaPanel;
-        id = idCounter;
-        idCounter++;
-        edges = new HashMap<String, Point>();
+        this.id = id;
+        edges = new ArrayList<EdgePointPair>();
         setSizeByRelative(0.0, 0.0, 0.05, 0.05);
     }
 
@@ -114,5 +121,51 @@ public class Point {
         posYPixel = baseY + posYRelative * imageActualHeight;
         widthPixel = widthRelative * imageActualWidth;
         heightPixel = heightRelative * imageActualHeight;
+    }
+
+    public void addEdgePointPairs(String dir, Point point) {
+        for (EdgePointPair edgePointPair : edges) {
+            if (edgePointPair.direction.equals(dir)) {
+                edgePointPair.targetPoint = point;
+                return;
+            }
+        }
+        edges.add(new EdgePointPair(dir, point));
+    }
+
+    public void removeEdgePointPairs(String dir) {
+        for (EdgePointPair edgePointPair : edges) {
+            if (edgePointPair.direction.equals(dir))
+                edges.remove(edgePointPair);
+        }
+    }
+
+    public void removeEdgePointPairs(Point p) {
+        for (EdgePointPair edgePointPair : edges) {
+            if (edgePointPair.targetPoint.equals(p))
+                edges.remove(edgePointPair);
+        }
+    }
+
+    public String getEdgeByPoint(Point p) {
+        for (EdgePointPair edgePointPair : edges) {
+            if (edgePointPair.targetPoint.equals(p))
+                return edgePointPair.direction;
+        }
+        return null;
+    }
+
+    public Point getPointByEdge(String dir) {
+        for (EdgePointPair edgePointPair : edges)
+            if (edgePointPair.direction.equals(dir))
+                return edgePointPair.targetPoint;
+        return null;
+    }
+
+    public ArrayList<EdgePointPair> getAllEdgePointPair() {
+        ArrayList<EdgePointPair> list = new ArrayList<EdgePointPair>();
+        for (EdgePointPair edgePointPair : edges)
+            list.add(new EdgePointPair(edgePointPair.direction, edgePointPair.targetPoint));
+        return list;
     }
 }

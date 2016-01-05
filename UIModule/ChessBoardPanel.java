@@ -6,13 +6,17 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Random;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -25,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -39,6 +44,32 @@ public class ChessBoardPanel extends JPanel {
         NONE, IMAGE_ALL, PANEL_ALL, IMAGE_COORDINATES, PANEL_COORDINATES;
     }
 
+    public static class CustomListCellRenderer extends DefaultListCellRenderer {
+        private ArrayList<Color> colorList;
+
+        public CustomListCellRenderer() {
+            colorList = new ArrayList<Color>();
+        }
+
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (index < colorList.size()) c.setBackground(colorList.get(index));
+            return c;
+        }
+
+        public Color getBackground(int i) {
+            return colorList.get(i);
+        }
+
+        public void addBackground(Color c) {
+            colorList.add(c);
+        }
+
+        public void removeBackground(int i) {
+            colorList.remove(i);
+        }
+    }
+
     public static String tabName = "Chess Board";
     private EventCallback callback;
 
@@ -48,7 +79,7 @@ public class ChessBoardPanel extends JPanel {
     private JRadioButton imageFromFileRadio, blankImageRadio, addSinglePointRadio, addRectGridPointRadio, addTriGridPointRadio,
             scalePointNoneRadio, scalePointAllPanelRadio, scalePointAllImageRadio, scalePointCoordinatesPanelRadio, scalePointCoordinatesImageRadio;
     private JButton browseBoardImageButton, addDirectionButton, deleteDirectionButton, createEdgeForPointsButton, deleteEdgeForPointsButton, addPointsButton, deletePointsButton;
-    private JTextField blankImageWidth, blankImageHeight, rowSizeField, colSizeField, firstRowField, triHeightField, diffHeightField;
+    private JTextField blankImageWidth, blankImageHeight, rectRowSizeField, rectColSizeField, triFirstRowField, triHeightField, nextPointIdField;
     private JScrollPane scrollPane;
     private JList edgeDirectionList;
 
@@ -142,18 +173,19 @@ public class ChessBoardPanel extends JPanel {
         addRectGridPointRadio = new JRadioButton("Rectangular Grid");
         addPointsButton = new JButton("Add points");
         deletePointsButton = new JButton("Delete selected points");
-        rowSizeField = new JTextField();
-        colSizeField = new JTextField();
-        firstRowField = new JTextField();
-        diffHeightField = new JTextField();
+        rectRowSizeField = new JTextField();
+        rectColSizeField = new JTextField();
+        triFirstRowField = new JTextField();
         triHeightField = new JTextField();
+        nextPointIdField = new JTextField();
 
         addSinglePointRadio.setSelected(true);
-        rowSizeField.setColumns(5);
-        colSizeField.setColumns(5);
-        firstRowField.setColumns(5);
-        diffHeightField.setColumns(5);
+        rectRowSizeField.setColumns(5);
+        rectColSizeField.setColumns(5);
+        triFirstRowField.setColumns(5);
         triHeightField.setColumns(5);
+        nextPointIdField.setColumns(5);
+        nextPointIdField.setText("0");
 
         addPointOptionGroup.add(addSinglePointRadio);
         addPointOptionGroup.add(addRectGridPointRadio);
@@ -163,45 +195,47 @@ public class ChessBoardPanel extends JPanel {
         JPanel addPointPanel = new JPanel(new GridBagLayout());
         addPointPanel.setBorder(BorderFactory.createLoweredBevelBorder());
 
-        JPanel flowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        flowPanel.add(addSinglePointRadio);
-        addToPanel(addPointPanel, flowPanel);
+        JPanel flowPanel;
+        JLabel jLabel;
+        addToPanel(addPointPanel, addSinglePointRadio);
 
         //--------------------------------------------------
+        addToPanel(addPointPanel, addRectGridPointRadio);
 
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        flowPanel.add(addRectGridPointRadio);
-        addToPanel(addPointPanel, flowPanel);
+        flowPanel = new JPanel(new GridLayout(2, 2));
+        jLabel = new JLabel("Row: ");
+        jLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        flowPanel.add(jLabel);
+        flowPanel.add(rectRowSizeField);
 
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        flowPanel.add(new JLabel("Row:"));
-        flowPanel.add(rowSizeField);
-        addToPanel(addPointPanel, flowPanel);
+        jLabel = new JLabel("Column: ");
+        jLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        flowPanel.add(jLabel);
+        flowPanel.add(rectColSizeField);
 
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        flowPanel.add(new JLabel("Column:"));
-        flowPanel.add(colSizeField);
-        addToPanel(addPointPanel, flowPanel);
+        addToPanel(addPointPanel, flowPanel, GridBagConstraints.LINE_END, GridBagConstraints.NONE);
+
         //--------------------------------------------------
+        addToPanel(addPointPanel, addTriGridPointRadio);
 
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        flowPanel.add(addTriGridPointRadio);
-        addToPanel(addPointPanel, flowPanel);
+        flowPanel = new JPanel(new GridLayout(2, 2));
+        jLabel = new JLabel("First row: ");
+        jLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        flowPanel.add(jLabel);
+        flowPanel.add(triFirstRowField);
 
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        flowPanel.add(new JLabel("First row size:"));
-        flowPanel.add(firstRowField);
-        addToPanel(addPointPanel, flowPanel);
+        jLabel = new JLabel("Height: ");
+        jLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        flowPanel.add(new JLabel("Grid height:"));
+        flowPanel.add(jLabel);
         flowPanel.add(triHeightField);
-        addToPanel(addPointPanel, flowPanel);
+        addToPanel(addPointPanel, flowPanel, GridBagConstraints.LINE_END, GridBagConstraints.NONE);
 
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        flowPanel.add(new JLabel("Row difference:"));
-        flowPanel.add(diffHeightField);
-        addToPanel(addPointPanel, flowPanel);
+        //--------------------------------------------------
+        flowPanel = new JPanel(new FlowLayout());
+        flowPanel.add(new JLabel("Next point ID:"));
+        flowPanel.add(nextPointIdField);
+        addToPanel(addPointPanel, flowPanel, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
 
         addToPanel(toolAreaPanel, new JLabel("<html><br>Piece placing points</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
         addToPanel(toolAreaPanel, addPointPanel);
@@ -217,6 +251,7 @@ public class ChessBoardPanel extends JPanel {
         addToPanel(toolAreaPanel, new JLabel("<html><br>Edge direction between points</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
 
         edgeDirectionList = new JList();
+        edgeDirectionList.setCellRenderer(new CustomListCellRenderer());
         edgeDirectionList.setFixedCellWidth(1);
         edgeDirectionList.setModel(new DefaultListModel<String>());
         edgeDirectionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -386,11 +421,7 @@ public class ChessBoardPanel extends JPanel {
                                 "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
                                 "Name cannot start with arabic numerals. The result name will be automatically capitalized.", "ERROR - New edge direction", JOptionPane.ERROR_MESSAGE);
                     } while (true);
-                    s = s.toUpperCase();
-                    DefaultListModel<String> listModel = (DefaultListModel<String>) edgeDirectionList.getModel();
-                    for (int i = 0; i < listModel.getSize(); i++)
-                        if (s.equals(listModel.getElementAt(i))) return;
-                    listModel.addElement(s);
+                    addEdgeDirection(s);
                 }
             };
         else if (jb == deleteDirectionButton)
@@ -401,6 +432,12 @@ public class ChessBoardPanel extends JPanel {
 
                     for (int i = indices.length - 1; i >= 0; i--) {
                         ((DefaultListModel<String>) edgeDirectionList.getModel()).removeElementAt(indices[i]);
+                        ((CustomListCellRenderer) edgeDirectionList.getCellRenderer()).removeBackground(indices[i]);
+                        break;
+                    }
+                    if (indices.length > 0){
+                        int index = (indices[0] < edgeDirectionList.getModel().getSize() ? indices[0] : edgeDirectionList.getModel().getSize() - 1);
+                        edgeDirectionList.setSelectedIndex(index);
                     }
                 }
             };
@@ -408,10 +445,60 @@ public class ChessBoardPanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    graphicAreaPanel.addSinglePoint();
+                    int id, row, height;
+                    try {
+                        id = Integer.parseInt(nextPointIdField.getText());
+                        if (addTriGridPointRadio.isSelected()) {
+                            row = Integer.parseInt(triFirstRowField.getText());
+                            height = Integer.parseInt(triHeightField.getText());
+                        } else if (addRectGridPointRadio.isSelected()) {
+                            row = Integer.parseInt(rectRowSizeField.getText());
+                            height = Integer.parseInt(rectColSizeField.getText());
+                        } else {
+                            row = 1;
+                            height = 1;
+                        }
+                        if (row < 1 || height < 1 || id < 0) throw new Exception();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+                                "Make sure the related fields are all filled with positive integer, only ID of first point field accepts 0 value.",
+                                "Chreator - Add new point failed",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    boolean result;
+                    if (addRectGridPointRadio.isSelected())
+                        result = graphicAreaPanel.addRectGrid(id, row, height);
+                    else if (addTriGridPointRadio.isSelected())
+                        result = graphicAreaPanel.addTriGrid(id, row, height);
+                    else
+                        result = graphicAreaPanel.addSinglePoint(id);
+
+                    if (!result)
+                        JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+                                "ID entered is already used, please use another unique integer as ID.",
+                                "Chreator - Add new point failed",
+                                JOptionPane.ERROR_MESSAGE);
+                    else {
+                        if (addRectGridPointRadio.isSelected()) {
+                            addEdgeDirection("EAST");
+                            addEdgeDirection("SOUTH");
+                            addEdgeDirection("WEST");
+                            addEdgeDirection("NORTH");
+                        } else if (addTriGridPointRadio.isSelected()) {
+                            addEdgeDirection("ANGLE_0");
+                            addEdgeDirection("ANGLE_60");
+                            addEdgeDirection("ANGLE_120");
+                            addEdgeDirection("ANGLE_180");
+                            addEdgeDirection("ANGLE_240");
+                            addEdgeDirection("ANGLE_300");
+                        }
+                    }
+
                 }
             };
-        else if (jb ==deletePointsButton) return new ActionListener() {
+        else if (jb == deletePointsButton) return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 graphicAreaPanel.deletePoints();
@@ -478,4 +565,32 @@ public class ChessBoardPanel extends JPanel {
         else
             return PointScaleMode.NONE;
     }
+
+    public void setNextPointIdField(int id) {
+        nextPointIdField.setText(id + "");
+    }
+
+    private void addEdgeDirection(String s) {
+        s = s.toUpperCase();
+        DefaultListModel<String> listModel = (DefaultListModel<String>) edgeDirectionList.getModel();
+        for (int i = 0; i < listModel.getSize(); i++)
+            if (s.equals(listModel.getElementAt(i))) return;
+        listModel.addElement(s);
+
+        Random ran = new Random();
+        ((CustomListCellRenderer) edgeDirectionList.getCellRenderer()).
+                addBackground(new Color(ran.nextInt(128) + 64, ran.nextInt(128) + 64, ran.nextInt(128) + 64));
+        edgeDirectionList.setSelectedIndex(listModel.getSize() - 1);
+    }
+
+    public Color getEdgeDirectionColor(String dir){
+        DefaultListModel listModel = (DefaultListModel) edgeDirectionList.getModel();
+        CustomListCellRenderer listCellRenderer = (CustomListCellRenderer) edgeDirectionList.getCellRenderer();
+        for(int i=0; i<listModel.size();i++){
+            if (listModel.getElementAt(i).equals(dir))
+                return listCellRenderer.getBackground(i);
+        }
+        return null;
+    }
+
 }
