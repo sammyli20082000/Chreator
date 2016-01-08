@@ -127,7 +127,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
             else g.drawImage(boardImage, 0, 0, panelWidth, panelHeight, null);
         }
 
-        g.setColor(Color.RED);
+        g.setColor(new Color(1.0f, 0.0f, 0.0f, 0.5f));
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(3.0f));
         for (Point p : pointList) {
