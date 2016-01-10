@@ -1,5 +1,12 @@
 package Chreator;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+
 import Chreator.UIModule.UIHandler;
 
 /**
@@ -8,13 +15,15 @@ import Chreator.UIModule.UIHandler;
 public class ChreatorLauncher {
     private UIHandler ui;
 
-    public static void main (String[] args){new ChreatorLauncher();}
+    public static void main(String[] args) {
+        new ChreatorLauncher();
+    }
 
-    public ChreatorLauncher(){
+    public ChreatorLauncher() {
         ui = UIHandler.getInstance(getUIEventCallback());
     }
 
-    private UIHandler.EventCallback getUIEventCallback(){
+    private UIHandler.EventCallback getUIEventCallback() {
         return new UIHandler.EventCallback() {
         };
     }
