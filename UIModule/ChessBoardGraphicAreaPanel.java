@@ -732,7 +732,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                         if (controlMode) {
                             if (leftCount < 2 && topCount < 2 && bottomCount < 2 && rightCount < 2) {
                                 if (!controlModeSelectionList.contains(p))
-                                    controlModeSelectionList.add(p);
+                                    toBeAddedList.add(p);
                             } else if (controlModeSelectionList.contains(p))
                                 controlModeSelectionList.remove(p);
 
@@ -745,17 +745,22 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                     }
                     if (controlMode) {
                         selectedPointList.clear();
+                        for (int i = toBeAddedList.size() - 1; i >= 0; i--) {
+                            Point p = toBeAddedList.get(i);
+                            if (!controlModeSelectionList.contains(p))controlModeSelectionList.add(p);
+                        }
                         for (Point p : selectedPointBackupList) {
                             if (!controlModeSelectionList.contains(p)) selectedPointList.add(p);
+                        }
+                        for (Point p : controlModeSelectionList) {
+                            if (!selectedPointBackupList.contains(p))
+                                selectedPointList.add(p);
+                        }
+                        for (Point p : selectedPointList) {
                             pointList.remove(p);
                             pointList.add(p);
                         }
-                        for (int i = controlModeSelectionList.size() - 1; i >= 0; i--) {
-                            Point p = controlModeSelectionList.get(i);
-                            if (!selectedPointBackupList.contains(p)) selectedPointList.add(p);
-                            pointList.remove(p);
-                            pointList.add(p);
-                        }
+
                     } else {
                         for (int i = toBeAddedList.size() - 1; i >= 0; i--) {
                             Point p = toBeAddedList.get(i);
@@ -766,6 +771,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                     }
                     toBeAddedList.clear();
                 }
+
                 mouseLastX = e.getX();
                 mouseLastY = e.getY();
                 UIHandler.refreshWindow();
