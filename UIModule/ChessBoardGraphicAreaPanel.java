@@ -750,7 +750,8 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                             pointList.remove(p);
                             pointList.add(p);
                         }
-                        for (Point p : controlModeSelectionList) {
+                        for (int i = controlModeSelectionList.size() - 1; i >= 0; i--) {
+                            Point p = controlModeSelectionList.get(i);
                             if (!selectedPointBackupList.contains(p)) selectedPointList.add(p);
                             pointList.remove(p);
                             pointList.add(p);
