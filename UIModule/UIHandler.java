@@ -4,11 +4,14 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 /**
@@ -49,6 +52,7 @@ public class UIHandler {
     }
 
     private void prepareObjectInstance(){
+        ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
         try {UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());} catch (Exception e) {e.printStackTrace();}
         mainWindow = new JFrame(appName);
         mainWindow.setSize(

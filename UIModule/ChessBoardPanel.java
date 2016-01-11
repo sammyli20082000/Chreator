@@ -9,6 +9,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
@@ -30,6 +32,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.ToolTipManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -78,10 +81,12 @@ public class ChessBoardPanel extends JPanel {
     private ButtonGroup chessBoardImageOptionGroup, addPointOptionGroup, pointScaleOptionGroup;
     private JRadioButton imageFromFileRadio, blankImageRadio, addSinglePointRadio, addRectGridPointRadio, addTriGridPointRadio,
             scalePointNoneRadio, scalePointAllPanelRadio, scalePointAllImageRadio, scalePointCoordinatesPanelRadio, scalePointCoordinatesImageRadio;
-    private JButton browseBoardImageButton, addDirectionButton, deleteDirectionButton, createEdgeForPointsButton, deleteEdgeForPointsButton, addPointsButton, deletePointsButton;
-    private JTextField blankImageWidth, blankImageHeight, rectRowSizeField, rectColSizeField, triFirstRowField, triHeightField, nextPointIdField;
+    private JButton browseBoardImageButton, addDirectionButton, deleteDirectionButton, createEdgeForPointsButton, deleteEdgeForPointsButton,
+            addPointsButton, deletePointsButton, copyAndPastePointEdgeButton;
+    private JTextField blankImageWidth, blankImageHeight, rectRowSizeField, rectColSizeField, triFirstRowField, triLastRowField, nextPointIdField;
     private JScrollPane scrollPane;
     private JList edgeDirectionList;
+    private JLabel helpHotKeyLabel;
 
     private final int scrollSpeed = 10;
     private int numBaseComponent = 0, numComponent = 0;
@@ -110,6 +115,34 @@ public class ChessBoardPanel extends JPanel {
         toolAreaPanel.setLayout(new GridBagLayout());
         toolAreaPanel.setBackground(Color.lightGray);
 
+        helpHotKeyLabel = new JLabel("Move here for hot key tips");
+        helpHotKeyLabel.addMouseListener(new MouseAdapter() {
+            int defaultInitialDelay;
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                super.mouseEntered(e);
+                defaultInitialDelay = ToolTipManager.sharedInstance().getInitialDelay();
+                System.out.println(defaultInitialDelay);
+                ToolTipManager.sharedInstance().setInitialDelay(0);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                super.mouseExited(e);
+                ToolTipManager.sharedInstance().setInitialDelay(defaultInitialDelay);
+            }
+        });
+        helpHotKeyLabel.setToolTipText("<html>Any mouse action on the chess board activates the<br>" +
+                "hot key edit function.<br>" +
+                "a key - add points<br>" +
+                "d key - delete selected points<br>" +
+                "c key - copy and paste points<br>" +
+                "e key - create edge for selected points<br>" +
+                "r key - delete all edges for points<br>" +
+                "ctrl key - multiple selection mode, same as normal file management</html>");
+
+        addToPanel(toolAreaPanel, helpHotKeyLabel, GridBagConstraints.CENTER, GridBagConstraints.NONE);
         setupChessBoardImageSettingPanel();
         setupAddPointPanel();
         setupEdgeDirectionSettingPanel();
@@ -134,6 +167,9 @@ public class ChessBoardPanel extends JPanel {
         scalePointCoordinatesImageRadio.addActionListener(getRadioButtonActionListener(scalePointCoordinatesImageRadio));
         scalePointCoordinatesPanelRadio.addActionListener(getRadioButtonActionListener(scalePointCoordinatesPanelRadio));
         deletePointsButton.addActionListener(getButtonActionListener(deletePointsButton));
+        copyAndPastePointEdgeButton.addActionListener(getButtonActionListener(copyAndPastePointEdgeButton));
+        createEdgeForPointsButton.addActionListener(getButtonActionListener(createEdgeForPointsButton));
+        deleteEdgeForPointsButton.addActionListener(getButtonActionListener(deleteEdgeForPointsButton));
     }
 
     public void setupPointUpdateSizeMethodPanel() {
@@ -172,18 +208,25 @@ public class ChessBoardPanel extends JPanel {
         addTriGridPointRadio = new JRadioButton("Triangular Grid");
         addRectGridPointRadio = new JRadioButton("Rectangular Grid");
         addPointsButton = new JButton("Add points");
+        copyAndPastePointEdgeButton = new JButton("Copy selected points");
         deletePointsButton = new JButton("Delete selected points");
         rectRowSizeField = new JTextField();
         rectColSizeField = new JTextField();
         triFirstRowField = new JTextField();
-        triHeightField = new JTextField();
+        triLastRowField = new JTextField();
         nextPointIdField = new JTextField();
+
+        addPointsButton.setToolTipText("<html>If single point is selected, the point will be directly added to the chess board;<br>" +
+                "If point grid is selected, drag on the chess board to specify the grid size first,<br>" +
+                "then points and edges will be added. Click to dismiss this message.</html>");
+        deletePointsButton.setToolTipText("Delete all the selected points. All edges connected to those points will also be removed");
+        copyAndPastePointEdgeButton.setToolTipText("Selected points and all their edges will be copied and pasted");
 
         addSinglePointRadio.setSelected(true);
         rectRowSizeField.setColumns(5);
         rectColSizeField.setColumns(5);
         triFirstRowField.setColumns(5);
-        triHeightField.setColumns(5);
+        triLastRowField.setColumns(5);
         nextPointIdField.setColumns(5);
         nextPointIdField.setText("0");
 
@@ -224,11 +267,11 @@ public class ChessBoardPanel extends JPanel {
         flowPanel.add(jLabel);
         flowPanel.add(triFirstRowField);
 
-        jLabel = new JLabel("Height: ");
+        jLabel = new JLabel("Last row: ");
         jLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
         flowPanel.add(jLabel);
-        flowPanel.add(triHeightField);
+        flowPanel.add(triLastRowField);
         addToPanel(addPointPanel, flowPanel, GridBagConstraints.LINE_END, GridBagConstraints.NONE);
 
         //--------------------------------------------------
@@ -241,6 +284,7 @@ public class ChessBoardPanel extends JPanel {
         addToPanel(toolAreaPanel, addPointPanel);
         addToPanel(toolAreaPanel, addPointsButton);
         addToPanel(toolAreaPanel, deletePointsButton);
+        addToPanel(toolAreaPanel, copyAndPastePointEdgeButton);
     }
 
     private void setupEdgeDirectionSettingPanel() {
@@ -260,15 +304,25 @@ public class ChessBoardPanel extends JPanel {
         addToPanel(toolAreaPanel, edgeDirectionSettingPanel);
         //------------------------------
         addDirectionButton = new JButton("Add new direction");
+        addDirectionButton.setToolTipText("<html>Add a new edge direction to the list.<br>" +
+                "Edge direction name must only contain English alphabet, arabic numerals,<br>dollar sign ($) or underscore (_).<br>" +
+                "Click to dismiss this message.</html>");
         addToPanel(toolAreaPanel, addDirectionButton);
+
         //------------------------------
         deleteDirectionButton = new JButton("Delete direction");
+        deleteDirectionButton.setToolTipText("<html>Delete selected edge direction from list</html>");
         addToPanel(toolAreaPanel, deleteDirectionButton);
         //------------------------------
         createEdgeForPointsButton = new JButton("Create edge for points");
+        createEdgeForPointsButton.setToolTipText("<html>Create edge for the selected points in between each neighbour point,<br>" +
+                "the neighbour point sequence depends on the points selection order.<br>" +
+                "See the red string under the chess board graph to confirm the edge<br>" +
+                "adding order. Click to dismiss this message.</html>");
         addToPanel(toolAreaPanel, createEdgeForPointsButton);
         //------------------------------
         deleteEdgeForPointsButton = new JButton("Delete all edges for points");
+        deleteEdgeForPointsButton.setToolTipText("<html>Delete edges among all selected points</html>");
         addToPanel(toolAreaPanel, deleteEdgeForPointsButton);
     }
 
@@ -277,6 +331,7 @@ public class ChessBoardPanel extends JPanel {
         chessBoardImageSettingPanel.setLayout(new GridBagLayout());
         numComponent = 0;
 
+        addToPanel(toolAreaPanel, new JLabel(" "));
         addToPanel(toolAreaPanel, new JLabel("Chess Board Image"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
         imageFromFileRadio = new JRadioButton("From file");
         blankImageRadio = new JRadioButton("Blank image");
@@ -435,7 +490,7 @@ public class ChessBoardPanel extends JPanel {
                         ((CustomListCellRenderer) edgeDirectionList.getCellRenderer()).removeBackground(indices[i]);
                         break;
                     }
-                    if (indices.length > 0){
+                    if (indices.length > 0) {
                         int index = (indices[0] < edgeDirectionList.getModel().getSize() ? indices[0] : edgeDirectionList.getModel().getSize() - 1);
                         edgeDirectionList.setSelectedIndex(index);
                     }
@@ -445,65 +500,36 @@ public class ChessBoardPanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    int id, row, height;
-                    try {
-                        id = Integer.parseInt(nextPointIdField.getText());
-                        if (addTriGridPointRadio.isSelected()) {
-                            row = Integer.parseInt(triFirstRowField.getText());
-                            height = Integer.parseInt(triHeightField.getText());
-                        } else if (addRectGridPointRadio.isSelected()) {
-                            row = Integer.parseInt(rectRowSizeField.getText());
-                            height = Integer.parseInt(rectColSizeField.getText());
-                        } else {
-                            row = 1;
-                            height = 1;
-                        }
-                        if (row < 1 || height < 1 || id < 0) throw new Exception();
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
-                                "Make sure the related fields are all filled with positive integer, only ID of first point field accepts 0 value.",
-                                "Chreator - Add new point failed",
-                                JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-
-                    boolean result;
-                    if (addRectGridPointRadio.isSelected())
-                        result = graphicAreaPanel.addRectGrid(id, row, height);
-                    else if (addTriGridPointRadio.isSelected())
-                        result = graphicAreaPanel.addTriGrid(id, row, height);
-                    else
-                        result = graphicAreaPanel.addSinglePoint(id);
-
-                    if (!result)
-                        JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
-                                "ID entered is already used, please use another unique integer as ID.",
-                                "Chreator - Add new point failed",
-                                JOptionPane.ERROR_MESSAGE);
-                    else {
-                        if (addRectGridPointRadio.isSelected()) {
-                            addEdgeDirection("EAST");
-                            addEdgeDirection("SOUTH");
-                            addEdgeDirection("WEST");
-                            addEdgeDirection("NORTH");
-                        } else if (addTriGridPointRadio.isSelected()) {
-                            addEdgeDirection("ANGLE_0");
-                            addEdgeDirection("ANGLE_60");
-                            addEdgeDirection("ANGLE_120");
-                            addEdgeDirection("ANGLE_180");
-                            addEdgeDirection("ANGLE_240");
-                            addEdgeDirection("ANGLE_300");
-                        }
-                    }
-
+                    addPointAction();
                 }
             };
         else if (jb == deletePointsButton) return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                graphicAreaPanel.deletePoints();
+                deletePointButtonAction();
             }
         };
+        else if (copyAndPastePointEdgeButton == jb)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    copyAndPastePointButtonAction();
+                }
+            };
+        else if (jb == createEdgeForPointsButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    createEdgeForPointsButtonAction();
+                }
+            };
+        else if (jb == deleteEdgeForPointsButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    deleteEdgeForPointsButtonAction();
+                }
+            };
         else
             return null;
     }
@@ -583,14 +609,86 @@ public class ChessBoardPanel extends JPanel {
         edgeDirectionList.setSelectedIndex(listModel.getSize() - 1);
     }
 
-    public Color getEdgeDirectionColor(String dir){
+    public Color getEdgeDirectionColor(String dir) {
         DefaultListModel listModel = (DefaultListModel) edgeDirectionList.getModel();
         CustomListCellRenderer listCellRenderer = (CustomListCellRenderer) edgeDirectionList.getCellRenderer();
-        for(int i=0; i<listModel.size();i++){
+        for (int i = 0; i < listModel.size(); i++) {
             if (listModel.getElementAt(i).equals(dir))
                 return listCellRenderer.getBackground(i);
         }
         return null;
     }
 
+    public void addPointAction() {
+        int id, row, height;
+        try {
+            id = Integer.parseInt(nextPointIdField.getText());
+            if (addTriGridPointRadio.isSelected()) {
+                row = Integer.parseInt(triFirstRowField.getText());
+                height = Integer.parseInt(triLastRowField.getText());
+            } else if (addRectGridPointRadio.isSelected()) {
+                row = Integer.parseInt(rectRowSizeField.getText());
+                height = Integer.parseInt(rectColSizeField.getText());
+            } else {
+                row = 1;
+                height = 1;
+            }
+            if (row < 1 || height < 1 || id < 0) throw new Exception();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+                    "Make sure the related fields are all filled with positive integer, only ID of first point field accepts 0 value.",
+                    "Chreator - Add new point failed",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        boolean result;
+        if (addRectGridPointRadio.isSelected())
+            result = graphicAreaPanel.addRectGrid(id, row, height);
+        else if (addTriGridPointRadio.isSelected())
+            result = graphicAreaPanel.addTriGrid(id, row, height);
+        else
+            result = graphicAreaPanel.addSinglePoint(id);
+
+        if (!result)
+            JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+                    "ID entered is already used, please use another unique integer as ID.",
+                    "Chreator - Add new point failed",
+                    JOptionPane.ERROR_MESSAGE);
+        else {
+            if (addRectGridPointRadio.isSelected()) {
+                addEdgeDirection("EAST");
+                addEdgeDirection("SOUTH");
+                addEdgeDirection("WEST");
+                addEdgeDirection("NORTH");
+            } else if (addTriGridPointRadio.isSelected()) {
+                addEdgeDirection("ANGLE_0");
+                addEdgeDirection("ANGLE_60");
+                addEdgeDirection("ANGLE_120");
+                addEdgeDirection("ANGLE_180");
+                addEdgeDirection("ANGLE_240");
+                addEdgeDirection("ANGLE_300");
+            }
+        }
+    }
+
+    public void deletePointButtonAction() {
+        graphicAreaPanel.deletePoints();
+    }
+
+    public void copyAndPastePointButtonAction() {
+        graphicAreaPanel.copyAndPasteSelectedPoint();
+    }
+
+    public void createEdgeForPointsButtonAction() {
+        int[] selectedIndices = edgeDirectionList.getSelectedIndices();
+        if (selectedIndices.length > 0)
+            graphicAreaPanel.createEdgesForSelectedPoints(((DefaultListModel<String>) edgeDirectionList.getModel()).getElementAt(selectedIndices[0]));
+        else
+            JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "No selected edge direction.", "Error - Chreator", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void deleteEdgeForPointsButtonAction(){
+        graphicAreaPanel.deleteEdgesForSelectedPoints();
+    }
 }

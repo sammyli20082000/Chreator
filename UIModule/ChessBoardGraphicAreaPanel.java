@@ -8,6 +8,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
@@ -18,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import Chreator.ObjectModel.Point;
@@ -56,7 +59,6 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
             this.pos2Y = pos2Y;
             this.pos3X = pos3X;
             this.pos3Y = pos3Y;
-
         }
 
         public void setSourceTargetRelation(int sourcePointId, int targetPointId, String orientation) {
@@ -74,14 +76,15 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
     private ChessBoardPanel parent;
     private BufferedImage boardImage;
     private int boardWidth, boardHeight, mouseStartX = 0, mouseStartY = 0, mouseLastX = 0, mouseLastY = 0;
-    private ArrayList<Point> pointList, selectedPointList;
+    private ArrayList<Point> pointList, selectedPointList, selectedPointBackupList, controlModeSelectionList;
     private EditingMode editingMode = EditingMode.SELECTING;
     private ScaleAnchorOrientation scaleOrientation;
     private Point scaleReferencePoint;
     private boolean isDragging = false;
-    private int addPointGridGridHeight, addPointGridRowSize, addPointId;
+    private int addPointGridGridHeight, addPointGridRowSize, addPointId, addPointGridFirstRow, addPointGridLastRow;
     private double pointStandardRelativeSize = 0.05;
     private EdgeTriangleInfo showTriangleInfo;
+    private boolean controlMode = false;
 
     public ChessBoardGraphicAreaPanel(ChessBoardPanel parent) {
         this.parent = parent;
@@ -99,10 +102,14 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
         });
         pointList = new ArrayList<Point>();
         selectedPointList = new ArrayList<Point>();
+        controlModeSelectionList = new ArrayList<Point>();
+        selectedPointBackupList = new ArrayList<Point>();
 
         MouseAdapter mouseAdapter = createMouseAdapter();
         addMouseListener(mouseAdapter);
         addMouseMotionListener(mouseAdapter);
+        addKeyListener(createKeyAdapter());
+        setFocusable(true);
     }
 
     public void paintComponent(Graphics g) {
@@ -156,17 +163,6 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                     (int) Math.round(triangleInfo.pos2Y),
                     (int) Math.round(triangleInfo.pos3Y)
             }, 3);
-        }
-
-        if (showTriangleInfo != null) {
-            String s = showTriangleInfo.sourcePointId + " to " + showTriangleInfo.targetPointId + " (" + showTriangleInfo.direction + ")";
-            Color textColor = Color.WHITE, background = new Color(0.0f, 0.0f, 0.0f, 0.75f);
-            FontMetrics fm = g.getFontMetrics();
-            Rectangle2D rect = fm.getStringBounds(s, g);
-            g.setColor(background);
-            g.fillRect(showTriangleInfo.mouseX, showTriangleInfo.mouseY - fm.getAscent(), (int) Math.round(rect.getWidth()), (int) Math.round(rect.getHeight()));
-            g.setColor(textColor);
-            g.drawString(s, showTriangleInfo.mouseX, showTriangleInfo.mouseY);
         }
 
         for (Point p : pointList) {
@@ -227,11 +223,23 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                     break;
             }
         }
-        g.setColor(Color.red);
 
+        if (showTriangleInfo != null) {
+            String s = showTriangleInfo.sourcePointId + " to " + showTriangleInfo.targetPointId + " (" + showTriangleInfo.direction + ")";
+            Color textColor = Color.WHITE, background = new Color(0.0f, 0.0f, 0.0f, 0.75f);
+            FontMetrics fm = g.getFontMetrics();
+            Rectangle2D rect = fm.getStringBounds(s, g);
+            g.setColor(background);
+            g.fillRect(showTriangleInfo.mouseX, showTriangleInfo.mouseY - fm.getAscent(), (int) Math.round(rect.getWidth()), (int) Math.round(rect.getHeight()));
+            g.setColor(textColor);
+            g.drawString(s, showTriangleInfo.mouseX, showTriangleInfo.mouseY);
+        }
+
+        g.setColor(Color.red);
         String s = "Add edge sequence: ";
-        for (Point p : selectedPointList)
-            s = s + p.getId() + " -> ";
+        if (selectedPointList.size() > 1) s = s + selectedPointList.get(0).getId();
+        for (int i = 1; i < selectedPointList.size(); i++)
+            s = s + " \u2794 " + selectedPointList.get(i).getId();
         g.drawString(s, 0, (int) Math.round(panelHeight - g.getFont().getSize() / 2));
     }
 
@@ -299,20 +307,35 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                 (boardHeight <= boardWidth) ? pointStandardRelativeSize : pointStandardRelativeSize * boardWidth / boardHeight);
         double dotSize = tempPoint.getPixelInformation().height;
 
-        for (int i = addPointGridRowSize; i < addPointGridGridHeight + addPointGridRowSize; i++) {
-            for (int j = 0; j < i; j++) {
-                double posX, posY, diff = (rightX - leftX) / (addPointGridGridHeight + addPointGridRowSize - 2);
+        if (addPointGridLastRow > addPointGridFirstRow) {
+            for (int i = addPointGridFirstRow; i <= addPointGridLastRow; i++) {
+                for (int j = 0; j < i; j++) {
+                    double posX, posY, diff = (rightX - leftX) / (addPointGridLastRow - 1);
 
-                posY = (addPointGridGridHeight == 1) ? (topY + bottomY) / 2 : topY + (bottomY - topY) / (addPointGridGridHeight - 1) * (i - addPointGridRowSize);
-                posX = (addPointGridGridHeight == 1 && addPointGridRowSize == 1) ?
-                        (leftX + rightX) / 2 :
-                        leftX + (rightX - leftX - diff * (i - 1)) / 2 + j * diff
-                ;
+                    posY = topY + (bottomY - topY) / (addPointGridLastRow - addPointGridFirstRow) * (i - addPointGridFirstRow);
+                    posX = leftX + diff * (addPointGridLastRow - i) / 2 + j * diff;
 
+                    list.add(new Point.InfoPack(posX, posY, dotSize, dotSize));
+                }
+            }
+        } else if (addPointGridFirstRow > addPointGridLastRow) {
+            for (int i = addPointGridFirstRow; i >= addPointGridLastRow; i--) {
+                for (int j = 0; j < i; j++) {
+                    double posX, posY, diff = (rightX - leftX) / (addPointGridFirstRow - 1);
+
+                    posY = topY + (bottomY - topY) / (addPointGridFirstRow - addPointGridLastRow) * (addPointGridFirstRow - i);
+                    posX = leftX + diff * (addPointGridFirstRow - i) / 2 + j * diff;
+
+                    list.add(new Point.InfoPack(posX, posY, dotSize, dotSize));
+                }
+            }
+        } else {
+            for (int i = 0; i < addPointGridFirstRow; i++) {
+                double posX = (addPointGridFirstRow == 1) ? (leftX + rightX) / 2 : leftX + (rightX - leftX) / (addPointGridFirstRow - 1) * i,
+                        posY = (topY + bottomY) / 2;
                 list.add(new Point.InfoPack(posX, posY, dotSize, dotSize));
             }
         }
-
         return list;
     }
 
@@ -450,16 +473,22 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
         return true;
     }
 
-    public boolean addTriGrid(int id, int firstRow, int height) {
+    public boolean addTriGrid(int id, int firstRow, int lastRow) {
         if (!verifyPointID(id)) return false;
         editingMode = EditingMode.TRI_GRID_ADDING;
-        addPointGridGridHeight = height;
-        addPointGridRowSize = firstRow;
+        addPointGridLastRow = lastRow;
+        addPointGridFirstRow = firstRow;
         addPointId = id;
         return true;
     }
 
     public void deletePoints() {
+        for (Point p : pointList) {
+            if (!selectedPointList.contains(p)) {
+                for (Point toBeRemove : selectedPointList)
+                    p.removeEdgePointPairs(toBeRemove);
+            }
+        }
         for (Point p : selectedPointList)
             pointList.remove(p);
         selectedPointList.clear();
@@ -565,6 +594,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 super.mousePressed(e);
+                requestFocus();
 
                 if (editingMode == EditingMode.RECT_GRID_ADDING || editingMode == EditingMode.TRI_GRID_ADDING) {
                     selectedPointList.clear();
@@ -577,22 +607,40 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                                     getCursorPointingAnchorOrientation(e.getX(), e.getY(), cursorPointingPoint) :
                                     null;
 
-                    if (cursorPointingPoint == null) {
-                        selectedPointList.clear();
-                    } else {
-                        editingMode = (orientation == null) ? EditingMode.TRANSLATION : EditingMode.SCALING;
-                        scaleReferencePoint = cursorPointingPoint;
-                        scaleOrientation = orientation;
+                    for (Point p : selectedPointList)
+                        selectedPointBackupList.add(p);
 
-                        if (!selectedPointList.contains(cursorPointingPoint)) {
-                            selectedPointList.clear();
-                            selectedPointList.add(cursorPointingPoint);
-                        } else {
-                            selectedPointList.remove(cursorPointingPoint);
-                            selectedPointList.add(cursorPointingPoint);
+                    if (controlMode) {
+                        if (cursorPointingPoint != null) {
+                            if (!controlModeSelectionList.contains(cursorPointingPoint))
+                                controlModeSelectionList.add(cursorPointingPoint);
+
+                            if (selectedPointList.contains(cursorPointingPoint))
+                                selectedPointList.remove(cursorPointingPoint);
+                            else
+                                selectedPointList.add(cursorPointingPoint);
+
+                            pointList.remove(cursorPointingPoint);
+                            pointList.add(cursorPointingPoint);
                         }
-                        pointList.remove(cursorPointingPoint);
-                        pointList.add(cursorPointingPoint);
+                    } else {
+                        if (cursorPointingPoint == null) {
+                            selectedPointList.clear();
+                        } else {
+                            editingMode = (orientation == null) ? EditingMode.TRANSLATION : EditingMode.SCALING;
+                            scaleReferencePoint = cursorPointingPoint;
+                            scaleOrientation = orientation;
+
+                            if (!selectedPointList.contains(cursorPointingPoint)) {
+                                selectedPointList.clear();
+                                selectedPointList.add(cursorPointingPoint);
+                            } else {
+                                selectedPointList.remove(cursorPointingPoint);
+                                selectedPointList.add(cursorPointingPoint);
+                            }
+                            pointList.remove(cursorPointingPoint);
+                            pointList.add(cursorPointingPoint);
+                        }
                     }
                 }
 
@@ -665,7 +713,8 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                             topY = (mouseStartY < e.getY()) ? mouseStartY : e.getY(),
                             bottomY = (mouseStartY > e.getY()) ? mouseStartY : e.getY();
 
-                    ArrayList<Point> tempList = new ArrayList<Point>();
+                    ArrayList<Point> toBeAddedList = new ArrayList<Point>();
+                    if (controlMode) selectedPointList.clear();
                     for (int i = pointList.size() - 1; i >= 0; i--) {
                         Point p = pointList.get(i);
                         Point.InfoPack infoPack = p.getPixelInformation();
@@ -679,20 +728,50 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                         if (infoPack.posY - infoPack.height / 2 > bottomY) bottomCount++;
                         if (infoPack.posY + infoPack.height / 2 > bottomY) bottomCount++;
 
-                        if (leftCount < 2 && topCount < 2 && bottomCount < 2 && rightCount < 2) {
-                            if (!selectedPointList.contains(p)) {
-                                tempList.add(p);
-                            }
-                        } else if (selectedPointList.contains(p)) selectedPointList.remove(p);
+
+                        if (controlMode) {
+                            if (leftCount < 2 && topCount < 2 && bottomCount < 2 && rightCount < 2) {
+                                if (!controlModeSelectionList.contains(p))
+                                    toBeAddedList.add(p);
+                            } else if (controlModeSelectionList.contains(p))
+                                controlModeSelectionList.remove(p);
+
+                        } else {
+                            if (leftCount < 2 && topCount < 2 && bottomCount < 2 && rightCount < 2) {
+                                if (!selectedPointList.contains(p))
+                                    toBeAddedList.add(p);
+                            } else if (selectedPointList.contains(p)) selectedPointList.remove(p);
+                        }
                     }
-                    for (int i = tempList.size() - 1; i >= 0; i--) {
-                        Point p = tempList.get(i);
-                        selectedPointList.add(p);
-                        pointList.remove(p);
-                        pointList.add(p);
+                    if (controlMode) {
+                        selectedPointList.clear();
+                        for (int i = toBeAddedList.size() - 1; i >= 0; i--) {
+                            Point p = toBeAddedList.get(i);
+                            if (!controlModeSelectionList.contains(p))controlModeSelectionList.add(p);
+                        }
+                        for (Point p : selectedPointBackupList) {
+                            if (!controlModeSelectionList.contains(p)) selectedPointList.add(p);
+                        }
+                        for (Point p : controlModeSelectionList) {
+                            if (!selectedPointBackupList.contains(p))
+                                selectedPointList.add(p);
+                        }
+                        for (Point p : selectedPointList) {
+                            pointList.remove(p);
+                            pointList.add(p);
+                        }
+
+                    } else {
+                        for (int i = toBeAddedList.size() - 1; i >= 0; i--) {
+                            Point p = toBeAddedList.get(i);
+                            selectedPointList.add(p);
+                            pointList.remove(p);
+                            pointList.add(p);
+                        }
                     }
-                    tempList.clear();
+                    toBeAddedList.clear();
                 }
+
                 mouseLastX = e.getX();
                 mouseLastY = e.getY();
                 UIHandler.refreshWindow();
@@ -704,6 +783,10 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
 
                 EdgeTriangleInfo triangleInfo = showTriangleInfo;
                 showTriangleInfo = null;
+                if (controlMode) {
+                    setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                    return;
+                }
                 if (editingMode == EditingMode.RECT_GRID_ADDING || editingMode == EditingMode.TRI_GRID_ADDING) {
                     setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
                     if (triangleInfo != showTriangleInfo) UIHandler.refreshWindow();
@@ -819,24 +902,53 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                     }
 
                     int pointIndex = 0;
-                    for (int i = addPointGridRowSize; i < addPointGridRowSize + addPointGridGridHeight; i++) {
-                        for (int j = 0; j < i; j++) {
-                            if (j > 0) {
-                                selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_180", selectedPointList.get(pointIndex - 1));
-                                if (i > addPointGridRowSize)
-                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_120", selectedPointList.get(pointIndex - i));
+                    if (addPointGridLastRow > addPointGridFirstRow) {
+                        for (int i = addPointGridFirstRow; i <= addPointGridLastRow; i++) {
+                            for (int j = 0; j < i; j++) {
+                                if (j > 0) {
+                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_180", selectedPointList.get(pointIndex - 1));
+                                    if (i > addPointGridFirstRow)
+                                        selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_120", selectedPointList.get(pointIndex - i));
 
+                                }
+                                if (j < i - 1) {
+                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_0", selectedPointList.get(pointIndex + 1));
+                                    if (i > addPointGridFirstRow)
+                                        selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_60", selectedPointList.get(pointIndex - i + 1));
+                                }
+                                if (i < addPointGridLastRow) {
+                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_240", selectedPointList.get(pointIndex + i));
+                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_300", selectedPointList.get(pointIndex + +i + 1));
+                                }
+                                pointIndex++;
                             }
-                            if (j < i - 1) {
-                                selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_0", selectedPointList.get(pointIndex + 1));
-                                if (i > addPointGridRowSize)
-                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_60", selectedPointList.get(pointIndex - i + 1));
+                        }
+                    } else if (addPointGridFirstRow > addPointGridLastRow) {
+                        for (int i = addPointGridFirstRow; i >= addPointGridLastRow; i--) {
+                            for (int j = 0; j < i; j++) {
+                                if (j > 0) {
+                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_180", selectedPointList.get(pointIndex - 1));
+                                    if (i > addPointGridLastRow)
+                                        selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_240", selectedPointList.get(pointIndex + i - 1));
+                                }
+                                if (j < i - 1) {
+                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_0", selectedPointList.get(pointIndex + 1));
+                                    if (i > addPointGridLastRow)
+                                        selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_300", selectedPointList.get(pointIndex + i));
+                                }
+                                if (i < addPointGridFirstRow) {
+                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_120", selectedPointList.get(pointIndex - i - 1));
+                                    selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_60", selectedPointList.get(pointIndex - i));
+                                }
+                                pointIndex++;
                             }
-                            if (i < addPointGridRowSize + addPointGridGridHeight - 1) {
-                                selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_240", selectedPointList.get(pointIndex + i));
-                                selectedPointList.get(pointIndex).addEdgePointPairs("ANGLE_300", selectedPointList.get(pointIndex + +i + 1));
-                            }
-                            pointIndex++;
+                        }
+                    } else {
+                        for (int i = 0; i < selectedPointList.size(); i++) {
+                            if (i > 0)
+                                selectedPointList.get(i).addEdgePointPairs("ANGLE_180", selectedPointList.get(i - 1));
+                            if (i < selectedPointList.size() - 1)
+                                selectedPointList.get(i).addEdgePointPairs("ANGLE_0", selectedPointList.get(i + 1));
                         }
                     }
 
@@ -854,8 +966,55 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                         y = (y > ChessBoardGraphicAreaPanel.this.getHeight() ? ChessBoardGraphicAreaPanel.this.getHeight() : y);
                         p.setSizeByPixel(x, y, infoPack.width, infoPack.height);
                     }
+                } else if (editingMode == EditingMode.SELECTING) {
+                    controlModeSelectionList.clear();
+                    selectedPointBackupList.clear();
                 }
                 UIHandler.refreshWindow();
+            }
+        };
+    }
+
+    public KeyAdapter createKeyAdapter() {
+        return new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyPressed(e);
+                switch (e.getKeyCode()) {
+                    case 17:
+                        if (!controlMode)
+                            selectedPointBackupList.clear();
+
+                        controlMode = true;
+                        break;
+                    case 65:
+                        parent.addPointAction();
+                        break;
+                    case 67:
+                        parent.copyAndPastePointButtonAction();
+                        break;
+                    case 68:
+                        parent.deletePointButtonAction();
+                        break;
+                    case 69:
+                        parent.createEdgeForPointsButtonAction();
+                        break;
+                    case 82:
+                        parent.deleteEdgeForPointsButtonAction();
+                        break;
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e);
+                switch (e.getKeyCode()) {
+                    case 17:
+                        controlMode = false;
+                        controlModeSelectionList.clear();
+                        break;
+
+                }
             }
         };
     }
@@ -893,5 +1052,75 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
         for (Point p : pointList)
             if (p.getId() == id) return false;
         return true;
+    }
+
+    public void copyAndPasteSelectedPoint() {
+        ArrayList<Point> copyList = new ArrayList<Point>();
+        double minX = 1, minY = 1, maxX = 0, maxY = 0;
+        for (Point p : selectedPointList) {
+            p.getPixelInformation();
+            Point np = new Point(this, addPointId);
+            Point.InfoPack infoPack = p.getRelativeInformation();
+            np.setSizeByRelative(infoPack.posX + 0.05, infoPack.posY + 0.05, infoPack.width, infoPack.height);
+
+            if (infoPack.posX + 0.05 < minX) minX = infoPack.posX + 0.05;
+            if (infoPack.posX + 0.05 > maxX) maxX = infoPack.posX + 0.05;
+            if (infoPack.posY + 0.05 < minY) minY = infoPack.posY + 0.05;
+            if (infoPack.posY + 0.05 > maxY) maxY = infoPack.posY + 0.05;
+
+            copyList.add(np);
+            addPointId = getNextUsableId();
+        }
+
+        if (maxX > 1 || maxY > 1) {
+            for (Point p : copyList) {
+                Point.InfoPack infoPack = p.getRelativeInformation();
+                p.setSizeByRelative(infoPack.posX - minX + 0.05, infoPack.posY - minY + 0.05, infoPack.width, infoPack.height);
+            }
+        }
+
+        for (int i = 0; i < selectedPointList.size(); i++) {
+            Point p = selectedPointList.get(i);
+            for (Point.EdgePointPair edgePointPair : p.getAllEdgePointPair()) {
+                int tar;
+                for (tar = 0; tar < selectedPointList.size(); tar++) {
+                    if (edgePointPair.targetPoint == selectedPointList.get(tar)) break;
+                }
+                copyList.get(i).addEdgePointPairs(edgePointPair.direction, copyList.get(tar));
+            }
+        }
+
+        for (Point p : copyList)
+            pointList.add(p);
+
+        selectedPointList = copyList;
+        parent.setNextPointIdField(addPointId);
+        UIHandler.refreshWindow();
+    }
+
+    public void createEdgesForSelectedPoints(String direction) {
+        String msg = "<html>";
+        for (int i = 0; i < selectedPointList.size(); i++) {
+            msg = msg + selectedPointList.get(i).getId();
+            if (i < selectedPointList.size() - 1) msg = msg + " \u2794 ";
+            else msg = msg + "</html>";
+            if (i % 10 == 9) msg = msg + "<br>";
+        }
+
+        int result = JOptionPane.showConfirmDialog(UIHandler.getMainWindow(),
+                "<html><center>Are you sure to add edge with direction " + direction + " for points in the following order?<br>"
+                        + msg + "</html>", "Add edge for points - Chreator", JOptionPane.YES_NO_OPTION);
+        if (result == JOptionPane.YES_OPTION) {
+            for (int i = 0; i < selectedPointList.size() - 1; i++)
+                selectedPointList.get(i).addEdgePointPairs(direction, selectedPointList.get(i + 1));
+            UIHandler.refreshWindow();
+        }
+    }
+
+    public void deleteEdgesForSelectedPoints() {
+        for (Point p1 : selectedPointList)
+            for (Point p2 : selectedPointList)
+                if (p1 != p2) p1.removeEdgePointPairs(p2);
+        UIHandler.refreshWindow();
     }
 }
