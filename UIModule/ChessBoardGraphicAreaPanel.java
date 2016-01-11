@@ -134,7 +134,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
             else g.drawImage(boardImage, 0, 0, panelWidth, panelHeight, null);
         }
 
-        g.setColor(new Color(1.0f, 0.0f, 0.0f, 0.5f));
+        g.setColor(Color.RED);
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(3.0f));
         for (Point p : pointList) {
@@ -1086,6 +1086,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                 for (tar = 0; tar < selectedPointList.size(); tar++) {
                     if (edgePointPair.targetPoint == selectedPointList.get(tar)) break;
                 }
+                if (tar < copyList.size())
                 copyList.get(i).addEdgePointPairs(edgePointPair.direction, copyList.get(tar));
             }
         }
