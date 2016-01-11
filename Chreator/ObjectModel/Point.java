@@ -134,14 +134,16 @@ public class Point {
     }
 
     public void removeEdgePointPairs(String dir) {
-        for (EdgePointPair edgePointPair : edges) {
+        for (int i = edges.size() - 1; i >= 0; i--) {
+            EdgePointPair edgePointPair = edges.get(i);
             if (edgePointPair.direction.equals(dir))
                 edges.remove(edgePointPair);
         }
     }
 
     public void removeEdgePointPairs(Point p) {
-        for (EdgePointPair edgePointPair : edges) {
+        for (int i = edges.size() - 1; i >= 0; i--) {
+            EdgePointPair edgePointPair = edges.get(i);
             if (edgePointPair.targetPoint.equals(p))
                 edges.remove(edgePointPair);
         }
