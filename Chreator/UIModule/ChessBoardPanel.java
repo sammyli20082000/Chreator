@@ -123,7 +123,6 @@ public class ChessBoardPanel extends JPanel {
             public void mouseEntered(MouseEvent e) {
                 super.mouseEntered(e);
                 defaultInitialDelay = ToolTipManager.sharedInstance().getInitialDelay();
-                System.out.println(defaultInitialDelay);
                 ToolTipManager.sharedInstance().setInitialDelay(0);
             }
 

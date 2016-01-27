@@ -1,7 +1,7 @@
 package Chreator.UIModule;
 
-import javax.swing.JEditorPane;
+import javax.swing.JTextPane;
 
-public class SimpleCodeEditor extends JEditorPane{
+public class SimpleCodeEditor extends JTextPane{
 
 }

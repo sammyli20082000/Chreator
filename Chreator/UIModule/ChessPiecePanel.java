@@ -4,9 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -24,8 +26,11 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
+
 
 /**
  * Created by him on 2015/12/20.
@@ -37,7 +42,7 @@ public class ChessPiecePanel extends JPanel {
 
     public static String tabName = "Chess Piece";
     private EventCallback callback;
-    private JPanel chessContentHolderPanel, chessListAndPreviewPanel;
+    private JPanel pieceContentHolderPanel, pieceListAndPreviewPanel, pieceInfoSettingPanel, codeInserterPanel;
     private JPanel previewImagePanel;
     private int componentCounter = 0;
     private Dimension previewImagePanelSize = new Dimension(200, 200);
@@ -46,8 +51,13 @@ public class ChessPiecePanel extends JPanel {
     private String previewImageName;
     private String browseDir;
     private File imageFile;
-    private JList playerSideList, chessPieceList;
-    private JButton addChessPieceButton, addPlayerSideButton, deleteChessPieceButton, deletePlayerSideButton;
+    private JList playerSideList, chessPieceList, piecePlayerSideList, pieceInitialPointIdList;
+    private JButton addChessPieceButton, addPlayerSideButton, deleteChessPieceButton, deletePlayerSideButton,
+            setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton;
+    private JTextField pieceClassNameTextField, pieceColorGreenTextField, pieceColorBlueTextField, pieceColorRedTextField,
+            piecePicHeightTextField, piecePicWidthTextField;
+    private SimpleCodeEditor codeEditor;
+    private JLabel piecePlayerSideLabel;
 
     public ChessPiecePanel(EventCallback eventCallback) {
         callback = eventCallback;
@@ -56,17 +66,20 @@ public class ChessPiecePanel extends JPanel {
 
     private void setupLayout() {
         setLayout(new BorderLayout());
-        chessContentHolderPanel = new JPanel(new GridBagLayout());
-        chessListAndPreviewPanel = new JPanel(new GridBagLayout());
-        chessListAndPreviewPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-        chessListAndPreviewPanel.setBackground(Color.lightGray);
+        pieceContentHolderPanel = new JPanel(new BorderLayout());
+        pieceListAndPreviewPanel = new JPanel(new GridBagLayout());
+        pieceListAndPreviewPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+        pieceListAndPreviewPanel.setBackground(Color.lightGray);
 
         prepareChessListAndPreviewPanel();
         prepareChessContentHolderPanel();
         setupComponentEventListeners();
 
-        add(chessContentHolderPanel, BorderLayout.CENTER);
-        add(chessListAndPreviewPanel, BorderLayout.LINE_START);
+        pieceInfoSettingPanel.setBorder(BorderFactory.createRaisedBevelBorder());
+        codeEditor.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+
+        add(pieceContentHolderPanel, BorderLayout.CENTER);
+        add(pieceListAndPreviewPanel, BorderLayout.LINE_START);
     }
 
     private void setupComponentEventListeners() {
@@ -103,22 +116,160 @@ public class ChessPiecePanel extends JPanel {
         deletePlayerSideButton.addActionListener(createJButtonActionListener(deletePlayerSideButton));
         deleteChessPieceButton.addActionListener(createJButtonActionListener(deleteChessPieceButton));
 
-        addToPanel(chessListAndPreviewPanel, new JLabel("Selected Chess Piece Image Preview"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        addToPanel(chessListAndPreviewPanel, previewImagePanel);
+        addToPanel(pieceListAndPreviewPanel, new JLabel("Selected Chess Piece Image Preview"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanel(pieceListAndPreviewPanel, previewImagePanel);
 
-        addToPanel(chessListAndPreviewPanel, new JLabel("<html><br>All Chess Piece</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        addToPanelFillRemaining(chessListAndPreviewPanel, new JScrollPane(chessPieceList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
-        addToPanel(chessListAndPreviewPanel, addChessPieceButton);
-        addToPanel(chessListAndPreviewPanel, deleteChessPieceButton);
+        addToPanel(pieceListAndPreviewPanel, new JLabel("<html><br>All Player Side</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanel(pieceListAndPreviewPanel, new JScrollPane(playerSideList), GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+        addToPanel(pieceListAndPreviewPanel, addPlayerSideButton);
+        addToPanel(pieceListAndPreviewPanel, deletePlayerSideButton);
 
-        addToPanel(chessListAndPreviewPanel, new JLabel("<html><br>All Player Side</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        addToPanel(chessListAndPreviewPanel, new JScrollPane(playerSideList), GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
-        addToPanel(chessListAndPreviewPanel, addPlayerSideButton);
-        addToPanel(chessListAndPreviewPanel, deletePlayerSideButton);
+        addToPanel(pieceListAndPreviewPanel, new JLabel("<html><br>All Chess Piece</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanelFillRemaining(pieceListAndPreviewPanel, new JScrollPane(chessPieceList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+        addToPanel(pieceListAndPreviewPanel, addChessPieceButton);
+        addToPanel(pieceListAndPreviewPanel, deleteChessPieceButton);
     }
 
     private void prepareChessContentHolderPanel() {
+        pieceInfoSettingPanel = new JPanel(new GridBagLayout());
+        codeInserterPanel = new JPanel(new GridBagLayout());
+        codeEditor = new SimpleCodeEditor();
 
+        prepareChessInfoSettingPanel();
+        prepareCodeInserterPanel();
+
+        pieceContentHolderPanel.add(pieceInfoSettingPanel, BorderLayout.PAGE_START);
+        pieceContentHolderPanel.add(codeInserterPanel, BorderLayout.LINE_END);
+        pieceContentHolderPanel.add(codeEditor, BorderLayout.CENTER);
+    }
+
+    private void prepareCodeInserterPanel() {
+        componentCounter = 0;
+        addToPanel(codeInserterPanel, new JLabel("Insert functional code:"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanel(codeInserterPanel, createInserterRow(new JButton("Function 1"), "Test description for function 1"));
+        addToPanel(codeInserterPanel, createInserterRow(new JButton("Function 2"), "Test description for function 2"));
+
+        addToPanelFillRemaining(codeInserterPanel, new JLabel(" "), GridBagConstraints.CENTER, GridBagConstraints.VERTICAL);
+    }
+
+    private JPanel createInserterRow(JButton jb, String msg) {
+        JPanel jp = new JPanel(new BorderLayout());
+        JLabel jl = new JLabel("  ?  ");
+        jl.setToolTipText(msg);
+        jl.setOpaque(true);
+        jl.setBackground(jl.getForeground());
+        jl.setForeground(jp.getBackground());
+        jl.addMouseListener(new MouseAdapter() {
+            int showBackupTime, dismissBackupTime;
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                super.mouseEntered(e);
+                showBackupTime = ToolTipManager.sharedInstance().getInitialDelay();
+                dismissBackupTime = ToolTipManager.sharedInstance().getDismissDelay();
+                ToolTipManager.sharedInstance().setInitialDelay(0);
+                ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                super.mouseExited(e);
+                ToolTipManager.sharedInstance().setInitialDelay(showBackupTime);
+                ToolTipManager.sharedInstance().setDismissDelay(dismissBackupTime);
+            }
+        });
+
+        jp.add(jb, BorderLayout.CENTER);
+        jp.add(jl, BorderLayout.LINE_END);
+        return jp;
+    }
+
+    private void prepareChessInfoSettingPanel() {
+        JPanel container;
+        pieceInitialPointIdList = new JList(new DefaultListModel<String>());
+        piecePlayerSideList = new JList(new DefaultListModel<String>());
+        GridBagConstraints c = new GridBagConstraints();
+        setPieceSizeButton = new JButton("Piece set size");
+        addInitialPointIdButton = new JButton("Add Point ID");
+        deleteInitialPointIdButton = new JButton("Delete Point ID");
+        pieceClassNameTextField = new JTextField();
+        pieceColorRedTextField = new JTextField();
+        pieceColorGreenTextField = new JTextField();
+        pieceColorBlueTextField = new JTextField();
+        piecePicHeightTextField = new JTextField();
+        piecePicWidthTextField = new JTextField();
+        piecePlayerSideLabel = new JLabel();
+
+        pieceInitialPointIdList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        piecePlayerSideList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        pieceInitialPointIdList.setFixedCellWidth(1);
+        piecePlayerSideList.setFixedCellWidth(1);
+        pieceColorRedTextField.setColumns(3);
+        pieceColorBlueTextField.setColumns(3);
+        pieceColorGreenTextField.setColumns(3);
+        piecePicHeightTextField.setColumns(15);
+        piecePicWidthTextField.setColumns(15);
+
+        container = new JPanel(new GridBagLayout());
+        componentCounter = 0;
+        addToPanel(container, new JLabel("Piece Name"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        addToPanel(container, pieceClassNameTextField, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL);
+        addToPanel(container, new JLabel("Piece Color (if no piece image)"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+
+        JPanel temp = new JPanel(new FlowLayout());
+        temp.add(new JLabel("R(0~255):"));
+        temp.add(pieceColorRedTextField);
+        temp.add(new JLabel("    G(0~255):"));
+        temp.add(pieceColorGreenTextField);
+        temp.add(new JLabel("    B(0~255):"));
+        temp.add(pieceColorBlueTextField);
+        addToPanel(container, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        addToPanel(container, new JLabel("Piece Size"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+
+        temp = new JPanel(new FlowLayout());
+        temp.add(new JLabel("Width(0~1): "));
+        temp.add(piecePicWidthTextField);
+        addToPanel(container, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+
+        temp = new JPanel(new FlowLayout());
+        temp.add(new JLabel("Height(0~1):"));
+        temp.add(piecePicHeightTextField);
+        addToPanel(container, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+
+        addToPanel(container, setPieceSizeButton, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+
+        c.gridx = 0;
+        c.gridy = 0;
+        c.insets = new Insets(5, 5, 5, 5);
+        c.weightx = 0;
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        pieceInfoSettingPanel.add(container, c);
+
+        container = new JPanel(new GridBagLayout());
+        componentCounter = 0;
+        addToPanel(container, new JLabel("Initial Piece Placing Point ID"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanel(container, new JScrollPane(pieceInitialPointIdList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+        addToPanel(container, addInitialPointIdButton, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+        addToPanel(container, deleteInitialPointIdButton, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+
+        c.gridx++;
+        c.weightx = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        pieceInfoSettingPanel.add(container, c);
+
+        container = new JPanel(new GridBagLayout());
+        componentCounter = 0;
+        piecePlayerSideLabel = new JLabel("");
+        addToPanel(container, new JLabel("Profile for player side"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanel(container, new JScrollPane(piecePlayerSideList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+        addToPanel(container, new JLabel("<html>Current profile is editing<br>for player side:</html>"));
+        addToPanel(container, piecePlayerSideLabel, GridBagConstraints.CENTER, GridBagConstraints.NONE);
+
+        c.gridx++;
+        c.weightx = 1.0;
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        c.fill = GridBagConstraints.NONE;
+        pieceInfoSettingPanel.add(container, c);
     }
 
     private void addToPanelFillRemaining(JPanel jp, Component component, int anchor, int fill) {
@@ -151,7 +302,7 @@ public class ChessPiecePanel extends JPanel {
         componentCounter++;
     }
 
-    private MouseAdapter createJPanelMouseListener(JPanel jp) {
+    private MouseAdapter createJPanelMouseListener(final JPanel jp) {
         if (jp == previewImagePanel)
             return new MouseAdapter() {
                 @Override
