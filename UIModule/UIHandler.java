@@ -7,12 +7,16 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
+
+import Chreator.ObjectModel.Point;
 
 /**
  * Created by him on 2015/12/20.
@@ -98,5 +102,21 @@ public class UIHandler {
     public static JFrame getMainWindow(){
         if (uiHandler !=null) return uiHandler.mainWindow;
         else return null;
+    }
+
+    public static String showVariableInputDialog(String title, String majorMessage, String minorMessage) {
+        String s;
+        do {
+            s = JOptionPane.showInputDialog(UIHandler.getMainWindow(), "<html><center>" + majorMessage + "<br>" +
+                    "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
+                    "Name cannot start with arabic numerals.<br>" + minorMessage + "</html>", title, JOptionPane.QUESTION_MESSAGE);
+            if (s == null) return null;
+            if (s.matches("^[A-Za-z0-9_$]+$") && !((s.charAt(0) + "").matches("[0-9]")))
+                break;
+            JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "<html><center>Input error.<br>" +
+                    "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
+                    "Name cannot start with arabic numerals.</html>", "ERROR - " + title, JOptionPane.ERROR_MESSAGE);
+        } while (true);
+        return s;
     }
 }
