@@ -32,9 +32,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import Chreator.ObjectModel.PieceProfile;
-
 
 /**
  * Created by him on 2015/12/20.
@@ -55,7 +56,7 @@ public class ChessPiecePanel extends JPanel {
     private String previewImageName;
     private String browseDir;
     private File imageFile;
-    private JList playerSideList, chessPieceList, pieceInitialPointIdList;
+    private JList playerSideList, pieceClassNameList, pieceInitialPointIdList;
     private JButton addChessPieceButton, addPlayerSideButton, deleteChessPieceButton, deletePlayerSideButton,
             setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton, deletePiecePicButton;
     private JTextField pieceColorGreenTextField, pieceColorBlueTextField, pieceColorRedTextField,
@@ -107,13 +108,15 @@ public class ChessPiecePanel extends JPanel {
         previewImagePanel.setBackground(Color.lightGray);
         previewImagePanel.setBorder(BorderFactory.createRaisedBevelBorder());
 
-        chessPieceList = new JList(new DefaultListModel<String>());
-        chessPieceList.setFixedCellWidth(1);
-        chessPieceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        pieceClassNameList = new JList(new DefaultListModel<String>());
+        pieceClassNameList.setFixedCellWidth(1);
+        pieceClassNameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        pieceClassNameList.addListSelectionListener(createListSelectionListener(pieceClassNameList));
 
         playerSideList = new JList(new DefaultListModel<String>());
         playerSideList.setFixedCellWidth(1);
         playerSideList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        playerSideList.addListSelectionListener(createListSelectionListener(playerSideList));
 
         addChessPieceButton = new JButton("Add Chess Piece");
         addPlayerSideButton = new JButton("Add Player Side");
@@ -137,7 +140,7 @@ public class ChessPiecePanel extends JPanel {
         addToPanel(pieceListAndPreviewPanel, deletePlayerSideButton);
 
         addToPanel(pieceListAndPreviewPanel, new JLabel("<html><br>All Chess Piece</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        addToPanelFillRemaining(pieceListAndPreviewPanel, new JScrollPane(chessPieceList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+        addToPanelFillRemaining(pieceListAndPreviewPanel, new JScrollPane(pieceClassNameList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
         addToPanel(pieceListAndPreviewPanel, addChessPieceButton);
         addToPanel(pieceListAndPreviewPanel, deleteChessPieceButton);
     }
@@ -397,6 +400,17 @@ public class ChessPiecePanel extends JPanel {
             return null;
     }
 
+    private ListSelectionListener createListSelectionListener(JList list) {
+        if (list == playerSideList || list == pieceClassNameList)
+            return new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    applySelectedProfile();
+                }
+            };
+        return null;
+    }
+
     private void removePiecePic() {
         previewImage = null;
         UIHandler.refreshWindow();
@@ -434,6 +448,10 @@ public class ChessPiecePanel extends JPanel {
         }
         listModel.addElement(playerSide);
         playerSideList.setSelectedIndex(listModel.getSize() - 1);
+        for (int i = 0; i < pieceClassNameList.getModel().getSize(); i++) {
+            String className = ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(i);
+            addToPieceProfileList(playerSide, className);
+        }
     }
 
     public void removePlayerSideFromList() {
@@ -441,44 +459,91 @@ public class ChessPiecePanel extends JPanel {
 
         if (selectedIndices.length > 0) {
             DefaultListModel<String> listModel = (DefaultListModel<String>) playerSideList.getModel();
-            for (int i = selectedIndices.length - 1; i >= 0; i--)
+            for (int i = selectedIndices.length - 1; i >= 0; i--) {
+                for (int j = pieceProfiles.size() - 1; j >= 0; j--)
+                    if (pieceProfiles.get(j).playerSide.equals(listModel.getElementAt(selectedIndices[i])))
+                        pieceProfiles.remove(j);
                 listModel.remove(selectedIndices[i]);
+            }
 
             if (listModel.size() > 0)
                 playerSideList.setSelectedIndex(listModel.size() - 1);
         }
     }
 
-    public void addChessPieceToList(String chessPiece) {
-        DefaultListModel<String> listModel = (DefaultListModel<String>) chessPieceList.getModel();
+    public void addChessPieceToList(String pieceClassName) {
+        DefaultListModel<String> listModel = (DefaultListModel<String>) pieceClassNameList.getModel();
         for (int i = 0; i < listModel.size(); i++) {
             String s = listModel.getElementAt(i);
-            if (s.equals(chessPiece)) return;
+            if (s.equals(pieceClassName)) return;
         }
-        listModel.addElement(chessPiece);
-        chessPieceList.setSelectedIndex(listModel.size() - 1);
+        listModel.addElement(pieceClassName);
+        pieceClassNameList.setSelectedIndex(listModel.size() - 1);
+        for (int i = 0; i < playerSideList.getModel().getSize(); i++) {
+            String playerSide = ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(i);
+            addToPieceProfileList(playerSide, pieceClassName);
+        }
     }
 
     public void removeChessPieceFromList() {
-        int[] selectedIndices = chessPieceList.getSelectedIndices();
-
-        if (playerSideList.getSelectedIndices().length > 0 && playerSideList.getSelectedIndices().length > 0) {
-            String playerSide = (String) playerSideList.getModel().getElementAt(playerSideList.getSelectedIndices()[0]),
-                    pieceName = (String) chessPieceList.getModel().getElementAt(chessPieceList.getSelectedIndices()[0]);
-            System.out.println(playerSide + " " + pieceName);
-        }
+        int[] selectedIndices = pieceClassNameList.getSelectedIndices();
 
         if (selectedIndices.length > 0) {
-            DefaultListModel<String> listModel = (DefaultListModel<String>) chessPieceList.getModel();
-            for (int i = selectedIndices.length - 1; i >= 0; i--)
+            DefaultListModel<String> listModel = (DefaultListModel<String>) pieceClassNameList.getModel();
+            for (int i = selectedIndices.length - 1; i >= 0; i--) {
+                for (int j = pieceProfiles.size() - 1; j >= 0; j--)
+                    if (pieceProfiles.get(j).pieceClassName.equals(listModel.getElementAt(selectedIndices[i])))
+                        pieceProfiles.remove(j);
                 listModel.remove(selectedIndices[i]);
+            }
 
             if (listModel.size() > 0)
-                chessPieceList.setSelectedIndex(listModel.size() - 1);
+                pieceClassNameList.setSelectedIndex(listModel.size() - 1);
         }
     }
 
     public ArrayList<PieceProfile> getPieceProfiles() {
         return pieceProfiles;
+    }
+
+    public void setPieceProfiles(ArrayList<PieceProfile> profiles) {
+        pieceProfiles = profiles;
+        ((DefaultListModel<String>) playerSideList.getModel()).clear();
+        ((DefaultListModel<String>) pieceClassNameList.getModel()).clear();
+        for (PieceProfile profile : pieceProfiles) {
+            addPlayerSideToList(profile.playerSide);
+            addChessPieceToList(profile.pieceClassName);
+        }
+    }
+
+    public PieceProfile addToPieceProfileList(String playerSide, String pieceClassName) {
+        for (PieceProfile profile : pieceProfiles)
+            if (profile.playerSide.equals(playerSide) && profile.pieceClassName.equals(pieceClassName))
+                return null;
+        PieceProfile profile = new PieceProfile(playerSide, pieceClassName);
+        pieceProfiles.add(profile);
+        return profile;
+    }
+
+    public PieceProfile getPieceProfile(String playerSide, String className) {
+        for (PieceProfile profile : pieceProfiles)
+            if (profile.playerSide.equals(playerSide) && profile.pieceClassName.equals(className))
+                return profile;
+        return addToPieceProfileList(playerSide, className);
+    }
+
+    private void applySelectedProfile() {
+        if (playerSideList.getModel().getSize() == 0
+                || pieceClassNameList.getModel().getSize() == 0
+                || playerSideList.getSelectedIndices().length == 0
+                || pieceClassNameList.getSelectedIndices().length == 0) {
+            pieceClassNameLabel.setText("Piece Name: ");
+        } else {
+            PieceProfile profile = getPieceProfile(
+                    ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(playerSideList.getSelectedIndices()[0]),
+                    ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(pieceClassNameList.getSelectedIndices()[0])
+            );
+            pieceClassNameLabel.setText("Piece Name: " + profile.pieceClassName + " @ " + profile.playerSide + " side");
+        }
     }
 }
