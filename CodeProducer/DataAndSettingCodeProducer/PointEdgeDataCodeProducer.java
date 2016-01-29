@@ -38,7 +38,7 @@ public class PointEdgeDataCodeProducer {
 	}
 
 	private void printPointEdgeRelationsCode() {
-
+		
 		int i = DataAndSettingCodeProducer.DataAndSettingCodes
 				.indexOf("public static PointEdgePackage[] pointEdgeRelations");
 

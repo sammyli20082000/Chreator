@@ -7,12 +7,15 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
+
+import Chreator.ObjectModel.Point;
 
 /**
  * Created by him on 2015/12/20.
@@ -98,5 +101,9 @@ public class UIHandler {
     public static JFrame getMainWindow(){
         if (uiHandler !=null) return uiHandler.mainWindow;
         else return null;
+    }
+    
+    public ArrayList<Point> getPointList() {
+    	return chessBoardPanel.getPointList();
     }
 }

@@ -1124,4 +1124,8 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                 if (p1 != p2) p1.removeEdgePointPairs(p2);
         UIHandler.refreshWindow();
     }
+
+	public ArrayList<Point> getPointList() {
+		return pointList;
+	}
 }

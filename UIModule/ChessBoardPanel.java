@@ -36,6 +36,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import Chreator.ObjectModel.Point;
+
 /**
  * Created by him on 2015/12/20.
  */
@@ -690,4 +692,8 @@ public class ChessBoardPanel extends JPanel {
     public void deleteEdgeForPointsButtonAction(){
         graphicAreaPanel.deleteEdgesForSelectedPoints();
     }
+
+	public ArrayList<Point> getPointList() {
+		return graphicAreaPanel.getPointList();
+	}
 }
