@@ -10,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.ToolTipManager;
@@ -105,5 +106,21 @@ public class UIHandler {
     
     public ArrayList<Point> getPointList() {
     	return chessBoardPanel.getPointList();
+    }
+
+    public static String showVariableInputDialog(String title, String majorMessage, String minorMessage) {
+        String s;
+        do {
+            s = JOptionPane.showInputDialog(UIHandler.getMainWindow(), "<html><center>" + majorMessage + "<br>" +
+                    "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
+                    "Name cannot start with arabic numerals.<br>" + minorMessage + "</html>", title, JOptionPane.QUESTION_MESSAGE);
+            if (s == null) return null;
+            if (s.matches("^[A-Za-z0-9_$]+$") && !((s.charAt(0) + "").matches("[0-9]")))
+                break;
+            JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "<html><center>Input error.<br>" +
+                    "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
+                    "Name cannot start with arabic numerals.</html>", "ERROR - " + title, JOptionPane.ERROR_MESSAGE);
+        } while (true);
+        return s;
     }
 }

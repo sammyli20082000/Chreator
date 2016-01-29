@@ -465,19 +465,10 @@ public class ChessBoardPanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String s;
-                    do {
-                        s = JOptionPane.showInputDialog(UIHandler.getMainWindow(), "<html><center>Enter the name of new edge direction.<br>" +
-                                "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
-                                "Name cannot start with arabic numerals. The result name will be automatically capitalized.", "New edge direction", JOptionPane.QUESTION_MESSAGE);
-                        if (s == null) return;
-                        if (s.matches("^[A-Za-z0-9_$]+$") && !((s.charAt(0) + "").matches("[0-9]")))
-                            break;
-                        JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "<html><center>Input error.<br>" +
-                                "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
-                                "Name cannot start with arabic numerals. The result name will be automatically capitalized.", "ERROR - New edge direction", JOptionPane.ERROR_MESSAGE);
-                    } while (true);
-                    addEdgeDirection(s);
+                    String result = UIHandler.showVariableInputDialog("New edge direction - Chreator",
+                            "Enter the name of new edge direction.",
+                            "The result name will be automatically capitalized.");
+                    if (result != null) addEdgeDirection(result);
                 }
             };
         else if (jb == deleteDirectionButton)
@@ -689,7 +680,7 @@ public class ChessBoardPanel extends JPanel {
             JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "No selected edge direction.", "Error - Chreator", JOptionPane.ERROR_MESSAGE);
     }
 
-    public void deleteEdgeForPointsButtonAction(){
+    public void deleteEdgeForPointsButtonAction() {
         graphicAreaPanel.deleteEdgesForSelectedPoints();
     }
 

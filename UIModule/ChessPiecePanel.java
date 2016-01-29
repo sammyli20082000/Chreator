@@ -15,6 +15,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -28,8 +29,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
+
+import Chreator.ObjectModel.PieceProfile;
 
 
 /**
@@ -41,9 +45,9 @@ public class ChessPiecePanel extends JPanel {
     }
 
     public static String tabName = "Chess Piece";
+    public static double sharedPieceHeight = 0.1, sharedPieceWidth = 0.1;
     private EventCallback callback;
-    private JPanel pieceContentHolderPanel, pieceListAndPreviewPanel, pieceInfoSettingPanel, codeInserterPanel;
-    private JPanel previewImagePanel;
+    private JPanel pieceContentHolderPanel, pieceListAndPreviewPanel, pieceInfoSettingPanel, codeInserterPanel, previewImagePanel;
     private int componentCounter = 0;
     private Dimension previewImagePanelSize = new Dimension(200, 200);
     private BufferedImage previewImage;
@@ -51,16 +55,18 @@ public class ChessPiecePanel extends JPanel {
     private String previewImageName;
     private String browseDir;
     private File imageFile;
-    private JList playerSideList, chessPieceList, piecePlayerSideList, pieceInitialPointIdList;
+    private JList playerSideList, chessPieceList, pieceInitialPointIdList;
     private JButton addChessPieceButton, addPlayerSideButton, deleteChessPieceButton, deletePlayerSideButton,
-            setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton;
-    private JTextField pieceClassNameTextField, pieceColorGreenTextField, pieceColorBlueTextField, pieceColorRedTextField,
+            setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton, deletePiecePicButton;
+    private JTextField pieceColorGreenTextField, pieceColorBlueTextField, pieceColorRedTextField,
             piecePicHeightTextField, piecePicWidthTextField;
     private SimpleCodeEditor codeEditor;
-    private JLabel piecePlayerSideLabel;
+    private JLabel pieceClassNameLabel, piecePicLinkLabel;
+    private ArrayList<PieceProfile> pieceProfiles;
 
     public ChessPiecePanel(EventCallback eventCallback) {
         callback = eventCallback;
+        pieceProfiles = new ArrayList<PieceProfile>();
         setupLayout();
     }
 
@@ -70,6 +76,9 @@ public class ChessPiecePanel extends JPanel {
         pieceListAndPreviewPanel = new JPanel(new GridBagLayout());
         pieceListAndPreviewPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
         pieceListAndPreviewPanel.setBackground(Color.lightGray);
+        JScrollPane scrollPane = new JScrollPane(pieceListAndPreviewPanel,
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         prepareChessListAndPreviewPanel();
         prepareChessContentHolderPanel();
@@ -78,8 +87,8 @@ public class ChessPiecePanel extends JPanel {
         pieceInfoSettingPanel.setBorder(BorderFactory.createRaisedBevelBorder());
         codeEditor.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
+        add(scrollPane, BorderLayout.LINE_START);
         add(pieceContentHolderPanel, BorderLayout.CENTER);
-        add(pieceListAndPreviewPanel, BorderLayout.LINE_START);
     }
 
     private void setupComponentEventListeners() {
@@ -110,14 +119,17 @@ public class ChessPiecePanel extends JPanel {
         addPlayerSideButton = new JButton("Add Player Side");
         deletePlayerSideButton = new JButton("Delete Player Side");
         deleteChessPieceButton = new JButton("Delete Chess Piece");
+        deletePiecePicButton = new JButton("Delete Piece Image");
 
         addChessPieceButton.addActionListener(createJButtonActionListener(addChessPieceButton));
         addPlayerSideButton.addActionListener(createJButtonActionListener(addPlayerSideButton));
         deletePlayerSideButton.addActionListener(createJButtonActionListener(deletePlayerSideButton));
         deleteChessPieceButton.addActionListener(createJButtonActionListener(deleteChessPieceButton));
+        deletePiecePicButton.addActionListener(createJButtonActionListener(deletePiecePicButton));
 
         addToPanel(pieceListAndPreviewPanel, new JLabel("Selected Chess Piece Image Preview"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
         addToPanel(pieceListAndPreviewPanel, previewImagePanel);
+        addToPanel(pieceListAndPreviewPanel, deletePiecePicButton);
 
         addToPanel(pieceListAndPreviewPanel, new JLabel("<html><br>All Player Side</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
         addToPanel(pieceListAndPreviewPanel, new JScrollPane(playerSideList), GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
@@ -135,11 +147,17 @@ public class ChessPiecePanel extends JPanel {
         codeInserterPanel = new JPanel(new GridBagLayout());
         codeEditor = new SimpleCodeEditor();
 
+        JScrollPane scrollPane = new JScrollPane(codeInserterPanel,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        codeInserterPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0,
+                scrollPane.getVerticalScrollBar().getPreferredSize().width));
+
         prepareChessInfoSettingPanel();
         prepareCodeInserterPanel();
 
         pieceContentHolderPanel.add(pieceInfoSettingPanel, BorderLayout.PAGE_START);
-        pieceContentHolderPanel.add(codeInserterPanel, BorderLayout.LINE_END);
+        pieceContentHolderPanel.add(scrollPane, BorderLayout.LINE_END);
         pieceContentHolderPanel.add(codeEditor, BorderLayout.CENTER);
     }
 
@@ -187,23 +205,20 @@ public class ChessPiecePanel extends JPanel {
     private void prepareChessInfoSettingPanel() {
         JPanel container;
         pieceInitialPointIdList = new JList(new DefaultListModel<String>());
-        piecePlayerSideList = new JList(new DefaultListModel<String>());
         GridBagConstraints c = new GridBagConstraints();
         setPieceSizeButton = new JButton("Piece set size");
         addInitialPointIdButton = new JButton("Add Point ID");
         deleteInitialPointIdButton = new JButton("Delete Point ID");
-        pieceClassNameTextField = new JTextField();
         pieceColorRedTextField = new JTextField();
         pieceColorGreenTextField = new JTextField();
         pieceColorBlueTextField = new JTextField();
         piecePicHeightTextField = new JTextField();
         piecePicWidthTextField = new JTextField();
-        piecePlayerSideLabel = new JLabel();
+        pieceClassNameLabel = new JLabel("Piece Name: ");
+        piecePicLinkLabel = new JLabel("Picture Link:");
 
         pieceInitialPointIdList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        piecePlayerSideList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         pieceInitialPointIdList.setFixedCellWidth(1);
-        piecePlayerSideList.setFixedCellWidth(1);
         pieceColorRedTextField.setColumns(3);
         pieceColorBlueTextField.setColumns(3);
         pieceColorGreenTextField.setColumns(3);
@@ -212,8 +227,8 @@ public class ChessPiecePanel extends JPanel {
 
         container = new JPanel(new GridBagLayout());
         componentCounter = 0;
-        addToPanel(container, new JLabel("Piece Name"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
-        addToPanel(container, pieceClassNameTextField, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL);
+        addToPanel(container, pieceClassNameLabel, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        addToPanel(container, piecePicLinkLabel, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
         addToPanel(container, new JLabel("Piece Color (if no piece image)"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
 
         JPanel temp = new JPanel(new FlowLayout());
@@ -251,19 +266,6 @@ public class ChessPiecePanel extends JPanel {
         addToPanel(container, new JScrollPane(pieceInitialPointIdList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
         addToPanel(container, addInitialPointIdButton, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
         addToPanel(container, deleteInitialPointIdButton, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
-
-        c.gridx++;
-        c.weightx = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        pieceInfoSettingPanel.add(container, c);
-
-        container = new JPanel(new GridBagLayout());
-        componentCounter = 0;
-        piecePlayerSideLabel = new JLabel("");
-        addToPanel(container, new JLabel("Profile for player side"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        addToPanel(container, new JScrollPane(piecePlayerSideList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
-        addToPanel(container, new JLabel("<html>Current profile is editing<br>for player side:</html>"));
-        addToPanel(container, piecePlayerSideLabel, GridBagConstraints.CENTER, GridBagConstraints.NONE);
 
         c.gridx++;
         c.weightx = 1.0;
@@ -342,15 +344,22 @@ public class ChessPiecePanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String pieceName = showVariableInputDialog("New Chess Piece Model", "Input the name of chess piece", "");
-                    if (pieceName != null) addChessPieceToList(pieceName);
+                    if (playerSideList.getModel().getSize() == 0) {
+                        JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+                                "Please at least create one player side first.",
+                                "Error - Add chess piece - Chreator",
+                                JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        String pieceName = UIHandler.showVariableInputDialog("New Chess Piece Model", "Input the name of chess piece", "");
+                        if (pieceName != null) addChessPieceToList(pieceName);
+                    }
                 }
             };
         else if (jb == addPlayerSideButton)
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String playerSide = showVariableInputDialog("New Player Side", "Input the name of player side", "Result name will be capitalized.");
+                    String playerSide = UIHandler.showVariableInputDialog("New Player Side", "Input the name of player side", "Result name will be capitalized.");
                     if (playerSide != null) addPlayerSideToList(playerSide.toUpperCase());
                 }
             };
@@ -358,18 +367,39 @@ public class ChessPiecePanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    removeChessPieceFromList();
+                    int result = JOptionPane.showConfirmDialog(UIHandler.getMainWindow(),
+                            "<html><center>Confirm to delete chess piece for all player sides?<br>This action cannot be redone.</html>",
+                            "Delete Chess Piece - Chreator",
+                            JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+                    if (result == JOptionPane.YES_OPTION) removeChessPieceFromList();
                 }
             };
         else if (jb == deletePlayerSideButton)
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    removePlayerSideFromList();
+                    int result = JOptionPane.showConfirmDialog(UIHandler.getMainWindow(),
+                            "<html><center>Confirm to delete player side?<br>" +
+                                    "Each chess piece setting about this player side will be deleted and" +
+                                    "<br>this action cannot be redone.</html>",
+                            "Delete player side - Chreator", JOptionPane.YES_NO_OPTION);
+                    if (result == JOptionPane.YES_OPTION) removePlayerSideFromList();
+                }
+            };
+        else if (jb == deletePiecePicButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    removePiecePic();
                 }
             };
         else
             return null;
+    }
+
+    private void removePiecePic() {
+        previewImage = null;
+        UIHandler.refreshWindow();
     }
 
     private void updatePreviewPanelContent(Graphics g) {
@@ -403,6 +433,7 @@ public class ChessPiecePanel extends JPanel {
             if (s.equals(playerSide)) return;
         }
         listModel.addElement(playerSide);
+        playerSideList.setSelectedIndex(listModel.getSize() - 1);
     }
 
     public void removePlayerSideFromList() {
@@ -412,6 +443,9 @@ public class ChessPiecePanel extends JPanel {
             DefaultListModel<String> listModel = (DefaultListModel<String>) playerSideList.getModel();
             for (int i = selectedIndices.length - 1; i >= 0; i--)
                 listModel.remove(selectedIndices[i]);
+
+            if (listModel.size() > 0)
+                playerSideList.setSelectedIndex(listModel.size() - 1);
         }
     }
 
@@ -422,31 +456,29 @@ public class ChessPiecePanel extends JPanel {
             if (s.equals(chessPiece)) return;
         }
         listModel.addElement(chessPiece);
+        chessPieceList.setSelectedIndex(listModel.size() - 1);
     }
 
     public void removeChessPieceFromList() {
         int[] selectedIndices = chessPieceList.getSelectedIndices();
 
+        if (playerSideList.getSelectedIndices().length > 0 && playerSideList.getSelectedIndices().length > 0) {
+            String playerSide = (String) playerSideList.getModel().getElementAt(playerSideList.getSelectedIndices()[0]),
+                    pieceName = (String) chessPieceList.getModel().getElementAt(chessPieceList.getSelectedIndices()[0]);
+            System.out.println(playerSide + " " + pieceName);
+        }
+
         if (selectedIndices.length > 0) {
             DefaultListModel<String> listModel = (DefaultListModel<String>) chessPieceList.getModel();
             for (int i = selectedIndices.length - 1; i >= 0; i--)
                 listModel.remove(selectedIndices[i]);
+
+            if (listModel.size() > 0)
+                chessPieceList.setSelectedIndex(listModel.size() - 1);
         }
     }
 
-    public String showVariableInputDialog(String title, String majorMessage, String minorMessage) {
-        String s;
-        do {
-            s = JOptionPane.showInputDialog(UIHandler.getMainWindow(), "<html><center>" + majorMessage + "<br>" +
-                    "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
-                    "Name cannot start with arabic numerals.<br>" + minorMessage + "</html>", title, JOptionPane.QUESTION_MESSAGE);
-            if (s == null) return null;
-            if (s.matches("^[A-Za-z0-9_$]+$") && !((s.charAt(0) + "").matches("[0-9]")))
-                break;
-            JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "<html><center>Input error.<br>" +
-                    "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
-                    "Name cannot start with arabic numerals.</html>", "ERROR - " + title, JOptionPane.ERROR_MESSAGE);
-        } while (true);
-        return s;
+    public ArrayList<PieceProfile> getPieceProfiles() {
+        return pieceProfiles;
     }
 }
