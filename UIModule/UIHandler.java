@@ -99,8 +99,8 @@ public class UIHandler {
                                     "; " + profile.imageWidth + " x " + profile.imageHeight +
                                     "; "
                     );
-                    for (int i=0; i< profile.initialPointId.size();i++){
-                        System.out.print(profile.initialPointId.getElementAt(i)+", ");
+                    for (int i = 0; i < profile.initialPointId.size(); i++) {
+                        System.out.print(profile.initialPointId.getElementAt(i) + ", ");
                     }
                     System.out.println();
                 }

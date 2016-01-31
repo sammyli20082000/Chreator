@@ -32,10 +32,13 @@ import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import Chreator.ObjectModel.PieceProfile;
+import Chreator.ObjectModel.Point;
 
 /**
  * Created by him on 2015/12/20.
@@ -64,6 +67,8 @@ public class ChessPiecePanel extends JPanel {
     private SimpleCodeEditor codeEditor;
     private JLabel pieceClassNameLabel, piecePicLinkLabel;
     private ArrayList<PieceProfile> pieceProfiles;
+    private boolean autoSave = true;
+    private Color jtfDefaultBackground = new JTextField().getBackground();
 
     public ChessPiecePanel(EventCallback eventCallback) {
         callback = eventCallback;
@@ -218,7 +223,7 @@ public class ChessPiecePanel extends JPanel {
         piecePicHeightTextField = new JTextField();
         piecePicWidthTextField = new JTextField();
         pieceClassNameLabel = new JLabel("Piece Name: ");
-        piecePicLinkLabel = new JLabel("Picture Link:");
+        piecePicLinkLabel = new JLabel("Image Link:");
 
         pieceInitialPointIdList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         pieceInitialPointIdList.setFixedCellWidth(1);
@@ -227,6 +232,15 @@ public class ChessPiecePanel extends JPanel {
         pieceColorGreenTextField.setColumns(3);
         piecePicHeightTextField.setColumns(15);
         piecePicWidthTextField.setColumns(15);
+
+        pieceColorBlueTextField.getDocument().addDocumentListener(createDocumentAdapter(pieceColorBlueTextField));
+        pieceColorGreenTextField.getDocument().addDocumentListener(createDocumentAdapter(pieceColorGreenTextField));
+        pieceColorRedTextField.getDocument().addDocumentListener(createDocumentAdapter(pieceColorRedTextField));
+        piecePicHeightTextField.getDocument().addDocumentListener(createDocumentAdapter(piecePicHeightTextField));
+        piecePicWidthTextField.getDocument().addDocumentListener(createDocumentAdapter(piecePicWidthTextField));
+
+        addInitialPointIdButton.addActionListener(createJButtonActionListener(addInitialPointIdButton));
+        deleteInitialPointIdButton.addActionListener(createJButtonActionListener(deleteInitialPointIdButton));
 
         container = new JPanel(new GridBagLayout());
         componentCounter = 0;
@@ -265,7 +279,7 @@ public class ChessPiecePanel extends JPanel {
 
         container = new JPanel(new GridBagLayout());
         componentCounter = 0;
-        addToPanel(container, new JLabel("Initial Piece Placing Point ID"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanel(container, new JLabel("Initial Piece Placing Point Point ID"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
         addToPanel(container, new JScrollPane(pieceInitialPointIdList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
         addToPanel(container, addInitialPointIdButton, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
         addToPanel(container, deleteInitialPointIdButton, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
@@ -342,6 +356,18 @@ public class ChessPiecePanel extends JPanel {
         return null;
     }
 
+    private DocumentAdapter createDocumentAdapter(final JTextField jtf) {
+        if (jtf == pieceColorBlueTextField || jtf == pieceColorRedTextField || jtf == pieceColorGreenTextField
+                || jtf == piecePicHeightTextField || jtf == piecePicWidthTextField)
+            return new DocumentAdapter() {
+                public void editedUpdate(DocumentEvent e) {
+                    if (autoSave && verifyTextFields(jtf)) updateCurrentProfile();
+                }
+            };
+        else
+            return null;
+    }
+
     private ActionListener createJButtonActionListener(JButton jb) {
         if (jb == addChessPieceButton)
             return new ActionListener() {
@@ -396,6 +422,20 @@ public class ChessPiecePanel extends JPanel {
                     removePiecePic();
                 }
             };
+        else if (jb == addInitialPointIdButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addInitialPointIdToList();
+                }
+            };
+        else if (jb == deleteInitialPointIdButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    removeInitialPointIdFromList();
+                }
+            };
         else
             return null;
     }
@@ -414,6 +454,27 @@ public class ChessPiecePanel extends JPanel {
     private void removePiecePic() {
         previewImage = null;
         UIHandler.refreshWindow();
+    }
+
+    private boolean verifyTextFields(final JTextField jtf) {
+        if (jtf == pieceColorBlueTextField || jtf == pieceColorRedTextField || jtf == pieceColorGreenTextField) {
+            jtf.setBackground(Color.RED);
+            try {
+                int result = Integer.parseInt(jtf.getText());
+                if (result >= 0 && result <= 255) jtf.setBackground(Color.green);
+            } catch (Exception ex) {
+                return false;
+            }
+        } else if (jtf == piecePicHeightTextField || jtf == piecePicWidthTextField) {
+            jtf.setBackground(Color.red);
+            try {
+                Double.parseDouble(jtf.getText());
+                jtf.setBackground(Color.green);
+            } catch (Exception ex) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void updatePreviewPanelContent(Graphics g) {
@@ -452,6 +513,28 @@ public class ChessPiecePanel extends JPanel {
             String className = ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(i);
             addToPieceProfileList(playerSide, className);
         }
+    }
+
+    public void addInitialPointIdToList() {
+        Integer id = showPointIDInputDialog(UIHandler.getInstance((UIHandler.EventCallback) callback).getPointList());
+        if (id == null) return;
+        DefaultListModel<String> listModel = (DefaultListModel<String>) pieceInitialPointIdList.getModel();
+        for (int i = 0; i < listModel.size(); i++) {
+            try {
+                if (Integer.parseInt(listModel.getElementAt(i)) == id.intValue()) return;
+            } catch (Exception e) {
+            }
+        }
+        listModel.addElement(id + "");
+    }
+
+    public void removeInitialPointIdFromList() {
+        DefaultListModel<String> listModel = (DefaultListModel<String>) pieceInitialPointIdList.getModel();
+        int[] indices = pieceInitialPointIdList.getSelectedIndices();
+
+        for (int index = indices.length - 1; index >= 0; index--)
+            listModel.remove(indices[index]);
+
     }
 
     public void removePlayerSideFromList() {
@@ -532,18 +615,85 @@ public class ChessPiecePanel extends JPanel {
         return addToPieceProfileList(playerSide, className);
     }
 
+    private void updateCurrentProfile() {
+        try {
+            PieceProfile profile = getPieceProfile(
+                    ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(playerSideList.getSelectedIndices()[0]),
+                    ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(pieceClassNameList.getSelectedIndices()[0])
+            );
+            profile.sourcePicLink = imageFile == null ? "" : imageFile.getAbsolutePath();
+            profile.pieceColor = new Color(
+                    Integer.parseInt(pieceColorRedTextField.getText()),
+                    Integer.parseInt(pieceColorGreenTextField.getText()),
+                    Integer.parseInt(pieceColorBlueTextField.getText())
+            );
+            profile.imageHeight = Double.parseDouble(piecePicHeightTextField.getText());
+            profile.imageWidth = Double.parseDouble(piecePicWidthTextField.getText());
+            profile.initialPointId = (DefaultListModel<String>) pieceInitialPointIdList.getModel();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void applySelectedProfile() {
+        autoSave = false;
         if (playerSideList.getModel().getSize() == 0
                 || pieceClassNameList.getModel().getSize() == 0
                 || playerSideList.getSelectedIndices().length == 0
                 || pieceClassNameList.getSelectedIndices().length == 0) {
             pieceClassNameLabel.setText("Piece Name: ");
+            piecePicLinkLabel.setText("Image Link: ");
+            pieceColorGreenTextField.setText("");
+            pieceColorBlueTextField.setText("");
+            pieceColorRedTextField.setText("");
+            piecePicWidthTextField.setText("");
+            piecePicHeightTextField.setText("");
+            pieceInitialPointIdList.setModel(new DefaultListModel<String>());
+            pieceColorGreenTextField.setBackground(jtfDefaultBackground);
+            pieceColorBlueTextField.setBackground(jtfDefaultBackground);
+            pieceColorRedTextField.setBackground(jtfDefaultBackground);
+            piecePicHeightTextField.setBackground(jtfDefaultBackground);
+            piecePicWidthTextField.setBackground(jtfDefaultBackground);
         } else {
             PieceProfile profile = getPieceProfile(
                     ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(playerSideList.getSelectedIndices()[0]),
                     ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(pieceClassNameList.getSelectedIndices()[0])
             );
             pieceClassNameLabel.setText("Piece Name: " + profile.pieceClassName + " @ " + profile.playerSide + " side");
+            piecePicLinkLabel.setText("Image Link: " + profile.sourcePicLink);
+            pieceInitialPointIdList.setModel(profile.initialPointId);
+            pieceColorRedTextField.setText(profile.pieceColor.getRed() + "");
+            pieceColorGreenTextField.setText(profile.pieceColor.getGreen() + "");
+            pieceColorBlueTextField.setText(profile.pieceColor.getBlue() + "");
+            piecePicWidthTextField.setText(profile.imageWidth + "");
+            piecePicHeightTextField.setText(profile.imageHeight + "");
+            verifyTextFields(pieceColorGreenTextField);
+            verifyTextFields(pieceColorRedTextField);
+            verifyTextFields(pieceColorBlueTextField);
+            verifyTextFields(piecePicWidthTextField);
+            verifyTextFields(piecePicHeightTextField);
         }
+        autoSave = true;
+    }
+
+    private Integer showPointIDInputDialog(ArrayList<Point> pointList) {
+        String s;
+        Integer i = null;
+        do {
+            s = JOptionPane.showInputDialog(UIHandler.getMainWindow(), "<html><center>Enter the point ID that you would like to place this chess piece to,<br>at the start of the game.</html>",
+                    "Add initial point ID - Chreator", JOptionPane.QUESTION_MESSAGE);
+            if (s == null) return null;
+            try {
+                i = new Integer(Integer.parseInt(s));
+                for (Point p : pointList) {
+                    if (p.getId() == i.intValue())
+                        return i;
+                }
+            } catch (Exception e) {
+            }
+            JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "<html><center>Input error.<br>" +
+                    "Please check if the input point ID exists or not.<br>" +
+                    "You can find all the point IDs in the chess board tab.</html>", "ERROR - Add initial point ID - Chreator", JOptionPane.ERROR_MESSAGE);
+        } while (true);
     }
 }
