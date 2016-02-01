@@ -4,11 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -33,9 +31,12 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 import Chreator.ObjectModel.PieceProfile;
 import Chreator.ObjectModel.Point;
@@ -51,7 +52,7 @@ public class ChessPiecePanel extends JPanel {
     public static String tabName = "Chess Piece";
     public static double sharedPieceHeight = 0.1, sharedPieceWidth = 0.1;
     private EventCallback callback;
-    private JPanel pieceContentHolderPanel, pieceListAndPreviewPanel, pieceInfoSettingPanel, codeInserterPanel, previewImagePanel;
+    private JPanel pieceProfileEditorPanel, pieceListAndPreviewPanel, pieceInfoSettingPanel, codeInserterPanel, previewImagePanel;
     private int componentCounter = 0;
     private Dimension previewImagePanelSize = new Dimension(200, 200);
     private BufferedImage previewImage;
@@ -63,11 +64,10 @@ public class ChessPiecePanel extends JPanel {
     private JButton addChessPieceButton, addPlayerSideButton, deleteChessPieceButton, deletePlayerSideButton,
             setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton, deletePiecePicButton;
     private JTextField pieceColorGreenTextField, pieceColorBlueTextField, pieceColorRedTextField,
-            piecePicHeightTextField, piecePicWidthTextField;
+            piecePicHeightTextField, piecePicWidthTextField, pieceClassNameField, piecePicLinkField;
     private SimpleCodeEditor codeEditor;
-    private JLabel pieceClassNameLabel, piecePicLinkLabel;
     private ArrayList<PieceProfile> pieceProfiles;
-    private boolean autoSave = true;
+    private boolean inApplyingProfile = false;
     private Color jtfDefaultBackground = new JTextField().getBackground();
 
     public ChessPiecePanel(EventCallback eventCallback) {
@@ -78,27 +78,24 @@ public class ChessPiecePanel extends JPanel {
 
     private void setupLayout() {
         setLayout(new BorderLayout());
-        pieceContentHolderPanel = new JPanel(new BorderLayout());
+        pieceProfileEditorPanel = new JPanel(new GridBagLayout());
         pieceListAndPreviewPanel = new JPanel(new GridBagLayout());
         pieceListAndPreviewPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
         pieceListAndPreviewPanel.setBackground(Color.lightGray);
         JScrollPane scrollPane = new JScrollPane(pieceListAndPreviewPanel,
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        codeEditor = new SimpleCodeEditor();
 
         prepareChessListAndPreviewPanel();
-        prepareChessContentHolderPanel();
-        setupComponentEventListeners();
+        preparePieceProfileEditorPanel();
 
-        pieceInfoSettingPanel.setBorder(BorderFactory.createRaisedBevelBorder());
+        pieceProfileEditorPanel.setBorder(BorderFactory.createRaisedBevelBorder());
         codeEditor.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
         add(scrollPane, BorderLayout.LINE_START);
-        add(pieceContentHolderPanel, BorderLayout.CENTER);
-    }
-
-    private void setupComponentEventListeners() {
-        previewImagePanel.addMouseListener(createJPanelMouseListener(previewImagePanel));
+        add(codeEditor, BorderLayout.CENTER);
+        add(pieceProfileEditorPanel, BorderLayout.LINE_END);
     }
 
     private void prepareChessListAndPreviewPanel() {
@@ -112,6 +109,7 @@ public class ChessPiecePanel extends JPanel {
         previewImagePanel.setPreferredSize(previewImagePanelSize);
         previewImagePanel.setBackground(Color.lightGray);
         previewImagePanel.setBorder(BorderFactory.createRaisedBevelBorder());
+        previewImagePanel.addMouseListener(createJPanelMouseListener(previewImagePanel));
 
         pieceClassNameList = new JList(new DefaultListModel<String>());
         pieceClassNameList.setFixedCellWidth(1);
@@ -150,10 +148,9 @@ public class ChessPiecePanel extends JPanel {
         addToPanel(pieceListAndPreviewPanel, deleteChessPieceButton);
     }
 
-    private void prepareChessContentHolderPanel() {
+    private void preparePieceProfileEditorPanel() {
         pieceInfoSettingPanel = new JPanel(new GridBagLayout());
         codeInserterPanel = new JPanel(new GridBagLayout());
-        codeEditor = new SimpleCodeEditor();
 
         JScrollPane scrollPane = new JScrollPane(codeInserterPanel,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -164,18 +161,17 @@ public class ChessPiecePanel extends JPanel {
         prepareChessInfoSettingPanel();
         prepareCodeInserterPanel();
 
-        pieceContentHolderPanel.add(pieceInfoSettingPanel, BorderLayout.PAGE_START);
-        pieceContentHolderPanel.add(scrollPane, BorderLayout.LINE_END);
-        pieceContentHolderPanel.add(codeEditor, BorderLayout.CENTER);
+        componentCounter = 0;
+        addToPanel(pieceProfileEditorPanel, pieceInfoSettingPanel);
+        addToPanel(pieceProfileEditorPanel, scrollPane);
+        addToPanelFillRemaining(pieceProfileEditorPanel, new JLabel(" "), GridBagConstraints.CENTER, GridBagConstraints.NONE);
     }
 
     private void prepareCodeInserterPanel() {
         componentCounter = 0;
-        addToPanel(codeInserterPanel, new JLabel("Insert functional code:"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanel(codeInserterPanel, new JLabel("<html><br>Insert code template to editor</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
         addToPanel(codeInserterPanel, createInserterRow(new JButton("Function 1"), "Test description for function 1"));
         addToPanel(codeInserterPanel, createInserterRow(new JButton("Function 2"), "Test description for function 2"));
-
-        addToPanelFillRemaining(codeInserterPanel, new JLabel(" "), GridBagConstraints.CENTER, GridBagConstraints.VERTICAL);
     }
 
     private JPanel createInserterRow(JButton jb, String msg) {
@@ -211,9 +207,7 @@ public class ChessPiecePanel extends JPanel {
     }
 
     private void prepareChessInfoSettingPanel() {
-        JPanel container;
         pieceInitialPointIdList = new JList(new DefaultListModel<String>());
-        GridBagConstraints c = new GridBagConstraints();
         setPieceSizeButton = new JButton("Piece set size");
         addInitialPointIdButton = new JButton("Add Point ID");
         deleteInitialPointIdButton = new JButton("Delete Point ID");
@@ -222,73 +216,82 @@ public class ChessPiecePanel extends JPanel {
         pieceColorBlueTextField = new JTextField();
         piecePicHeightTextField = new JTextField();
         piecePicWidthTextField = new JTextField();
-        pieceClassNameLabel = new JLabel("Piece Name: ");
-        piecePicLinkLabel = new JLabel("Image Link:");
+        pieceClassNameField = new JTextField();
+        piecePicLinkField = new JTextField();
 
         pieceInitialPointIdList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         pieceInitialPointIdList.setFixedCellWidth(1);
-        pieceColorRedTextField.setColumns(3);
-        pieceColorBlueTextField.setColumns(3);
-        pieceColorGreenTextField.setColumns(3);
-        piecePicHeightTextField.setColumns(15);
-        piecePicWidthTextField.setColumns(15);
+
+        pieceClassNameField.setOpaque(true);
+        pieceClassNameField.setBackground(pieceInfoSettingPanel.getBackground());
+
+        pieceClassNameField.setOpaque(true);
+        piecePicLinkField.setBackground(pieceInfoSettingPanel.getBackground());
 
         pieceColorBlueTextField.getDocument().addDocumentListener(createDocumentAdapter(pieceColorBlueTextField));
         pieceColorGreenTextField.getDocument().addDocumentListener(createDocumentAdapter(pieceColorGreenTextField));
         pieceColorRedTextField.getDocument().addDocumentListener(createDocumentAdapter(pieceColorRedTextField));
         piecePicHeightTextField.getDocument().addDocumentListener(createDocumentAdapter(piecePicHeightTextField));
         piecePicWidthTextField.getDocument().addDocumentListener(createDocumentAdapter(piecePicWidthTextField));
+        ((AbstractDocument) piecePicLinkField.getDocument()).setDocumentFilter(createDocumentFilter(piecePicLinkField));
+        ((AbstractDocument) pieceClassNameField.getDocument()).setDocumentFilter(createDocumentFilter(pieceClassNameField));
 
         addInitialPointIdButton.addActionListener(createJButtonActionListener(addInitialPointIdButton));
         deleteInitialPointIdButton.addActionListener(createJButtonActionListener(deleteInitialPointIdButton));
 
-        container = new JPanel(new GridBagLayout());
+        GridBagConstraints c1 = new GridBagConstraints(), c2 = new GridBagConstraints();
+        c1.gridx = 0;
+        c1.gridy = 0;
+        c1.weightx = 0;
+        c1.fill = GridBagConstraints.NONE;
+        c1.anchor = GridBagConstraints.CENTER;
+        c2.gridx = 1;
+        c2.gridy = 0;
+        c2.weightx = 1;
+        c2.fill = GridBagConstraints.HORIZONTAL;
+        c2.anchor = GridBagConstraints.CENTER;
+
         componentCounter = 0;
-        addToPanel(container, pieceClassNameLabel, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
-        addToPanel(container, piecePicLinkLabel, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
-        addToPanel(container, new JLabel("Piece Color (if no piece image)"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        JPanel temp;
+        addToPanel(pieceInfoSettingPanel, new JLabel("Piece Name: "));
+        addToPanel(pieceInfoSettingPanel, pieceClassNameField);
+        addToPanel(pieceInfoSettingPanel, new JLabel("Image Link:"));
+        addToPanel(pieceInfoSettingPanel, piecePicLinkField);
+        addToPanel(pieceInfoSettingPanel, new JLabel("Piece Color (if no piece image)"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
 
-        JPanel temp = new JPanel(new FlowLayout());
-        temp.add(new JLabel("R(0~255):"));
-        temp.add(pieceColorRedTextField);
-        temp.add(new JLabel("    G(0~255):"));
-        temp.add(pieceColorGreenTextField);
-        temp.add(new JLabel("    B(0~255):"));
-        temp.add(pieceColorBlueTextField);
-        addToPanel(container, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
-        addToPanel(container, new JLabel("Piece Size"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel("    R(0~255):"), c1);
+        temp.add(pieceColorRedTextField, c2);
+        addToPanel(pieceInfoSettingPanel, temp);
 
-        temp = new JPanel(new FlowLayout());
-        temp.add(new JLabel("Width(0~1): "));
-        temp.add(piecePicWidthTextField);
-        addToPanel(container, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel("    G(0~255):"), c1);
+        temp.add(pieceColorGreenTextField, c2);
+        addToPanel(pieceInfoSettingPanel, temp);
 
-        temp = new JPanel(new FlowLayout());
-        temp.add(new JLabel("Height(0~1):"));
-        temp.add(piecePicHeightTextField);
-        addToPanel(container, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel("    B(0~255):"), c1);
+        temp.add(pieceColorBlueTextField, c2);
+        addToPanel(pieceInfoSettingPanel, temp);
 
-        addToPanel(container, setPieceSizeButton, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        addToPanel(pieceInfoSettingPanel, new JLabel("Piece Size"), GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL);
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel("    Width(0~1): "), c1);
+        temp.add(piecePicWidthTextField, c2);
+        addToPanel(pieceInfoSettingPanel, temp);
 
-        c.gridx = 0;
-        c.gridy = 0;
-        c.insets = new Insets(5, 5, 5, 5);
-        c.weightx = 0;
-        c.anchor = GridBagConstraints.FIRST_LINE_START;
-        pieceInfoSettingPanel.add(container, c);
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel("    Height(0~1):"), c1);
+        temp.add(piecePicHeightTextField, c2);
+        addToPanel(pieceInfoSettingPanel, temp);
 
-        container = new JPanel(new GridBagLayout());
-        componentCounter = 0;
-        addToPanel(container, new JLabel("Initial Piece Placing Point Point ID"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        addToPanel(container, new JScrollPane(pieceInitialPointIdList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
-        addToPanel(container, addInitialPointIdButton, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
-        addToPanel(container, deleteInitialPointIdButton, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+        addToPanel(pieceInfoSettingPanel, setPieceSizeButton);
 
-        c.gridx++;
-        c.weightx = 1.0;
-        c.anchor = GridBagConstraints.FIRST_LINE_START;
-        c.fill = GridBagConstraints.NONE;
-        pieceInfoSettingPanel.add(container, c);
+        addToPanel(pieceInfoSettingPanel, new JLabel("<html><br>Initial Piece Placing Point Point ID</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToPanel(pieceInfoSettingPanel, new JScrollPane(pieceInitialPointIdList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+        addToPanel(pieceInfoSettingPanel, addInitialPointIdButton);
+        addToPanel(pieceInfoSettingPanel, deleteInitialPointIdButton);
+
     }
 
     private void addToPanelFillRemaining(JPanel jp, Component component, int anchor, int fill) {
@@ -361,7 +364,29 @@ public class ChessPiecePanel extends JPanel {
                 || jtf == piecePicHeightTextField || jtf == piecePicWidthTextField)
             return new DocumentAdapter() {
                 public void editedUpdate(DocumentEvent e) {
-                    if (autoSave && verifyTextFields(jtf)) updateCurrentProfile();
+                    if (!inApplyingProfile && verifyTextFields(jtf)) updateCurrentProfile();
+                }
+            };
+        else
+            return null;
+    }
+
+    private DocumentFilter createDocumentFilter(final JTextField jtf) {
+        if (jtf == pieceClassNameField || jtf == piecePicLinkField)
+            return new DocumentFilter() {
+                public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws
+                        BadLocationException {
+                    if (inApplyingProfile) super.replace(fb, offset, length, text, attrs);
+                }
+
+                public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr) throws
+                        BadLocationException {
+                    if (inApplyingProfile) super.insertString(fb, offset, string, attr);
+                }
+
+                public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws
+                        BadLocationException {
+                    if (inApplyingProfile) super.remove(fb, offset, length);
                 }
             };
         else
@@ -636,13 +661,13 @@ public class ChessPiecePanel extends JPanel {
     }
 
     private void applySelectedProfile() {
-        autoSave = false;
+        inApplyingProfile = true;
         if (playerSideList.getModel().getSize() == 0
                 || pieceClassNameList.getModel().getSize() == 0
                 || playerSideList.getSelectedIndices().length == 0
                 || pieceClassNameList.getSelectedIndices().length == 0) {
-            pieceClassNameLabel.setText("Piece Name: ");
-            piecePicLinkLabel.setText("Image Link: ");
+            pieceClassNameField.setText("");
+            piecePicLinkField.setText("");
             pieceColorGreenTextField.setText("");
             pieceColorBlueTextField.setText("");
             pieceColorRedTextField.setText("");
@@ -659,8 +684,8 @@ public class ChessPiecePanel extends JPanel {
                     ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(playerSideList.getSelectedIndices()[0]),
                     ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(pieceClassNameList.getSelectedIndices()[0])
             );
-            pieceClassNameLabel.setText("Piece Name: " + profile.pieceClassName + " @ " + profile.playerSide + " side");
-            piecePicLinkLabel.setText("Image Link: " + profile.sourcePicLink);
+            pieceClassNameField.setText("(" + profile.playerSide + " side) " + profile.pieceClassName);
+            piecePicLinkField.setText(profile.sourcePicLink);
             pieceInitialPointIdList.setModel(profile.initialPointId);
             pieceColorRedTextField.setText(profile.pieceColor.getRed() + "");
             pieceColorGreenTextField.setText(profile.pieceColor.getGreen() + "");
@@ -673,7 +698,7 @@ public class ChessPiecePanel extends JPanel {
             verifyTextFields(piecePicWidthTextField);
             verifyTextFields(piecePicHeightTextField);
         }
-        autoSave = true;
+        inApplyingProfile = false;
     }
 
     private Integer showPointIDInputDialog(ArrayList<Point> pointList) {
