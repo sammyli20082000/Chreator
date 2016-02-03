@@ -1,4 +1,4 @@
-package Chreator.UIModule;
+package Chreator.UIModule.AbstractModel;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;

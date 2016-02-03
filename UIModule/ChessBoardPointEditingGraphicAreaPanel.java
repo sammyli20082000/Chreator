@@ -1,184 +1,60 @@
 package Chreator.UIModule;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import Chreator.ObjectModel.Point;
+import Chreator.UIModule.AbstractModel.ChessBoardGraphicAreaPanel;
 
 /**
  * Created by root on 12/26/15.
  */
-public class ChessBoardGraphicAreaPanel extends JPanel {
-    public enum EditingMode {SELECTING, SCALING, TRANSLATION, RECT_GRID_ADDING, TRI_GRID_ADDING}
-
-    public enum ScaleAnchorOrientation {EAST, SOUTH, WEST, NORTH, SOUTH_EAST, SOUTH_WEST, NORTH_EAST, NORTH_WEST}
-
-    private static class ScaleAnchorInfo {
-        public int width, height, posXTopLeft, posYTopLeft;
-        ScaleAnchorOrientation orientation;
-
-        public ScaleAnchorInfo(int posXTopLeft, int posYTopLeft, int width, int height, ScaleAnchorOrientation orientation) {
-            this.posXTopLeft = posXTopLeft;
-            this.posYTopLeft = posYTopLeft;
-            this.width = width;
-            this.height = height;
-            this.orientation = orientation;
-        }
-    }
-
-    private static class EdgeTriangleInfo {
-        public double pos1X, pos1Y, pos2X, pos2Y, pos3X, pos3Y;
-        public int sourcePointId, targetPointId;
-        public String direction;
-        public int mouseX, mouseY;
-
-        public void setPoints(double pos1X, double pos1Y, double pos2X, double pos2Y, double pos3X, double pos3Y) {
-            this.pos1X = pos1X;
-            this.pos1Y = pos1Y;
-            this.pos2X = pos2X;
-            this.pos2Y = pos2Y;
-            this.pos3X = pos3X;
-            this.pos3Y = pos3Y;
-        }
-
-        public void setSourceTargetRelation(int sourcePointId, int targetPointId, String orientation) {
-            this.sourcePointId = sourcePointId;
-            this.targetPointId = targetPointId;
-            this.direction = orientation;
-        }
-
-        public void setMouseLocation(int x, int y) {
-            mouseX = x;
-            mouseY = y;
-        }
-    }
-
-    private ChessBoardPanel parent;
-    private BufferedImage boardImage;
-    private int boardWidth, boardHeight, mouseStartX = 0, mouseStartY = 0, mouseLastX = 0, mouseLastY = 0;
-    private ArrayList<Point> pointList, selectedPointList, selectedPointBackupList, controlModeSelectionList;
+public class ChessBoardPointEditingGraphicAreaPanel extends ChessBoardGraphicAreaPanel {
+    private int mouseStartX = 0, mouseStartY = 0, mouseLastX = 0, mouseLastY = 0;
+    private ArrayList<Point> selectedPointBackupList, controlModeSelectionList;
     private EditingMode editingMode = EditingMode.SELECTING;
     private ScaleAnchorOrientation scaleOrientation;
     private Point scaleReferencePoint;
     private boolean isDragging = false;
     private int addPointGridGridHeight, addPointGridRowSize, addPointId, addPointGridFirstRow, addPointGridLastRow;
     private double pointStandardRelativeSize = 0.05;
-    private EdgeTriangleInfo showTriangleInfo;
     private boolean controlMode = false;
 
-    public ChessBoardGraphicAreaPanel(ChessBoardPanel parent) {
-        this.parent = parent;
-        setBackground(Color.DARK_GRAY);
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                super.componentResized(e);
-                if (getSize().width > 0 && getSize().height > 0) {
-                    if (boardWidth == 0 && boardHeight == 0)
-                        ChessBoardGraphicAreaPanel.this.parent.setTextFieldImageSize(getSize().width / 2, getSize().height);
-                    updateAllPoints();
-                }
-            }
-        });
-        pointList = new ArrayList<Point>();
-        selectedPointList = new ArrayList<Point>();
+    public ChessBoardPointEditingGraphicAreaPanel() {
         controlModeSelectionList = new ArrayList<Point>();
         selectedPointBackupList = new ArrayList<Point>();
+    }
 
-        MouseAdapter mouseAdapter = createMouseAdapter();
-        addMouseListener(mouseAdapter);
-        addMouseMotionListener(mouseAdapter);
-        addKeyListener(createKeyAdapter());
-        setFocusable(true);
+    public void panelResized(ComponentEvent e) {
+        if (getSize().width > 0 && getSize().height > 0) {
+            if (boardWidth == 0 && boardHeight == 0)
+                UIHandler.getInstance(null).getChessBoardPanel().setTextFieldImageSize(getSize().width / 2, getSize().height);
+            updateAllPoints();
+        }
+    }
+
+    public boolean setBoardImage(File file) {
+        if (super.setBoardImage(file)) {
+            ChessBoardPanel chessBoardPanel = UIHandler.getInstance(null).getChessBoardPanel();
+            chessBoardPanel.setTextFieldImageSize(boardWidth, boardHeight);
+            return true;
+        } else
+            return false;
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        int panelWidth = getWidth(), panelHeight = getHeight();
-        double panelTangent = 1.0 * panelHeight / panelWidth, boardTangent = 1.0 * boardHeight / boardWidth, baseX, baseY;
-        baseX = (boardTangent > panelTangent) ? ((1.0 * panelWidth - panelHeight / boardTangent) / 2) : 0;
-        baseY = (boardTangent < panelTangent) ? ((1.0 * panelHeight - panelWidth * boardTangent) / 2) : 0;
-
-        g.setColor(Color.WHITE);
-        if (boardImage == null) {
-            if (boardTangent > panelTangent)
-                g.fillRect((int) Math.round(baseX), 0, (int) Math.round(1.0 / boardTangent * panelHeight), panelHeight);
-            else if (boardTangent < panelTangent)
-                g.fillRect(0, (int) Math.round(baseY), panelWidth, (int) Math.round(boardTangent * panelWidth));
-            else g.fillRect(0, 0, panelWidth, panelHeight);
-        } else {
-            if (boardTangent > panelTangent)
-                g.drawImage(boardImage, (int) Math.round(baseX), 0, (int) Math.round(1.0 / boardTangent * panelHeight), panelHeight, null);
-            else if (boardTangent < panelTangent)
-                g.drawImage(boardImage, 0, (int) Math.round(baseY), panelWidth, (int) (boardTangent * panelWidth), null);
-            else g.drawImage(boardImage, 0, 0, panelWidth, panelHeight, null);
-        }
-
-        g.setColor(Color.RED);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setStroke(new BasicStroke(3.0f));
-        for (Point p : pointList) {
-            Point.InfoPack sourceInfoPack = p.getPixelInformation();
-            ArrayList<Point.EdgePointPair> outgoingEdgePointList = p.getAllEdgePointPair();
-            for (Point.EdgePointPair edgePointPair : outgoingEdgePointList) {
-                Point.InfoPack targetInfo = edgePointPair.targetPoint.getPixelInformation();
-                g2.draw(new Line2D.Float(
-                        (float) sourceInfoPack.posX,
-                        (float) sourceInfoPack.posY,
-                        (float) targetInfo.posX,
-                        (float) targetInfo.posY
-                ));
-            }
-        }
-        g2.setStroke(new BasicStroke(1.0f));
-
-        for (EdgeTriangleInfo triangleInfo : getAllEdgeTriangleInfo()) {
-            g.setColor(parent.getEdgeDirectionColor(triangleInfo.direction));
-            g.fillPolygon(new int[]{
-                    (int) Math.round(triangleInfo.pos1X),
-                    (int) Math.round(triangleInfo.pos2X),
-                    (int) Math.round(triangleInfo.pos3X)
-            }, new int[]{
-                    (int) Math.round(triangleInfo.pos1Y),
-                    (int) Math.round(triangleInfo.pos2Y),
-                    (int) Math.round(triangleInfo.pos3Y)
-            }, 3);
-        }
-
-        for (Point p : pointList) {
-            Point.InfoPack pixelInfo = p.getPixelInformation();
-            g.setColor(new Color(0f, 0f, 1f, 0.5f));
-            g.fillRect((int) Math.round(pixelInfo.posX - pixelInfo.width / 2), (int) Math.round(pixelInfo.posY - pixelInfo.height / 2), (int) Math.round(pixelInfo.width), (int) Math.round(pixelInfo.height));
-            g.setColor(Color.ORANGE);
-            g.drawString(p.getId() + "", (int) Math.round(pixelInfo.posX), (int) Math.round(pixelInfo.posY));
-        }
-
-        g.setColor(Color.GREEN);
-        for (Point p : selectedPointList) {
-            ArrayList<ScaleAnchorInfo> anchorList = getPointScaleAnchor(p);
-            for (ScaleAnchorInfo anchor : anchorList)
-                g.fillRect(anchor.posXTopLeft, anchor.posYTopLeft, anchor.width, anchor.height);
-        }
 
         g.setColor(new Color(0, 127, 0));
         if (isDragging) {
@@ -224,75 +100,12 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
             }
         }
 
-        if (showTriangleInfo != null) {
-            String s = showTriangleInfo.sourcePointId + " to " + showTriangleInfo.targetPointId + " (" + showTriangleInfo.direction + ")";
-            Color textColor = Color.WHITE, background = new Color(0.0f, 0.0f, 0.0f, 0.75f);
-            FontMetrics fm = g.getFontMetrics();
-            Rectangle2D rect = fm.getStringBounds(s, g);
-            g.setColor(background);
-            g.fillRect(showTriangleInfo.mouseX, showTriangleInfo.mouseY - fm.getAscent(), (int) Math.round(rect.getWidth()), (int) Math.round(rect.getHeight()));
-            g.setColor(textColor);
-            g.drawString(s, showTriangleInfo.mouseX, showTriangleInfo.mouseY);
-        }
-
         g.setColor(Color.red);
         String s = "Add edge sequence: ";
         if (selectedPointList.size() > 1) s = s + selectedPointList.get(0).getId();
         for (int i = 1; i < selectedPointList.size(); i++)
             s = s + " \u2794 " + selectedPointList.get(i).getId();
-        g.drawString(s, 0, (int) Math.round(panelHeight - g.getFont().getSize() / 2));
-    }
-
-    private EdgeTriangleInfo getCursorPointingEdgeTriangle(int mouseX, int mouseY) {
-        ArrayList<EdgeTriangleInfo> triangleInfos = getAllEdgeTriangleInfo();
-        for (EdgeTriangleInfo info : triangleInfos) {
-            if (getTriangleArea(1.0 * mouseX, 1.0 * mouseY, info.pos2X, info.pos2Y, info.pos3X, info.pos3Y) +
-                    getTriangleArea(info.pos1X, info.pos1Y, 1.0 * mouseX, 1.0 * mouseY, info.pos3X, info.pos3Y) +
-                    getTriangleArea(info.pos1X, info.pos1Y, info.pos2X, info.pos2Y, 1.0 * mouseX, 1.0 * mouseY)
-                    <=
-                    getTriangleArea(info.pos1X, info.pos1Y, info.pos2X, info.pos2Y, info.pos3X, info.pos3Y) + 1) {
-                info.setMouseLocation(mouseX, mouseY);
-                return info;
-            }
-        }
-        return null;
-    }
-
-    private double getTriangleArea(double xa, double ya, double xb, double yb, double xc, double yc) {
-        return 0.5 * Math.abs(xa * (yb - yc) + xb * (yc - ya) + xc * (ya - yb));
-    }
-
-    private ArrayList<EdgeTriangleInfo> getAllEdgeTriangleInfo() {
-        ArrayList<EdgeTriangleInfo> list = new ArrayList<EdgeTriangleInfo>();
-        for (Point source : pointList) {
-            ArrayList<Point.EdgePointPair> edgePointPairs = source.getAllEdgePointPair();
-            Point.InfoPack sourceInfo = source.getPixelInformation();
-            for (Point.EdgePointPair edgePointPair : edgePointPairs) {
-                Point targetPoint = edgePointPair.targetPoint;
-                Point.InfoPack targetInfo = targetPoint.getPixelInformation();
-
-                if (!(targetInfo.posX - sourceInfo.posX == 0 && targetInfo.posY - sourceInfo.posY == 0)) {
-                    EdgeTriangleInfo triangleInfo = new EdgeTriangleInfo();
-
-                    double triangleSize = 15.0,
-                            edgeLength = Math.sqrt((targetInfo.posX - sourceInfo.posX) * (targetInfo.posX - sourceInfo.posX) +
-                                    (targetInfo.posY - sourceInfo.posY) * (targetInfo.posY - sourceInfo.posY)),
-                            refX = sourceInfo.posX + (targetInfo.posX - sourceInfo.posX) * (0.5 - triangleSize / edgeLength),
-                            refY = sourceInfo.posY + (targetInfo.posY - sourceInfo.posY) * (0.5 - triangleSize / edgeLength),
-                            p1x = refX + triangleSize / edgeLength * (targetInfo.posX - sourceInfo.posX),
-                            p1y = refY + triangleSize / edgeLength * (targetInfo.posY - sourceInfo.posY),
-                            p2x = refX + triangleSize / edgeLength / 2 * (targetInfo.posY - sourceInfo.posY),
-                            p2y = refY - triangleSize / edgeLength / 2 * (targetInfo.posX - sourceInfo.posX),
-                            p3x = refX - triangleSize / edgeLength / 2 * (targetInfo.posY - sourceInfo.posY),
-                            p3y = refY + triangleSize / edgeLength / 2 * (targetInfo.posX - sourceInfo.posX);
-
-                    triangleInfo.setSourceTargetRelation(source.getId(), targetPoint.getId(), edgePointPair.direction);
-                    triangleInfo.setPoints(p1x, p1y, p2x, p2y, p3x, p3y);
-                    list.add(triangleInfo);
-                }
-            }
-        }
-        return list;
+        g.drawString(s, 0, (int) Math.round(getHeight() - g.getFont().getSize() / 2));
     }
 
     private ArrayList<Point.InfoPack> getTriGridInfoPack() {
@@ -376,75 +189,10 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
         return list;
     }
 
-    private ArrayList<ScaleAnchorInfo> getPointScaleAnchor(Point p) {
-        ArrayList<ScaleAnchorInfo> list = new ArrayList<ScaleAnchorInfo>();
-        ScaleAnchorOrientation[] orientations = {
-                ScaleAnchorOrientation.NORTH_WEST, ScaleAnchorOrientation.NORTH, ScaleAnchorOrientation.NORTH_EAST,
-                ScaleAnchorOrientation.WEST, null, ScaleAnchorOrientation.EAST,
-                ScaleAnchorOrientation.SOUTH_WEST, ScaleAnchorOrientation.SOUTH, ScaleAnchorOrientation.SOUTH_EAST
-        };
-
-        Point.InfoPack infoPack = p.getPixelInformation();
-        double dotSize = 0.1, minSize = 7.0,
-                /*dotActualSize = (infoPack.height < infoPack.width) ? infoPack.height * dotSize : infoPack.width * dotSize;
-        dotActualSize = (dotActualSize < minSize) ? minSize : dotActualSize;*/
-                dotActualSize = minSize;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (i != 1 || j != 1) list.add(
-                        new ScaleAnchorInfo(
-                                (int) Math.round(infoPack.posX - infoPack.width / 2 + (infoPack.width * i - dotActualSize) / 2),
-                                (int) Math.round(infoPack.posY - infoPack.height / 2 + (infoPack.height * j - dotActualSize) / 2),
-                                (int) Math.round(dotActualSize),
-                                (int) Math.round(dotActualSize),
-                                orientations[j * 3 + i])
-                );
-            }
-        }
-        return list;
-    }
-
-    public boolean setBoardImage(File file) {
-        try {
-            boardImage = ImageIO.read(file);
-            boardHeight = boardImage.getHeight();
-            boardWidth = boardImage.getWidth();
-            updateAllPoints();
-            parent.setTextFieldImageSize(boardWidth, boardHeight);
-            UIHandler.refreshWindow();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            boardImage = null;
-            UIHandler.refreshWindow();
-            return false;
-        }
-    }
-
-    public boolean setBoardImage(int width, int height) {
-        if (width < 1 || height < 1)
-            return false;
-
-        boardHeight = height;
-        boardWidth = width;
-        boardImage = null;
-        updateAllPoints();
-        UIHandler.refreshWindow();
-        return true;
-    }
-
-    public int getBoardWidth() {
-        return boardWidth;
-    }
-
-    public int getBoardHeight() {
-        return boardHeight;
-    }
-
     public boolean addSinglePoint(int id) {
         if (!verifyPointID(id)) return false;
         addPointId = id;
-        Point p = new Point(ChessBoardGraphicAreaPanel.this, addPointId);
+        Point p = new Point(ChessBoardPointEditingGraphicAreaPanel.this, addPointId);
         double wPercent = pointStandardRelativeSize, hPercent = pointStandardRelativeSize;
         if (1.0 * boardHeight / boardWidth > 1)
             hPercent = wPercent * boardWidth / boardHeight;
@@ -459,8 +207,8 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
 
         editingMode = EditingMode.SELECTING;
         setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-        parent.setNextPointIdField(getNextUsableId());
-        UIHandler.refreshWindow();
+        UIHandler.getInstance(null).getChessBoardPanel().setNextPointIdField(getNextUsableId());
+        repaint();
         return true;
     }
 
@@ -492,12 +240,12 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
         for (Point p : selectedPointList)
             pointList.remove(p);
         selectedPointList.clear();
-        parent.setNextPointIdField(getOptimizedNextUsableId());
-        UIHandler.refreshWindow();
+        UIHandler.getInstance(null).getChessBoardPanel().setNextPointIdField(getOptimizedNextUsableId());
+        repaint();
     }
 
-    public void updateAllPoints() {
-        ChessBoardPanel.PointScaleMode mode = parent.getPointScaleMode();
+    protected void updateAllPoints() {
+        ChessBoardPanel.PointScaleMode mode = UIHandler.getInstance(null).getChessBoardPanel().getPointScaleMode();
         if (mode == ChessBoardPanel.PointScaleMode.PANEL_ALL) {
             for (Point p : pointList) {
                 Point.InfoPack pixelInfo = p.getPixelInformation();
@@ -554,42 +302,10 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
 
             p.setSizeByPixel(x, y, infoPack.width, infoPack.height);
         }
-        UIHandler.refreshWindow();
+        repaint();
     }
 
-    private Point getCursorPointingPoint(double x, double y) {
-        for (int i = pointList.size() - 1; i >= 0; i--)
-            if (isCursorOnPoint(x, y, pointList.get(i))) return pointList.get(i);
-
-        return null;
-    }
-
-    private boolean isCursorOnPoint(double x, double y, Point p) {
-        Point.InfoPack infoPack = p.getPixelInformation();
-        if (x >= infoPack.posX - infoPack.width / 2 &&
-                x <= infoPack.posX + infoPack.width / 2 &&
-                y >= infoPack.posY - infoPack.height / 2 &&
-                y <= infoPack.posY + infoPack.height / 2) return true;
-
-        if (getCursorPointingAnchorOrientation(x, y, p) != null) return true;
-
-        return false;
-    }
-
-    private ScaleAnchorOrientation getCursorPointingAnchorOrientation(double x, double y, Point p) {
-        if (!selectedPointList.contains(p)) return null;
-        ArrayList<ScaleAnchorInfo> anchorList = getPointScaleAnchor(p);
-        for (ScaleAnchorInfo anchor : anchorList)
-            if (x >= anchor.posXTopLeft &&
-                    x <= anchor.posXTopLeft + anchor.width &&
-                    y >= anchor.posYTopLeft &&
-                    y <= anchor.posYTopLeft + anchor.height)
-                return anchor.orientation;
-
-        return null;
-    }
-
-    public MouseAdapter createMouseAdapter() {
+    protected MouseAdapter createMouseAdapter() {
         return new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -634,12 +350,9 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                             if (!selectedPointList.contains(cursorPointingPoint)) {
                                 selectedPointList.clear();
                                 selectedPointList.add(cursorPointingPoint);
-                            } else {
-                                selectedPointList.remove(cursorPointingPoint);
-                                selectedPointList.add(cursorPointingPoint);
+                                pointList.remove(cursorPointingPoint);
+                                pointList.add(cursorPointingPoint);
                             }
-                            pointList.remove(cursorPointingPoint);
-                            pointList.add(cursorPointingPoint);
                         }
                     }
                 }
@@ -648,7 +361,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                 mouseStartY = e.getY();
                 mouseLastX = e.getX();
                 mouseLastY = e.getY();
-                UIHandler.refreshWindow();
+                repaint();
             }
 
             @Override
@@ -747,7 +460,8 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                         selectedPointList.clear();
                         for (int i = toBeAddedList.size() - 1; i >= 0; i--) {
                             Point p = toBeAddedList.get(i);
-                            if (!controlModeSelectionList.contains(p))controlModeSelectionList.add(p);
+                            if (!controlModeSelectionList.contains(p))
+                                controlModeSelectionList.add(p);
                         }
                         for (Point p : selectedPointBackupList) {
                             if (!controlModeSelectionList.contains(p)) selectedPointList.add(p);
@@ -774,7 +488,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
 
                 mouseLastX = e.getX();
                 mouseLastY = e.getY();
-                UIHandler.refreshWindow();
+                repaint();
             }
 
             @Override
@@ -789,11 +503,11 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                 }
                 if (editingMode == EditingMode.RECT_GRID_ADDING || editingMode == EditingMode.TRI_GRID_ADDING) {
                     setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
-                    if (triangleInfo != showTriangleInfo) UIHandler.refreshWindow();
+                    if (triangleInfo != showTriangleInfo) repaint();
                     return;
                 }
                 showTriangleInfo = getCursorPointingEdgeTriangle(e.getX(), e.getY());
-                if (triangleInfo != showTriangleInfo) UIHandler.refreshWindow();
+                if (triangleInfo != showTriangleInfo) repaint();
                 Point cursorPointingPoint = getCursorPointingPoint(e.getX(), e.getY());
                 ScaleAnchorOrientation orientation =
                         (cursorPointingPoint != null) ?
@@ -839,12 +553,13 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
                 isDragging = false;
+                ChessBoardPanel chessBoardPanel = UIHandler.getInstance(null).getChessBoardPanel();
 
                 if (editingMode == EditingMode.RECT_GRID_ADDING) {
                     ArrayList<Point.InfoPack> infoPacks = getRectGridInfoPack();
 
                     for (Point.InfoPack infoPack : infoPacks) {
-                        Point p = new Point(ChessBoardGraphicAreaPanel.this, getNextUsableId());
+                        Point p = new Point(ChessBoardPointEditingGraphicAreaPanel.this, getNextUsableId());
                         p.setSizeByPixel(infoPack.posX, infoPack.posY, infoPack.width, infoPack.height);
                         pointList.add(p);
                         selectedPointList.add(p);
@@ -888,14 +603,14 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                         }
                     }
 
-                    parent.setNextPointIdField(getNextUsableId());
+                    chessBoardPanel.setNextPointIdField(getNextUsableId());
                     editingMode = EditingMode.SELECTING;
                     setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
                 } else if (editingMode == EditingMode.TRI_GRID_ADDING) {
                     ArrayList<Point.InfoPack> infoPacks = getTriGridInfoPack();
                     for (Point.InfoPack infoPack : infoPacks) {
-                        Point p = new Point(ChessBoardGraphicAreaPanel.this, getNextUsableId());
+                        Point p = new Point(ChessBoardPointEditingGraphicAreaPanel.this, getNextUsableId());
                         p.setSizeByPixel(infoPack.posX, infoPack.posY, infoPack.width, infoPack.height);
                         pointList.add(p);
                         selectedPointList.add(p);
@@ -952,7 +667,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                         }
                     }
 
-                    parent.setNextPointIdField(getNextUsableId());
+                    chessBoardPanel.setNextPointIdField(getNextUsableId());
                     editingMode = EditingMode.SELECTING;
                     setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
@@ -961,25 +676,26 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                         Point.InfoPack infoPack = p.getPixelInformation();
                         double x = infoPack.posX, y = infoPack.posY;
                         x = (x < 0 ? 0 : x);
-                        x = (x > ChessBoardGraphicAreaPanel.this.getWidth() ? ChessBoardGraphicAreaPanel.this.getWidth() : x);
+                        x = (x > ChessBoardPointEditingGraphicAreaPanel.this.getWidth() ? ChessBoardPointEditingGraphicAreaPanel.this.getWidth() : x);
                         y = (y < 0 ? 0 : y);
-                        y = (y > ChessBoardGraphicAreaPanel.this.getHeight() ? ChessBoardGraphicAreaPanel.this.getHeight() : y);
+                        y = (y > ChessBoardPointEditingGraphicAreaPanel.this.getHeight() ? ChessBoardPointEditingGraphicAreaPanel.this.getHeight() : y);
                         p.setSizeByPixel(x, y, infoPack.width, infoPack.height);
                     }
                 } else if (editingMode == EditingMode.SELECTING) {
                     controlModeSelectionList.clear();
                     selectedPointBackupList.clear();
                 }
-                UIHandler.refreshWindow();
+                repaint();
             }
         };
     }
 
-    public KeyAdapter createKeyAdapter() {
+    protected KeyAdapter createKeyAdapter() {
         return new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 super.keyPressed(e);
+                ChessBoardPanel chessBoardPanel = UIHandler.getInstance(null).getChessBoardPanel();
                 switch (e.getKeyCode()) {
                     case 17:
                         if (!controlMode)
@@ -988,19 +704,19 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                         controlMode = true;
                         break;
                     case 65:
-                        parent.addPointAction();
+                        chessBoardPanel.addPointAction();
                         break;
                     case 67:
-                        parent.copyAndPastePointButtonAction();
+                        chessBoardPanel.copyAndPastePointButtonAction();
                         break;
                     case 68:
-                        parent.deletePointButtonAction();
+                        chessBoardPanel.deletePointButtonAction();
                         break;
                     case 69:
-                        parent.createEdgeForPointsButtonAction();
+                        chessBoardPanel.createEdgeForPointsButtonAction();
                         break;
                     case 82:
-                        parent.deleteEdgeForPointsButtonAction();
+                        chessBoardPanel.deleteEdgeForPointsButtonAction();
                         break;
                 }
             }
@@ -1087,7 +803,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
                     if (edgePointPair.targetPoint == selectedPointList.get(tar)) break;
                 }
                 if (tar < copyList.size())
-                copyList.get(i).addEdgePointPairs(edgePointPair.direction, copyList.get(tar));
+                    copyList.get(i).addEdgePointPairs(edgePointPair.direction, copyList.get(tar));
             }
         }
 
@@ -1095,8 +811,8 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
             pointList.add(p);
 
         selectedPointList = copyList;
-        parent.setNextPointIdField(addPointId);
-        UIHandler.refreshWindow();
+        UIHandler.getInstance(null).getChessBoardPanel().setNextPointIdField(addPointId);
+        repaint();
     }
 
     public void createEdgesForSelectedPoints(String direction) {
@@ -1114,7 +830,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
         if (result == JOptionPane.YES_OPTION) {
             for (int i = 0; i < selectedPointList.size() - 1; i++)
                 selectedPointList.get(i).addEdgePointPairs(direction, selectedPointList.get(i + 1));
-            UIHandler.refreshWindow();
+            repaint();
         }
     }
 
@@ -1122,10 +838,7 @@ public class ChessBoardGraphicAreaPanel extends JPanel {
         for (Point p1 : selectedPointList)
             for (Point p2 : selectedPointList)
                 if (p1 != p2) p1.removeEdgePointPairs(p2);
-        UIHandler.refreshWindow();
+        repaint();
     }
 
-	public ArrayList<Point> getPointList() {
-		return pointList;
-	}
 }

@@ -9,6 +9,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
+import java.awt.image.BufferedImage;
+import java.nio.Buffer;
 import java.util.ArrayList;
 
 import javax.swing.Action;
@@ -54,11 +56,12 @@ public class UIHandler {
     public static UIHandler getInstance(EventCallback eventCallback) {
         if (uiHandler == null) {
             uiHandler = new UIHandler();
+            if (eventCallback == null || !(eventCallback instanceof UIHandler.EventCallback))
+                return uiHandler;
             screenResolution = Toolkit.getDefaultToolkit().getScreenSize();
             uiHandler.callback = eventCallback;
             uiHandler.prepareObjectInstance();
-        } else
-            uiHandler.callback = eventCallback;
+        }
         return uiHandler;
     }
 
@@ -134,17 +137,13 @@ public class UIHandler {
         };
     }
 
-    public static void refreshWindow() {
-        if (uiHandler != null) uiHandler.mainWindow.repaint();
-    }
-
     public static JFrame getMainWindow() {
         if (uiHandler != null) return uiHandler.mainWindow;
         else return null;
     }
-    
+
     public ArrayList<Point> getPointList() {
-    	return chessBoardPanel.getPointList();
+        return chessBoardPanel.getPointList();
     }
 
     public static String showVariableInputDialog(String title, String majorMessage, String minorMessage) {
@@ -169,5 +168,9 @@ public class UIHandler {
 
     public ArrayList<PieceProfile> getChessPieceProfile() {
         return chessPiecePanel.getPieceProfiles();
+    }
+
+    public ChessBoardPanel getChessBoardPanel() {
+        return chessBoardPanel;
     }
 }

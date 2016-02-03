@@ -2,7 +2,7 @@ package Chreator.ObjectModel;
 
 import java.util.ArrayList;
 
-import Chreator.UIModule.ChessBoardGraphicAreaPanel;
+import Chreator.UIModule.AbstractModel.ChessBoardGraphicAreaPanel;
 
 /**
  * Created by him on 2015/12/30.

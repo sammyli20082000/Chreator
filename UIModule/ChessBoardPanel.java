@@ -3,6 +3,7 @@ package Chreator.UIModule;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -11,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
@@ -78,7 +80,7 @@ public class ChessBoardPanel extends JPanel {
     public static String tabName = "Chess Board";
     private EventCallback callback;
 
-    private ChessBoardGraphicAreaPanel graphicAreaPanel;
+    public ChessBoardPointEditingGraphicAreaPanel graphicAreaPanel;
     private JPanel toolAreaPanel;
     private ButtonGroup chessBoardImageOptionGroup, addPointOptionGroup, pointScaleOptionGroup;
     private JRadioButton imageFromFileRadio, blankImageRadio, addSinglePointRadio, addRectGridPointRadio, addTriGridPointRadio,
@@ -100,7 +102,7 @@ public class ChessBoardPanel extends JPanel {
         setLayout(new BorderLayout());
 
         setupToolAreaPanel();
-        graphicAreaPanel = new ChessBoardGraphicAreaPanel(this);
+        graphicAreaPanel = new ChessBoardPointEditingGraphicAreaPanel();
         scrollPane = new JScrollPane(toolAreaPanel,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -429,7 +431,7 @@ public class ChessBoardPanel extends JPanel {
 
     private DocumentListener getTextFieldDocumentListener(JTextField jtf) {
         if (jtf == blankImageWidth || jtf == blankImageHeight)
-            return new DocumentAdapter() {
+            return new Chreator.UIModule.AbstractModel.DocumentAdapter() {
                 public void editedUpdate(DocumentEvent de) {
                     setBlankImage();
                 }
@@ -684,7 +686,15 @@ public class ChessBoardPanel extends JPanel {
         graphicAreaPanel.deleteEdgesForSelectedPoints();
     }
 
-	public ArrayList<Point> getPointList() {
-		return graphicAreaPanel.getPointList();
-	}
+    public ArrayList<Point> getPointList() {
+        return graphicAreaPanel.getPointList();
+    }
+
+    public BufferedImage getChessBoardImage() {
+        return graphicAreaPanel.getBoardImage();
+    }
+
+    public Dimension getChessBoardPreferredSize() {
+        return graphicAreaPanel.getChessBoardPreferredSize();
+    }
 }

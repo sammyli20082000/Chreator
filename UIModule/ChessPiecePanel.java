@@ -13,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.Buffer;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -20,6 +21,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -69,10 +71,19 @@ public class ChessPiecePanel extends JPanel {
     private ArrayList<PieceProfile> pieceProfiles;
     private boolean inApplyingProfile = false;
     private Color jtfDefaultBackground = new JTextField().getBackground();
+    private JFrame pieceSetSizeWindow;
+    private ChessPieceSetSizeGraphicAreaPanel pieceSetSizePanel;
 
     public ChessPiecePanel(EventCallback eventCallback) {
         callback = eventCallback;
         pieceProfiles = new ArrayList<PieceProfile>();
+
+        pieceSetSizePanel = new ChessPieceSetSizeGraphicAreaPanel();
+        pieceSetSizeWindow = new JFrame("Piece Set Size - Chreator");
+        pieceSetSizeWindow.add(pieceSetSizePanel);
+        pieceSetSizeWindow.setLocation(UIHandler.screenResolution.width / 10, UIHandler.screenResolution.height / 10);
+        pieceSetSizeWindow.setSize(UIHandler.screenResolution.width * 4 / 5, UIHandler.screenResolution.height * 4 / 5);
+
         setupLayout();
     }
 
@@ -238,6 +249,7 @@ public class ChessPiecePanel extends JPanel {
 
         addInitialPointIdButton.addActionListener(createJButtonActionListener(addInitialPointIdButton));
         deleteInitialPointIdButton.addActionListener(createJButtonActionListener(deleteInitialPointIdButton));
+        setPieceSizeButton.addActionListener(createJButtonActionListener(setPieceSizeButton));
 
         GridBagConstraints c1 = new GridBagConstraints(), c2 = new GridBagConstraints();
         c1.gridx = 0;
@@ -341,7 +353,7 @@ public class ChessPiecePanel extends JPanel {
                             previewImage = null;
                             ex.printStackTrace();
                         }
-                        UIHandler.refreshWindow();
+                        jp.repaint();
                     }
                 }
 
@@ -359,10 +371,10 @@ public class ChessPiecePanel extends JPanel {
         return null;
     }
 
-    private DocumentAdapter createDocumentAdapter(final JTextField jtf) {
+    private Chreator.UIModule.AbstractModel.DocumentAdapter createDocumentAdapter(final JTextField jtf) {
         if (jtf == pieceColorBlueTextField || jtf == pieceColorRedTextField || jtf == pieceColorGreenTextField
                 || jtf == piecePicHeightTextField || jtf == piecePicWidthTextField)
-            return new DocumentAdapter() {
+            return new Chreator.UIModule.AbstractModel.DocumentAdapter() {
                 public void editedUpdate(DocumentEvent e) {
                     if (!inApplyingProfile && verifyTextFields(jtf)) updateCurrentProfile();
                 }
@@ -461,6 +473,14 @@ public class ChessPiecePanel extends JPanel {
                     removeInitialPointIdFromList();
                 }
             };
+        else if (jb == setPieceSizeButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    pieceSetSizePanel.updateContent();
+                    pieceSetSizeWindow.setVisible(true);
+                }
+            };
         else
             return null;
     }
@@ -478,7 +498,7 @@ public class ChessPiecePanel extends JPanel {
 
     private void removePiecePic() {
         previewImage = null;
-        UIHandler.refreshWindow();
+        previewImagePanel.repaint();
     }
 
     private boolean verifyTextFields(final JTextField jtf) {
