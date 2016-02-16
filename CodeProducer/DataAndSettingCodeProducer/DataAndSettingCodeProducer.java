@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import Chreator.CodeProducer.CodeProducer;
 import Chreator.ObjectModel.Point;
 
 public class DataAndSettingCodeProducer {
@@ -19,8 +20,8 @@ public class DataAndSettingCodeProducer {
 	private PointEdgeDataCodeProducer pointEdgeDataCodeProducer;
 	
 	
-	public DataAndSettingCodeProducer(String pathname, ArrayList<Point> pList) {
-		file = new File(pathname);
+	public DataAndSettingCodeProducer(ArrayList<Point> pList) {
+		file = new File(CodeProducer.baseDir);
 		DataAndSettingCodes = new LinkedList<>();
 		
 		dataAndSettingFrameProducer = new DataAndSettingFrameProducer();

@@ -1,5 +1,6 @@
 package Chreator.UIModule;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -21,9 +22,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.ListModel;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
+import Chreator.CodeProducer.CodeProducer;
 import Chreator.ObjectModel.PieceProfile;
 import Chreator.ObjectModel.Point;
 
@@ -94,20 +97,24 @@ public class UIHandler {
         menu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (PieceProfile profile : chessPiecePanel.getPieceProfiles()) {
-                    System.out.print(profile.pieceClassName +
-                                    "; " + profile.playerSide +
-                                    "; " + profile.sourcePicLink +
-                                    "; " + profile.pieceColor.toString() +
-                                    "; " + profile.imageWidth + " x " + profile.imageHeight +
-                                    "; "
-                    );
-                    for (int i = 0; i < profile.initialPointId.size(); i++) {
-                        System.out.print(profile.initialPointId.getElementAt(i) + ", ");
-                    }
-                    System.out.println();
-                }
-                System.out.println();
+//                for (PieceProfile profile : chessPiecePanel.getPieceProfiles()) {
+//                    System.out.print(profile.pieceClassName +
+//                                    "; " + profile.playerSide +
+//                                    "; " + profile.sourcePicLink +
+//                                    "; " + profile.pieceColor.toString() +
+//                                    "; " + profile.imageWidth + " x " + profile.imageHeight +
+//                                    "; "
+//                    );
+//                    for (int i = 0; i < profile.initialPointId.size(); i++) {
+//                        System.out.print(profile.initialPointId.getElementAt(i) + ", ");
+//                    }
+//                    System.out.println();
+//                }
+//                System.out.println();
+            	
+            	CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(), getPointList(), getEdgeDirectionList());
+            	codeProducer.produceExecutable();
+            	
             }
         });
         bar.add(menu);
@@ -172,5 +179,17 @@ public class UIHandler {
 
     public ChessBoardPanel getChessBoardPanel() {
         return chessBoardPanel;
+    }
+    
+    public String getProjectLocationBaseDir() {
+    	return projectSettingPanel.getProjectLocationBaseDir();
+    }
+    
+    public String getProjectFolderName() {
+    	return projectSettingPanel.getProjectFolderName();
+    }
+    
+    public ListModel getEdgeDirectionList() {
+    	return chessBoardPanel.getEdgeDirectionList();
     }
 }

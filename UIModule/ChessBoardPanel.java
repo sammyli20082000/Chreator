@@ -31,6 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
@@ -696,5 +697,9 @@ public class ChessBoardPanel extends JPanel {
 
     public Dimension getChessBoardPreferredSize() {
         return graphicAreaPanel.getChessBoardPreferredSize();
+    }
+    
+    public ListModel getEdgeDirectionList() {
+    	return edgeDirectionList.getModel();
     }
 }

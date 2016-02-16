@@ -235,4 +235,12 @@ public class ProjectSettingPanel extends JPanel {
             };
         } else return null;
     }
+
+	public String getProjectLocationBaseDir() {
+		return locationInputField.getText();		 
+	}
+	
+	public String getProjectFolderName() {
+		return projectFolderNameInputField.getText();
+	}
 }
