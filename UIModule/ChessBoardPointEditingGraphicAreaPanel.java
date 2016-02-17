@@ -55,6 +55,12 @@ public class ChessBoardPointEditingGraphicAreaPanel extends ChessBoardGraphicAre
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        paintComponentForChessBoard(g);
+        paintComponentForBoardEdge(g);
+        paintComponentForEdgeTriangles(g);
+        paintComponentForAllPoints(g);
+        paintComponentForScaleAnchorOfSelectedPoints(g);
+        paintComponentForEdgeTriangleInfo(g);
 
         g.setColor(new Color(0, 127, 0));
         if (isDragging) {
@@ -305,6 +311,11 @@ public class ChessBoardPointEditingGraphicAreaPanel extends ChessBoardGraphicAre
         repaint();
     }
 
+    @Override
+    protected ChessBoardPanel getChessBoardPanel() {
+        return UIHandler.getInstance(null).getChessBoardPanel();
+    }
+
     protected MouseAdapter createMouseAdapter() {
         return new MouseAdapter() {
             @Override
@@ -319,7 +330,7 @@ public class ChessBoardPointEditingGraphicAreaPanel extends ChessBoardGraphicAre
 
                     Point cursorPointingPoint = getCursorPointingPoint(e.getX(), e.getY());
                     ScaleAnchorOrientation orientation =
-                            (cursorPointingPoint != null) ?
+                            (cursorPointingPoint != null) && selectedPointList.contains(cursorPointingPoint)?
                                     getCursorPointingAnchorOrientation(e.getX(), e.getY(), cursorPointingPoint) :
                                     null;
 
@@ -510,7 +521,7 @@ public class ChessBoardPointEditingGraphicAreaPanel extends ChessBoardGraphicAre
                 if (triangleInfo != showTriangleInfo) repaint();
                 Point cursorPointingPoint = getCursorPointingPoint(e.getX(), e.getY());
                 ScaleAnchorOrientation orientation =
-                        (cursorPointingPoint != null) ?
+                        (cursorPointingPoint != null) && selectedPointList.contains(cursorPointingPoint)?
                                 getCursorPointingAnchorOrientation(e.getX(), e.getY(), cursorPointingPoint)
                                 : null;
 

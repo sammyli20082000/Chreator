@@ -1,11 +1,9 @@
 package Chreator.ObjectModel;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 
 import javax.swing.DefaultListModel;
-import javax.swing.ListModel;
-
-import Chreator.UIModule.ChessPiecePanel;
 
 /**
  * Created by root on 1/25/16.
@@ -13,17 +11,19 @@ import Chreator.UIModule.ChessPiecePanel;
 public class PieceProfile {
     public String playerSide, pieceClassName, code, sourcePicLink;
     public Color pieceColor;
-    public double imageHeight, imageWidth;
+    public double imageRelativeHeight, imageRelativeWidth;
     public DefaultListModel<String> initialPointId;
+    public BufferedImage pieceImage;
 
     public PieceProfile(String playerSide, String pieceClassName) {
         this.playerSide = playerSide;
         this.pieceClassName = pieceClassName;
         code = "";
         pieceColor = Color.WHITE;
-        imageHeight = ChessPiecePanel.sharedPieceHeight;
-        imageWidth = ChessPiecePanel.sharedPieceWidth;
+        imageRelativeHeight = 0.1;
+        imageRelativeWidth = 0.1;
         initialPointId = new DefaultListModel<String>();
         sourcePicLink = "";
+        pieceImage = null;
     }
 }

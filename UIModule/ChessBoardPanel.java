@@ -96,7 +96,6 @@ public class ChessBoardPanel extends JPanel {
     private final int scrollSpeed = 10;
     private int numBaseComponent = 0, numComponent = 0;
     private File imageFile;
-    private String browseDir = null;
 
     public ChessBoardPanel(EventCallback eventCallback) {
         callback = eventCallback;
@@ -447,20 +446,13 @@ public class ChessBoardPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     if (jb.isEnabled()) {
-                        JFileChooser fileChooser = new JFileChooser();
-                        if (browseDir != null) fileChooser.setCurrentDirectory(new File(browseDir));
-                        int returnValue = fileChooser.showOpenDialog(null);
-                        if (returnValue == JFileChooser.APPROVE_OPTION) {
-                            imageFile = fileChooser.getSelectedFile();
-                            browseDir = imageFile.getParent();
-                            if (!graphicAreaPanel.setBoardImage(imageFile)) {
-                                JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
-                                        "<html><center>Failed to read image file.<br>File type is not supported, file content is corrupted or file path cannot be accessed.</html>",
-                                        "Failed to read image file", JOptionPane.ERROR_MESSAGE);
+                        imageFile = UIHandler.getInstance(null).getFileDirectoryByDialog(JFileChooser.FILES_ONLY);
+                        if (!graphicAreaPanel.setBoardImage(imageFile)) {
+                            JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+                                    "<html><center>Failed to read image file.<br>File type is not supported, file content is corrupted or file path cannot be accessed.</html>",
+                                    "Failed to read image file", JOptionPane.ERROR_MESSAGE);
 
-                            }
                         }
-
                     }
                 }
             };
@@ -698,8 +690,8 @@ public class ChessBoardPanel extends JPanel {
     public Dimension getChessBoardPreferredSize() {
         return graphicAreaPanel.getChessBoardPreferredSize();
     }
-    
-    public ListModel getEdgeDirectionList() {
-    	return edgeDirectionList.getModel();
+
+    public ListModel getEdgeDirectionList(){
+        return edgeDirectionList.getModel();
     }
 }

@@ -233,10 +233,9 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
         return pointList;
     }
 
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        double panelTangent = 1.0 * getHeight() / getWidth(), boardTangent = 1.0 * boardHeight / boardWidth, baseX, baseY;
-        baseX = (boardTangent > panelTangent) ? ((1.0 * getWidth() - getHeight() / boardTangent) / 2) : 0;
+    protected void paintComponentForChessBoard(Graphics g){
+        double panelTangent = 1.0 * getHeight() / getWidth(), boardTangent = 1.0 * boardHeight / boardWidth,
+        baseX = (boardTangent > panelTangent) ? ((1.0 * getWidth() - getHeight() / boardTangent) / 2) : 0,
         baseY = (boardTangent < panelTangent) ? ((1.0 * getHeight() - getWidth() * boardTangent) / 2) : 0;
 
         g.setColor(Color.WHITE);
@@ -253,7 +252,9 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
                 g.drawImage(boardImage, 0, (int) Math.round(baseY), getWidth(), (int) (boardTangent * getWidth()), null);
             else g.drawImage(boardImage, 0, 0, getWidth(), getHeight(), null);
         }
+    }
 
+    protected void paintComponentForBoardEdge(Graphics g){
         g.setColor(Color.RED);
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(3.0f));
@@ -271,9 +272,11 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
             }
         }
         g2.setStroke(new BasicStroke(1.0f));
+    }
 
+    protected void paintComponentForEdgeTriangles(Graphics g){
         for (EdgeTriangleInfo triangleInfo : getAllEdgeTriangleInfo()) {
-            ChessBoardPanel chessBoardPanel = UIHandler.getInstance(null).getChessBoardPanel();
+            ChessBoardPanel chessBoardPanel = getChessBoardPanel();
             g.setColor(chessBoardPanel.getEdgeDirectionColor(triangleInfo.direction));
             g.fillPolygon(new int[]{
                     (int) Math.round(triangleInfo.pos1X),
@@ -285,7 +288,9 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
                     (int) Math.round(triangleInfo.pos3Y)
             }, 3);
         }
+    }
 
+    protected void paintComponentForAllPoints(Graphics g){
         for (Point p : pointList) {
             Point.InfoPack pixelInfo = p.getPixelInformation();
             g.setColor(new Color(0f, 0f, 1f, 0.5f));
@@ -293,14 +298,18 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
             g.setColor(Color.ORANGE);
             g.drawString(p.getId() + "", (int) Math.round(pixelInfo.posX), (int) Math.round(pixelInfo.posY));
         }
+    }
 
+    protected void paintComponentForScaleAnchorOfSelectedPoints(Graphics g){
         g.setColor(Color.GREEN);
         for (Point p : selectedPointList) {
             ArrayList<ScaleAnchorInfo> anchorList = getPointScaleAnchor(p);
             for (ScaleAnchorInfo anchor : anchorList)
                 g.fillRect(anchor.posXTopLeft, anchor.posYTopLeft, anchor.width, anchor.height);
         }
+    }
 
+    protected void paintComponentForEdgeTriangleInfo(Graphics g){
         if (showTriangleInfo != null) {
             String s = showTriangleInfo.sourcePointId + " to " + showTriangleInfo.targetPointId + " (" + showTriangleInfo.direction + ")";
             Color textColor = Color.WHITE, background = new Color(0.0f, 0.0f, 0.0f, 0.75f);
@@ -311,6 +320,10 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
             g.setColor(textColor);
             g.drawString(s, showTriangleInfo.mouseX, showTriangleInfo.mouseY);
         }
+    }
+
+    public void paintComponent(Graphics g){
+        super.paintComponent(g);
     }
 
     protected Point getCursorPointingPoint(double x, double y) {
@@ -333,7 +346,6 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
     }
 
     protected ScaleAnchorOrientation getCursorPointingAnchorOrientation(double x, double y, Point p) {
-        if (!selectedPointList.contains(p)) return null;
         ArrayList<ScaleAnchorInfo> anchorList = getPointScaleAnchor(p);
         for (ScaleAnchorInfo anchor : anchorList)
             if (x >= anchor.posXTopLeft &&
@@ -352,6 +364,8 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
     abstract protected KeyListener createKeyAdapter();
 
     abstract protected void updateAllPoints();
+
+    abstract protected ChessBoardPanel getChessBoardPanel();
 
     protected Point findPointInListById(ArrayList<Point> pointList, int id) {
         for (Point p : pointList) {

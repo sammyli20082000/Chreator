@@ -3,17 +3,18 @@ package Chreator.UIModule;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.Buffer;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -52,19 +53,16 @@ public class ChessPiecePanel extends JPanel {
     }
 
     public static String tabName = "Chess Piece";
-    public static double sharedPieceHeight = 0.1, sharedPieceWidth = 0.1;
+    public static double sharedPieceHeight = -1, sharedPieceWidth = -1;
+    public static Color sharedColor = Color.WHITE;
     private EventCallback callback;
     private JPanel pieceProfileEditorPanel, pieceListAndPreviewPanel, pieceInfoSettingPanel, codeInserterPanel, previewImagePanel;
     private int componentCounter = 0;
     private Dimension previewImagePanelSize = new Dimension(200, 200);
-    private BufferedImage previewImage;
-    private Color previewImageColor;
-    private String previewImageName;
-    private String browseDir;
     private File imageFile;
     private JList playerSideList, pieceClassNameList, pieceInitialPointIdList;
     private JButton addChessPieceButton, addPlayerSideButton, deleteChessPieceButton, deletePlayerSideButton,
-            setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton, deletePiecePicButton;
+            setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton, deletePiecePicButton, defaultRatioButton;
     private JTextField pieceColorGreenTextField, pieceColorBlueTextField, pieceColorRedTextField,
             piecePicHeightTextField, piecePicWidthTextField, pieceClassNameField, piecePicLinkField;
     private SimpleCodeEditor codeEditor;
@@ -78,13 +76,48 @@ public class ChessPiecePanel extends JPanel {
         callback = eventCallback;
         pieceProfiles = new ArrayList<PieceProfile>();
 
-        pieceSetSizePanel = new ChessPieceSetSizeGraphicAreaPanel();
+        pieceSetSizePanel = new ChessPieceSetSizeGraphicAreaPanel(
+                new ChessPieceSetSizeGraphicAreaPanel.OnSetSizeCallBack() {
+                    @Override
+                    public void onSetSize(double relativeWidth, double relativeHeight) {
+                        PieceProfile profile = getSelectedProfile();
+                        if (profile != null) {
+                            profile.imageRelativeWidth = relativeWidth;
+                            profile.imageRelativeHeight = relativeHeight;
+                            applySelectedProfile();
+                        }
+                    }
+                });
         pieceSetSizeWindow = new JFrame("Piece Set Size - Chreator");
         pieceSetSizeWindow.add(pieceSetSizePanel);
         pieceSetSizeWindow.setLocation(UIHandler.screenResolution.width / 10, UIHandler.screenResolution.height / 10);
         pieceSetSizeWindow.setSize(UIHandler.screenResolution.width * 4 / 5, UIHandler.screenResolution.height * 4 / 5);
 
         setupLayout();
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                super.componentResized(e);
+                Dimension d = UIHandler.getInstance(null).getChessBoardPanel().getChessBoardPreferredSize();
+
+                if ((sharedPieceWidth < 0 || sharedPieceHeight < 0) && d.getHeight() > 0 && d.getWidth() > 0) {
+                    if (1.0 * d.getHeight() / d.getWidth() > 1) {
+                        sharedPieceWidth = 0.1;
+                        sharedPieceHeight = 0.1 * d.getWidth() / d.getHeight();
+                    } else {
+                        sharedPieceHeight = 0.1;
+                        sharedPieceWidth = 0.1 * d.getHeight() / d.getWidth();
+                    }
+                    addPlayerSideToList("RED");
+                    addPlayerSideToList("BLACK");
+                    addChessPieceToList("General");
+                    addChessPieceToList("Cannon");
+                    addChessPieceToList("Advisor");
+                    addChessPieceToList("Horse");
+                    removeComponentListener(this);
+                }
+            }
+        });
     }
 
     private void setupLayout() {
@@ -107,6 +140,11 @@ public class ChessPiecePanel extends JPanel {
         add(scrollPane, BorderLayout.LINE_START);
         add(codeEditor, BorderLayout.CENTER);
         add(pieceProfileEditorPanel, BorderLayout.LINE_END);
+
+        allComponentInPanelSetEnabled(pieceProfileEditorPanel, false);
+        codeEditor.setEnabled(false);
+        previewImagePanel.setEnabled(false);
+        deletePiecePicButton.setEnabled(false);
     }
 
     private void prepareChessListAndPreviewPanel() {
@@ -116,10 +154,17 @@ public class ChessPiecePanel extends JPanel {
                 super.paintComponent(g);
                 updatePreviewPanelContent(g);
             }
+
+            public void setEnabled(boolean enabled) {
+                super.setEnabled(enabled);
+                if (enabled)
+                    setBorder(BorderFactory.createRaisedBevelBorder());
+                else
+                    setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            }
         };
         previewImagePanel.setPreferredSize(previewImagePanelSize);
         previewImagePanel.setBackground(Color.lightGray);
-        previewImagePanel.setBorder(BorderFactory.createRaisedBevelBorder());
         previewImagePanel.addMouseListener(createJPanelMouseListener(previewImagePanel));
 
         pieceClassNameList = new JList(new DefaultListModel<String>());
@@ -222,20 +267,30 @@ public class ChessPiecePanel extends JPanel {
         setPieceSizeButton = new JButton("Piece set size");
         addInitialPointIdButton = new JButton("Add Point ID");
         deleteInitialPointIdButton = new JButton("Delete Point ID");
+        defaultRatioButton = new JButton("Use Default Ratio");
         pieceColorRedTextField = new JTextField();
         pieceColorGreenTextField = new JTextField();
         pieceColorBlueTextField = new JTextField();
         piecePicHeightTextField = new JTextField();
         piecePicWidthTextField = new JTextField();
-        pieceClassNameField = new JTextField();
-        piecePicLinkField = new JTextField();
+        pieceClassNameField = new JTextField() {
+            public void setEnabled(boolean enabled) {
+                super.setEnabled(enabled);
+                setBackground(pieceInfoSettingPanel.getBackground());
+            }
+        };
+        piecePicLinkField = new JTextField() {
+            public void setEnabled(boolean enabled) {
+                super.setEnabled(enabled);
+                setBackground(pieceInfoSettingPanel.getBackground());
+            }
+        };
 
         pieceInitialPointIdList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         pieceInitialPointIdList.setFixedCellWidth(1);
 
         pieceClassNameField.setOpaque(true);
         pieceClassNameField.setBackground(pieceInfoSettingPanel.getBackground());
-
         pieceClassNameField.setOpaque(true);
         piecePicLinkField.setBackground(pieceInfoSettingPanel.getBackground());
 
@@ -250,8 +305,10 @@ public class ChessPiecePanel extends JPanel {
         addInitialPointIdButton.addActionListener(createJButtonActionListener(addInitialPointIdButton));
         deleteInitialPointIdButton.addActionListener(createJButtonActionListener(deleteInitialPointIdButton));
         setPieceSizeButton.addActionListener(createJButtonActionListener(setPieceSizeButton));
+        defaultRatioButton.addActionListener(createJButtonActionListener(defaultRatioButton));
 
         GridBagConstraints c1 = new GridBagConstraints(), c2 = new GridBagConstraints();
+        String t = "    ";
         c1.gridx = 0;
         c1.gridy = 0;
         c1.weightx = 0;
@@ -272,32 +329,46 @@ public class ChessPiecePanel extends JPanel {
         addToPanel(pieceInfoSettingPanel, new JLabel("Piece Color (if no piece image)"), GridBagConstraints.LINE_START, GridBagConstraints.NONE);
 
         temp = new JPanel(new GridBagLayout());
-        temp.add(new JLabel("    R(0~255):"), c1);
+        temp.add(new JLabel(t + "R(0~255):"), c1);
         temp.add(pieceColorRedTextField, c2);
         addToPanel(pieceInfoSettingPanel, temp);
 
         temp = new JPanel(new GridBagLayout());
-        temp.add(new JLabel("    G(0~255):"), c1);
+        temp.add(new JLabel(t + "G(0~255):"), c1);
         temp.add(pieceColorGreenTextField, c2);
         addToPanel(pieceInfoSettingPanel, temp);
 
         temp = new JPanel(new GridBagLayout());
-        temp.add(new JLabel("    B(0~255):"), c1);
+        temp.add(new JLabel(t + "B(0~255):"), c1);
         temp.add(pieceColorBlueTextField, c2);
         addToPanel(pieceInfoSettingPanel, temp);
 
         addToPanel(pieceInfoSettingPanel, new JLabel("Piece Size"), GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL);
         temp = new JPanel(new GridBagLayout());
-        temp.add(new JLabel("    Width(0~1): "), c1);
+        temp.add(new JLabel(t + "Width(0~1): "), c1);
+        addToPanel(pieceInfoSettingPanel, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel(t), c1);
         temp.add(piecePicWidthTextField, c2);
         addToPanel(pieceInfoSettingPanel, temp);
 
         temp = new JPanel(new GridBagLayout());
-        temp.add(new JLabel("    Height(0~1):"), c1);
+        temp.add(new JLabel(t + "Height(0~1):"), c1);
+        addToPanel(pieceInfoSettingPanel, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel(t), c1);
         temp.add(piecePicHeightTextField, c2);
         addToPanel(pieceInfoSettingPanel, temp);
 
-        addToPanel(pieceInfoSettingPanel, setPieceSizeButton);
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel(t), c1);
+        temp.add(setPieceSizeButton, c2);
+        addToPanel(pieceInfoSettingPanel, temp);
+
+        temp = new JPanel(new GridBagLayout());
+        temp.add(new JLabel(t), c1);
+        temp.add(defaultRatioButton, c2);
+        addToPanel(pieceInfoSettingPanel, temp);
 
         addToPanel(pieceInfoSettingPanel, new JLabel("<html><br>Initial Piece Placing Point Point ID</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
         addToPanel(pieceInfoSettingPanel, new JScrollPane(pieceInitialPointIdList), GridBagConstraints.CENTER, GridBagConstraints.BOTH);
@@ -341,29 +412,28 @@ public class ChessPiecePanel extends JPanel {
             return new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    JFileChooser fileChooser = new JFileChooser();
-                    if (browseDir != null) fileChooser.setCurrentDirectory(new File(browseDir));
-                    int returnValue = fileChooser.showOpenDialog(null);
-                    if (returnValue == JFileChooser.APPROVE_OPTION) {
-                        imageFile = fileChooser.getSelectedFile();
-                        browseDir = imageFile.getParent();
-                        try {
-                            previewImage = ImageIO.read(imageFile);
-                        } catch (Exception ex) {
-                            previewImage = null;
-                            ex.printStackTrace();
+                    if (!jp.isEnabled()) return;
+                    try {
+                        File f = UIHandler.getInstance(null).getFileDirectoryByDialog(JFileChooser.FILES_ONLY);
+                        if (f != null) {
+                            getSelectedProfile().pieceImage = ImageIO.read(f);
+                            fixPieceImageRatio();
                         }
-                        jp.repaint();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }
+                    jp.repaint();
                 }
 
                 @Override
                 public void mousePressed(MouseEvent e) {
+                    if (!jp.isEnabled()) return;
                     jp.setBorder(BorderFactory.createLoweredBevelBorder());
                 }
 
                 @Override
                 public void mouseReleased(MouseEvent e) {
+                    if (!jp.isEnabled()) return;
                     jp.setBorder(BorderFactory.createRaisedBevelBorder());
                 }
             };
@@ -377,6 +447,13 @@ public class ChessPiecePanel extends JPanel {
             return new Chreator.UIModule.AbstractModel.DocumentAdapter() {
                 public void editedUpdate(DocumentEvent e) {
                     if (!inApplyingProfile && verifyTextFields(jtf)) updateCurrentProfile();
+                    PieceProfile profile = getSelectedProfile();
+                    if (profile != null) {
+                        sharedPieceHeight = profile.imageRelativeHeight;
+                        sharedPieceWidth = profile.imageRelativeWidth;
+                        sharedColor = profile.pieceColor;
+                    }
+                    previewImagePanel.repaint();
                 }
             };
         else
@@ -405,7 +482,8 @@ public class ChessPiecePanel extends JPanel {
             return null;
     }
 
-    private ActionListener createJButtonActionListener(JButton jb) {
+    private ActionListener
+    createJButtonActionListener(JButton jb) {
         if (jb == addChessPieceButton)
             return new ActionListener() {
                 @Override
@@ -417,7 +495,6 @@ public class ChessPiecePanel extends JPanel {
                                 JOptionPane.ERROR_MESSAGE);
                     } else {
                         String pieceName = UIHandler.showVariableInputDialog("New Chess Piece Model", "Input the name of chess piece", "");
-                        if (pieceName != null) addChessPieceToList(pieceName);
                     }
                 }
             };
@@ -477,8 +554,51 @@ public class ChessPiecePanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    pieceSetSizePanel.updateContent();
-                    pieceSetSizeWindow.setVisible(true);
+                    PieceProfile profile = getSelectedProfile();
+                    if (profile != null) {
+                        pieceSetSizeWindow.setVisible(true);
+                        pieceSetSizePanel.updateContent();
+                        pieceSetSizePanel.setPiece(
+                                profile.imageRelativeWidth,
+                                profile.imageRelativeHeight,
+                                profile.pieceImage,
+                                profile.pieceColor,
+                                profile.pieceClassName);
+                        pieceSetSizeWindow.repaint();
+                    }
+                }
+            };
+        else if (jb == defaultRatioButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    PieceProfile profile = getSelectedProfile();
+                    if (profile != null) {
+                        double
+                                chessBoardWidth = UIHandler.getInstance(null).getChessBoardPanel().getChessBoardPreferredSize().getWidth(),
+                                chessBoardHeight = UIHandler.getInstance(null).getChessBoardPanel().getChessBoardPreferredSize().getHeight(),
+                                piecePixelWidth = profile.imageRelativeWidth * chessBoardWidth,
+                                piecePixelHeight = profile.imageRelativeHeight * chessBoardHeight,
+                                fixedRelativeHeight = profile.imageRelativeHeight,
+                                fixedRelativeWidth = profile.imageRelativeWidth;
+
+                        if (profile.pieceImage == null) {
+                            if (piecePixelHeight > piecePixelWidth)
+                                fixedRelativeHeight = piecePixelWidth / chessBoardHeight;
+                            else
+                                fixedRelativeWidth = piecePixelHeight / chessBoardWidth;
+                        } else {
+                            double picCorrectTangent = 1.0 * profile.pieceImage.getHeight() / profile.pieceImage.getWidth();
+                            if (piecePixelHeight / piecePixelWidth > picCorrectTangent)
+                                fixedRelativeHeight = piecePixelWidth * picCorrectTangent / chessBoardHeight;
+                            else
+                                fixedRelativeWidth = piecePixelHeight / picCorrectTangent / chessBoardWidth;
+
+                        }
+
+                        piecePicHeightTextField.setText(fixedRelativeHeight + "");
+                        piecePicWidthTextField.setText(fixedRelativeWidth+"");
+                    }
                 }
             };
         else
@@ -497,7 +617,8 @@ public class ChessPiecePanel extends JPanel {
     }
 
     private void removePiecePic() {
-        previewImage = null;
+        PieceProfile profile = getSelectedProfile();
+        profile.pieceImage = null;
         previewImagePanel.repaint();
     }
 
@@ -523,18 +644,31 @@ public class ChessPiecePanel extends JPanel {
     }
 
     private void updatePreviewPanelContent(Graphics g) {
-        if (previewImage != null) {
-            if (1.0 * previewImage.getHeight() / previewImage.getWidth() > 1.0 * previewImagePanel.getHeight() / previewImagePanel.getWidth()) {
-                int scaledWidth = previewImagePanel.getHeight() * previewImage.getWidth() / previewImage.getHeight();
-                g.drawImage(previewImage, (previewImagePanel.getWidth() - scaledWidth) / 2, 0, scaledWidth, previewImagePanel.getHeight(), null);
+        PieceProfile profile = getSelectedProfile();
+        if (profile != null) {
+            double imageActualHeight = UIHandler.getInstance(null).getChessBoardPanel().getChessBoardPreferredSize().getHeight() * profile.imageRelativeHeight,
+                    imageActualWidth = UIHandler.getInstance(null).getChessBoardPanel().getChessBoardPreferredSize().getWidth() * profile.imageRelativeWidth;
+
+            int scaledWidth = (int) Math.floor(imageActualWidth / imageActualHeight * previewImagePanel.getHeight()),
+                    scaledHeight = (int) Math.floor(imageActualHeight / imageActualWidth * previewImagePanel.getWidth());
+            if (profile.pieceImage != null) {
+                if (1.0 * imageActualHeight / imageActualWidth > 1.0 * previewImagePanel.getHeight() / previewImagePanel.getWidth())
+                    g.drawImage(profile.pieceImage, (previewImagePanel.getWidth() - scaledWidth) / 2, 0, scaledWidth, previewImagePanel.getHeight(), null);
+                else
+                    g.drawImage(profile.pieceImage, 0, (previewImagePanel.getHeight() - scaledHeight) / 2, previewImagePanel.getWidth(), scaledHeight, null);
+
             } else {
-                int scaledHeight = previewImagePanel.getWidth() * previewImage.getHeight() / previewImage.getWidth();
-                g.drawImage(previewImage, 0, (previewImagePanel.getHeight() - scaledHeight) / 2, previewImagePanel.getWidth(), scaledHeight, null);
+                g.setColor(profile.pieceColor);
+                if (1.0 * imageActualHeight / imageActualWidth > 1.0 * previewImagePanel.getHeight() / previewImagePanel.getWidth())
+                    g.fillOval((previewImagePanel.getWidth() - scaledWidth) / 2, 0, scaledWidth, previewImagePanel.getHeight());
+                else
+                    g.fillOval(0, (previewImagePanel.getHeight() - scaledHeight) / 2, previewImagePanel.getWidth(), scaledHeight);
+
+                Color c = profile.pieceColor;
+                drawCenteredString(previewImagePanel, g,
+                        new Color((c.getRed() + 128) % 256, (c.getGreen() + 128) % 256, (c.getBlue() + 128) % 256),
+                        profile.pieceClassName);
             }
-        } else if (!(previewImageName == null || previewImageColor == null)) {
-            g.setColor(previewImageColor);
-            g.fillOval(0, 0, previewImagePanel.getWidth(), previewImagePanel.getHeight());
-            drawCenteredString(previewImagePanel, g, Color.BLACK, previewImageName);
         } else
             drawCenteredString(previewImagePanel, g, Color.BLACK, "No selected chess piece");
 
@@ -573,6 +707,20 @@ public class ChessPiecePanel extends JPanel {
         listModel.addElement(id + "");
     }
 
+    public void addChessPieceToList(String pieceClassName) {
+        DefaultListModel<String> listModel = (DefaultListModel<String>) pieceClassNameList.getModel();
+        for (int i = 0; i < listModel.size(); i++) {
+            String s = listModel.getElementAt(i);
+            if (s.equals(pieceClassName)) return;
+        }
+        listModel.addElement(pieceClassName);
+        pieceClassNameList.setSelectedIndex(listModel.size() - 1);
+        for (int i = 0; i < playerSideList.getModel().getSize(); i++) {
+            String playerSide = ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(i);
+            addToPieceProfileList(playerSide, pieceClassName);
+        }
+    }
+
     public void removeInitialPointIdFromList() {
         DefaultListModel<String> listModel = (DefaultListModel<String>) pieceInitialPointIdList.getModel();
         int[] indices = pieceInitialPointIdList.getSelectedIndices();
@@ -596,20 +744,6 @@ public class ChessPiecePanel extends JPanel {
 
             if (listModel.size() > 0)
                 playerSideList.setSelectedIndex(listModel.size() - 1);
-        }
-    }
-
-    public void addChessPieceToList(String pieceClassName) {
-        DefaultListModel<String> listModel = (DefaultListModel<String>) pieceClassNameList.getModel();
-        for (int i = 0; i < listModel.size(); i++) {
-            String s = listModel.getElementAt(i);
-            if (s.equals(pieceClassName)) return;
-        }
-        listModel.addElement(pieceClassName);
-        pieceClassNameList.setSelectedIndex(listModel.size() - 1);
-        for (int i = 0; i < playerSideList.getModel().getSize(); i++) {
-            String playerSide = ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(i);
-            addToPieceProfileList(playerSide, pieceClassName);
         }
     }
 
@@ -644,11 +778,14 @@ public class ChessPiecePanel extends JPanel {
         }
     }
 
-    public PieceProfile addToPieceProfileList(String playerSide, String pieceClassName) {
+    private PieceProfile addToPieceProfileList(String playerSide, String pieceClassName) {
         for (PieceProfile profile : pieceProfiles)
             if (profile.playerSide.equals(playerSide) && profile.pieceClassName.equals(pieceClassName))
                 return null;
         PieceProfile profile = new PieceProfile(playerSide, pieceClassName);
+        profile.imageRelativeHeight = sharedPieceHeight;
+        profile.imageRelativeWidth = sharedPieceWidth;
+        profile.pieceColor = sharedColor;
         pieceProfiles.add(profile);
         return profile;
     }
@@ -660,20 +797,27 @@ public class ChessPiecePanel extends JPanel {
         return addToPieceProfileList(playerSide, className);
     }
 
-    private void updateCurrentProfile() {
-        try {
-            PieceProfile profile = getPieceProfile(
+    public PieceProfile getSelectedProfile() {
+        if (playerSideList.getSelectedIndices().length == 0 || pieceClassNameList.getSelectedIndices().length == 0)
+            return null;
+        else
+            return getPieceProfile(
                     ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(playerSideList.getSelectedIndices()[0]),
                     ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(pieceClassNameList.getSelectedIndices()[0])
             );
+    }
+
+    private void updateCurrentProfile() {
+        try {
+            PieceProfile profile = getSelectedProfile();
             profile.sourcePicLink = imageFile == null ? "" : imageFile.getAbsolutePath();
             profile.pieceColor = new Color(
                     Integer.parseInt(pieceColorRedTextField.getText()),
                     Integer.parseInt(pieceColorGreenTextField.getText()),
                     Integer.parseInt(pieceColorBlueTextField.getText())
             );
-            profile.imageHeight = Double.parseDouble(piecePicHeightTextField.getText());
-            profile.imageWidth = Double.parseDouble(piecePicWidthTextField.getText());
+            profile.imageRelativeHeight = Double.parseDouble(piecePicHeightTextField.getText());
+            profile.imageRelativeWidth = Double.parseDouble(piecePicWidthTextField.getText());
             profile.initialPointId = (DefaultListModel<String>) pieceInitialPointIdList.getModel();
         } catch (Exception e) {
             e.printStackTrace();
@@ -699,25 +843,33 @@ public class ChessPiecePanel extends JPanel {
             pieceColorRedTextField.setBackground(jtfDefaultBackground);
             piecePicHeightTextField.setBackground(jtfDefaultBackground);
             piecePicWidthTextField.setBackground(jtfDefaultBackground);
+
+            allComponentInPanelSetEnabled(pieceProfileEditorPanel, false);
+            codeEditor.setEnabled(false);
+            deletePiecePicButton.setEnabled(false);
+            previewImagePanel.setEnabled(false);
         } else {
-            PieceProfile profile = getPieceProfile(
-                    ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(playerSideList.getSelectedIndices()[0]),
-                    ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(pieceClassNameList.getSelectedIndices()[0])
-            );
+            PieceProfile profile = getSelectedProfile();
             pieceClassNameField.setText("(" + profile.playerSide + " side) " + profile.pieceClassName);
             piecePicLinkField.setText(profile.sourcePicLink);
             pieceInitialPointIdList.setModel(profile.initialPointId);
             pieceColorRedTextField.setText(profile.pieceColor.getRed() + "");
             pieceColorGreenTextField.setText(profile.pieceColor.getGreen() + "");
             pieceColorBlueTextField.setText(profile.pieceColor.getBlue() + "");
-            piecePicWidthTextField.setText(profile.imageWidth + "");
-            piecePicHeightTextField.setText(profile.imageHeight + "");
+            piecePicWidthTextField.setText(profile.imageRelativeWidth + "");
+            piecePicHeightTextField.setText(profile.imageRelativeHeight + "");
             verifyTextFields(pieceColorGreenTextField);
             verifyTextFields(pieceColorRedTextField);
             verifyTextFields(pieceColorBlueTextField);
             verifyTextFields(piecePicWidthTextField);
             verifyTextFields(piecePicHeightTextField);
+
+            codeEditor.setEnabled(true);
+            allComponentInPanelSetEnabled(pieceProfileEditorPanel, true);
+            deletePiecePicButton.setEnabled(true);
+            previewImagePanel.setEnabled(true);
         }
+        previewImagePanel.repaint();
         inApplyingProfile = false;
     }
 
@@ -740,5 +892,30 @@ public class ChessPiecePanel extends JPanel {
                     "Please check if the input point ID exists or not.<br>" +
                     "You can find all the point IDs in the chess board tab.</html>", "ERROR - Add initial point ID - Chreator", JOptionPane.ERROR_MESSAGE);
         } while (true);
+    }
+
+    private void allComponentInPanelSetEnabled(Component component, boolean enabled) {
+        if (component instanceof Container)
+            for (Component c : ((Container) component).getComponents())
+                if (c instanceof Container)
+                    allComponentInPanelSetEnabled(c, enabled);
+                else
+                    c.setEnabled(enabled);
+
+        component.setEnabled(enabled);
+    }
+
+    private void fixPieceImageRatio() {
+        PieceProfile profile = getSelectedProfile();
+        if (profile.pieceImage == null || profile == null) return;
+        Dimension boardSize = UIHandler.getInstance(null).getChessBoardPanel().getChessBoardPreferredSize();
+        double imaginaryHeight = profile.imageRelativeHeight * boardSize.height,
+                imaginaryWidth = profile.imageRelativeWidth * boardSize.width,
+                imaginaryTangent = imaginaryHeight / imaginaryWidth,
+                previewImageTangent = 1.0 * profile.pieceImage.getHeight() / profile.pieceImage.getWidth(),
+                imageActualHeight = imaginaryTangent > previewImageTangent ? imaginaryWidth * previewImageTangent : imaginaryHeight,
+                imageActualWidth = imaginaryTangent > previewImageTangent ? imaginaryWidth : imaginaryHeight / previewImageTangent;
+        piecePicWidthTextField.setText((imageActualWidth / boardSize.getWidth()) + "");
+        piecePicHeightTextField.setText((imageActualHeight / boardSize.getHeight()) + "");
     }
 }

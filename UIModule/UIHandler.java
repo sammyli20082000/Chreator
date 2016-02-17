@@ -1,27 +1,20 @@
 package Chreator.UIModule;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.WindowAdapter;
-import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.util.ArrayList;
 
-import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.ListModel;
 import javax.swing.ToolTipManager;
@@ -50,6 +43,7 @@ public class UIHandler {
     private EventCallback callback;
     private JFrame mainWindow;
     private JTabbedPane tabPane;
+    private String browseDir = "E:\\Download\\XiangQi_material";
 
     private AIPanel aiPanel;
     private ChessBoardPanel chessBoardPanel;
@@ -103,7 +97,7 @@ public class UIHandler {
 //                                    "; " + profile.playerSide +
 //                                    "; " + profile.sourcePicLink +
 //                                    "; " + profile.pieceColor.toString() +
-//                                    "; " + profile.imageWidth + " x " + profile.imageHeight +
+//                                    "; " + profile.imageRelativeWidth + " x " + profile.imageRelativeHeight +
 //                                    "; "
 //                    );
 //                    for (int i = 0; i < profile.initialPointId.size(); i++) {
@@ -112,15 +106,14 @@ public class UIHandler {
 //                    System.out.println();
 //                }
 //                System.out.println();
-            	
-            	CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(), getPointList(), getEdgeDirectionList());
-            	try {
-					codeProducer.produceExecutable();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-            	
+
+                CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(), getPointList(), getEdgeDirectionList());
+                try {
+                    codeProducer.produceExecutable();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+
             }
         });
         bar.add(menu);
@@ -183,19 +176,36 @@ public class UIHandler {
         return chessPiecePanel.getPieceProfiles();
     }
 
-    public ChessBoardPanel getChessBoardPanel() {
+    ChessBoardPanel getChessBoardPanel() {
         return chessBoardPanel;
     }
-    
+
+    ChessPiecePanel getChessPiecePanel() {
+        return chessPiecePanel;
+    }
+
+    public File getFileDirectoryByDialog(int JFileChooserSelectionMode) {
+        File selectedFile = null;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooserSelectionMode);
+        if (browseDir != null) fileChooser.setCurrentDirectory(new File(browseDir));
+        int returnValue = fileChooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            selectedFile = fileChooser.getSelectedFile();
+            browseDir = selectedFile.getParent();
+        }
+        return selectedFile;
+    }
+
     public String getProjectLocationBaseDir() {
-    	return projectSettingPanel.getProjectLocationBaseDir();
+        return projectSettingPanel.getProjectLocationBaseDir();
     }
-    
+
     public String getProjectFolderName() {
-    	return projectSettingPanel.getProjectFolderName();
+        return projectSettingPanel.getProjectFolderName();
     }
-    
+
     public ListModel getEdgeDirectionList() {
-    	return chessBoardPanel.getEdgeDirectionList();
+        return chessBoardPanel.getEdgeDirectionList();
     }
 }

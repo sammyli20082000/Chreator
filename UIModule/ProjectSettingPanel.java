@@ -2,10 +2,12 @@ package Chreator.UIModule;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -46,7 +48,7 @@ public class ProjectSettingPanel extends JPanel {
     private EventCallback callback;
 
     private JPanel basePanel, newProjectPanel;
-    private JRadioButton openProjectRadio, newProjectRadio, fromTemplateRadio, customProjectRadio;
+    private JRadioButton openProjectRadio, newProjectRadio, fromTemplateRadio, customProjectRadio, temp1Radio, temp2Radio, temp3Radio;
     private JTextField locationInputField, projectFolderNameInputField;
     private ButtonGroup startProjectButtonGroup, newProjectButtonGroup;
     private JButton browseLocationButton, executeButton, compileButton, runButton;
@@ -54,7 +56,7 @@ public class ProjectSettingPanel extends JPanel {
     private JLabel projectFolderDirNameLabel;
 
     private int componentCounter = 0;
-    private int editTextcolumn = 17;
+    private int editTextColumn = 17;
 
     public ProjectSettingPanel(EventCallback eventCallback) {
         callback = eventCallback;
@@ -106,39 +108,58 @@ public class ProjectSettingPanel extends JPanel {
         projectFolderNameInputField = new JTextField();
         customProjectRadio = new JRadioButton("Custom project");
         fromTemplateRadio = new JRadioButton("From template");
+        temp1Radio = new JRadioButton("temp radio 1");
+        temp2Radio = new JRadioButton("temp radio 2");
+        temp3Radio = new JRadioButton("temp radio3");
         projectFolderDirNameLabel = new JLabel("<html><br>Project folder name</html>");
         templateDropDownMenu = new JComboBox(TemplateType.getAllString());
 
         templateDropDownMenu.setEditable(false);
         fromTemplateRadio.setSelected(true);
-        projectFolderNameInputField.setColumns(editTextcolumn);
 
         newProjectButtonGroup.add(customProjectRadio);
         newProjectButtonGroup.add(fromTemplateRadio);
+        newProjectButtonGroup.add(temp1Radio);
+        newProjectButtonGroup.add(temp2Radio);
+        newProjectButtonGroup.add(temp3Radio);
 
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 0;
-        c.weightx = 1.0;
-        c.anchor = GridBagConstraints.CENTER;
-        c.fill = GridBagConstraints.NONE;
-        newProjectPanel.add(customProjectRadio, c);
+        GridBagConstraints c1 = new GridBagConstraints(), c2 = new GridBagConstraints();
+        c1.gridx = 0;
+        c1.gridy = 0;
+        c2.gridx = 1;
+        c2.gridy = 0;
+        c2.weightx = 1.0;
+        c2.gridwidth = 2;
+        c2.fill = GridBagConstraints.HORIZONTAL;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(customProjectRadio, c2);
 
-        c.gridy++;
-        newProjectPanel.add(fromTemplateRadio, c);
+        c1.gridy++;
+        c2.gridy++;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(fromTemplateRadio, c2);
 
-        c.gridy++;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        newProjectPanel.add(templateDropDownMenu, c);
+        c1.gridy++;
+        c2.gridy++;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        c1.gridx++;
+        c2.gridx++;
+        c2.gridwidth--;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(templateDropDownMenu, c2);
+        c1.gridx--;
+        c2.gridx--;
+        c2.gridwidth++;
 
-        c.gridy++;
-        c.fill = GridBagConstraints.NONE;
-        c.anchor = GridBagConstraints.WEST;
-        newProjectPanel.add(projectFolderDirNameLabel, c);
+        c1.gridy++;
+        c2.gridy++;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(projectFolderDirNameLabel, c2);
 
-        c.gridy++;
-        c.anchor = GridBagConstraints.CENTER;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        newProjectPanel.add(projectFolderNameInputField, c);
+        c1.gridy++;
+        c2.gridy++;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(projectFolderNameInputField, c2);
 
         addToBasePanel(newProjectPanel, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
     }
@@ -162,7 +183,7 @@ public class ProjectSettingPanel extends JPanel {
         locationInputField = new JTextField();
         browseLocationButton = new JButton("Browse");
 
-        locationInputField.setColumns(editTextcolumn);
+        locationInputField.setColumns(editTextColumn);
 
         addToBasePanel(locationLabel);
         addToBasePanel(locationInputField, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL);
@@ -236,11 +257,18 @@ public class ProjectSettingPanel extends JPanel {
         } else return null;
     }
 
-	public String getProjectLocationBaseDir() {
-		return locationInputField.getText();		 
-	}
-	
-	public String getProjectFolderName() {
-		return projectFolderNameInputField.getText();
-	}
+    public String getProjectLocationBaseDir() {
+        return locationInputField.getText();
+    }
+
+    public String getProjectFolderName() {
+        return projectFolderNameInputField.getText();
+    }
+
+    private JLabel makeSpaceLabel() {
+        JLabel label = new JLabel("0000");
+        label.setForeground(new Color(0f, 0f, 0f, 0f));
+        label.setOpaque(true);
+        return label;
+    }
 }
