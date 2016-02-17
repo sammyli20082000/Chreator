@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.Buffer;
 import java.util.ArrayList;
 
@@ -113,7 +114,12 @@ public class UIHandler {
 //                System.out.println();
             	
             	CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(), getPointList(), getEdgeDirectionList());
-            	codeProducer.produceExecutable();
+            	try {
+					codeProducer.produceExecutable();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
             	
             }
         });

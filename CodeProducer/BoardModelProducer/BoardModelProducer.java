@@ -1,4 +1,4 @@
-package Chreator.CodeProducer.BoardCodeProducer;
+package Chreator.CodeProducer.BoardModelProducer;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,7 +13,7 @@ import javax.swing.ListModel;
 
 import Chreator.CodeProducer.CodeProducer;
 
-public class BoardModelCodeProducer {
+public class BoardModelProducer {
 	public static File file; 
 	protected static List<String> boardCodes;
 	protected static List<String> edgeCodes;
@@ -21,8 +21,9 @@ public class BoardModelCodeProducer {
 	
 	private BoardCodeProducer boardCodeProducer;
 	private EdgeCodeProducer edgeCodeProducer;
+	private PointCodeProducer pointCodeProducer;
 	
-	public BoardModelCodeProducer(ListModel edList) {
+	public BoardModelProducer(ListModel edList) {
 		file = new File(CodeProducer.baseDir + "\\BoardModel");
 		boardCodes = new LinkedList<>();
 		edgeCodes = new LinkedList<>();
@@ -30,6 +31,7 @@ public class BoardModelCodeProducer {
 		
 		boardCodeProducer = new BoardCodeProducer();
 		edgeCodeProducer = new EdgeCodeProducer(edList);
+		pointCodeProducer = new PointCodeProducer();
 	}
 	
 	public void produceBoardModel() throws IOException {
@@ -37,9 +39,9 @@ public class BoardModelCodeProducer {
 			file.mkdirs();
 		}
 		
-		// TODO: print codes into list here
 		boardCodeProducer.printBoardJavaFrameCode();
-		
+		edgeCodeProducer.printEdgeJavaFrameCode();
+		pointCodeProducer.printPointJavaFrameCode();
 		
 		File boardFile = new File(file.getAbsolutePath() + "Board.java");
 		File edgeFile = new File(file.getAbsolutePath() + "Edge.java");

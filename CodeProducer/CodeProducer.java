@@ -1,19 +1,22 @@
 package Chreator.CodeProducer;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.ListModel;
 
-import Chreator.CodeProducer.BoardCodeProducer.BoardModelCodeProducer;
+import Chreator.CodeProducer.BoardModelProducer.BoardModelProducer;
 import Chreator.CodeProducer.DataAndSettingCodeProducer.DataAndSettingCodeProducer;
+import Chreator.CodeProducer.PieceModelProducer.PieceModelProducer;
 import Chreator.ObjectModel.Point;
 
 public class CodeProducer {
 	public static String baseDir;
 
-	private BoardModelCodeProducer boardModelCodeProducer;
+	private BoardModelProducer boardModelCodeProducer;
 	private DataAndSettingCodeProducer dataAndSettingCodeProducer;
+	private PieceModelProducer pieceModelProducer;
 
 	public CodeProducer(String pathname, String folderName, ArrayList<Point> pList, ListModel edList) {
 		if (folderName.equals("") || folderName.equals(null)) {
@@ -21,14 +24,18 @@ public class CodeProducer {
 		} else {
 			baseDir = pathname + "\\" + folderName + "\\Executable";
 		}
-		boardModelCodeProducer = new BoardModelCodeProducer(edList);
+		boardModelCodeProducer = new BoardModelProducer(edList);
 		dataAndSettingCodeProducer = new DataAndSettingCodeProducer(pList);
+		pieceModelProducer = new PieceModelProducer();
 	}
 
-	public void produceExecutable() {
+	public void produceExecutable() throws IOException {
 		File file = new File(baseDir);
 		if (!file.exists()) {
 			file.mkdirs();
 		}
+		
+		dataAndSettingCodeProducer.produceDataAndSetting();
+		boardModelCodeProducer.produceBoardModel();
 	}
 }

@@ -21,7 +21,7 @@ public class DataAndSettingCodeProducer {
 	
 	
 	public DataAndSettingCodeProducer(ArrayList<Point> pList) {
-		file = new File(CodeProducer.baseDir);
+		file = new File(CodeProducer.baseDir + "DataAndSetting.java");
 		DataAndSettingCodes = new LinkedList<>();
 		
 		dataAndSettingFrameProducer = new DataAndSettingFrameProducer();
@@ -30,12 +30,10 @@ public class DataAndSettingCodeProducer {
 	
 	public void produceDataAndSetting() throws IOException {
 		
-		if(!file.exists() || file.isDirectory()) {
+		if(file.isDirectory()) {
 			System.out.println("\"DataAndSetting.java\" cannnot be opened/created properly.");
 			return;
 		}
-		
-		dataAndSettingFrameProducer.printDataAndSettingJavaFrame();
 		
 		FileOutputStream fOutputStream = new FileOutputStream(file.getAbsolutePath());
 		OutputStreamWriter oStreamWriter = new OutputStreamWriter(fOutputStream, "utf-8");
