@@ -114,6 +114,7 @@ public class ChessPiecePanel extends JPanel {
                     addChessPieceToList("Cannon");
                     addChessPieceToList("Advisor");
                     addChessPieceToList("Horse");
+                    
                     removeComponentListener(this);
                 }
             }
