@@ -43,7 +43,6 @@ public class UIHandler {
     private EventCallback callback;
     private JFrame mainWindow;
     private JTabbedPane tabPane;
-    private String browseDir = "E:\\Download\\XiangQi_material";
 
     private AIPanel aiPanel;
     private ChessBoardPanel chessBoardPanel;
@@ -52,7 +51,7 @@ public class UIHandler {
     private ProjectSettingPanel projectSettingPanel;
 
     public static UIHandler getInstance(EventCallback eventCallback) {
-        if (uiHandler == null) {
+        if (uiHandler == null && eventCallback != null) {
             uiHandler = new UIHandler();
             if (eventCallback == null || !(eventCallback instanceof UIHandler.EventCallback))
                 return uiHandler;
@@ -152,22 +151,6 @@ public class UIHandler {
         return chessBoardPanel.getPointList();
     }
 
-    public static String showVariableInputDialog(String title, String majorMessage, String minorMessage) {
-        String s;
-        do {
-            s = JOptionPane.showInputDialog(UIHandler.getMainWindow(), "<html><center>" + majorMessage + "<br>" +
-                    "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
-                    "Name cannot start with arabic numerals.<br>" + minorMessage + "</html>", title, JOptionPane.QUESTION_MESSAGE);
-            if (s == null) return null;
-            if (s.matches("^[A-Za-z0-9_$]+$") && !((s.charAt(0) + "").matches("[0-9]")))
-                break;
-            JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "<html><center>Input error.<br>" +
-                    "Name must only contain English alphabet, arabic numerals, dollar sign ($) or underscore (_).<br>" +
-                    "Name cannot start with arabic numerals.</html>", "ERROR - " + title, JOptionPane.ERROR_MESSAGE);
-        } while (true);
-        return s;
-    }
-
     public void setChessPieceProfiles(ArrayList<PieceProfile> pieceProfiles) {
         chessPiecePanel.setPieceProfiles(pieceProfiles);
     }
@@ -182,19 +165,6 @@ public class UIHandler {
 
     ChessPiecePanel getChessPiecePanel() {
         return chessPiecePanel;
-    }
-
-    public File getFileDirectoryByDialog(int JFileChooserSelectionMode) {
-        File selectedFile = null;
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooserSelectionMode);
-        if (browseDir != null) fileChooser.setCurrentDirectory(new File(browseDir));
-        int returnValue = fileChooser.showOpenDialog(null);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            selectedFile = fileChooser.getSelectedFile();
-            browseDir = selectedFile.getParent();
-        }
-        return selectedFile;
     }
 
     public String getProjectLocationBaseDir() {

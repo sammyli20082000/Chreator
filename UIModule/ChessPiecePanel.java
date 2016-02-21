@@ -114,7 +114,7 @@ public class ChessPiecePanel extends JPanel {
                     addChessPieceToList("Cannon");
                     addChessPieceToList("Advisor");
                     addChessPieceToList("Horse");
-                    
+
                     removeComponentListener(this);
                 }
             }
@@ -415,7 +415,7 @@ public class ChessPiecePanel extends JPanel {
                 public void mouseClicked(MouseEvent e) {
                     if (!jp.isEnabled()) return;
                     try {
-                        File f = UIHandler.getInstance(null).getFileDirectoryByDialog(JFileChooser.FILES_ONLY);
+                        File f = UIUtility.showFileDirectorySelectionDialog(JFileChooser.FILES_ONLY);
                         if (f != null) {
                             getSelectedProfile().pieceImage = ImageIO.read(f);
                             fixPieceImageRatio();
@@ -495,7 +495,8 @@ public class ChessPiecePanel extends JPanel {
                                 "Error - Add chess piece - Chreator",
                                 JOptionPane.ERROR_MESSAGE);
                     } else {
-                        String pieceName = UIHandler.showVariableInputDialog("New Chess Piece Model", "Input the name of chess piece", "");
+                        String pieceName = UIUtility.showVariableInputDialog("New Chess Piece Model", "Input the name of chess piece", "", true);
+                        if (pieceName != null) addChessPieceToList(pieceName);
                     }
                 }
             };
@@ -503,7 +504,7 @@ public class ChessPiecePanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String playerSide = UIHandler.showVariableInputDialog("New Player Side", "Input the name of player side", "Result name will be capitalized.");
+                    String playerSide = UIUtility.showVariableInputDialog("New Player Side", "Input the name of player side", "Result name will be capitalized.", false);
                     if (playerSide != null) addPlayerSideToList(playerSide.toUpperCase());
                 }
             };
@@ -541,7 +542,7 @@ public class ChessPiecePanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    addInitialPointIdToList();
+                    startAddInitialPointIdForPiece();
                 }
             };
         else if (jb == deleteInitialPointIdButton)
@@ -598,7 +599,7 @@ public class ChessPiecePanel extends JPanel {
                         }
 
                         piecePicHeightTextField.setText(fixedRelativeHeight + "");
-                        piecePicWidthTextField.setText(fixedRelativeWidth+"");
+                        piecePicWidthTextField.setText(fixedRelativeWidth + "");
                     }
                 }
             };
@@ -681,6 +682,21 @@ public class ChessPiecePanel extends JPanel {
         g.drawString(s, (jp.getWidth() - width) / 2, (jp.getHeight() + height) / 2);
     }
 
+    public void addPointIdToList(int id){
+        PieceProfile profile = getSelectedProfile();
+        if (profile == null) return;
+        if (profile.initialPointId == null) profile.initialPointId = new DefaultListModel<String>();
+        DefaultListModel<String> listModel = profile.initialPointId;
+
+        for (int i=0;i<listModel.size();i++){
+            String s = listModel.getElementAt(i);
+            try{
+                if (id == Integer.parseInt(s)) return;
+            }catch (Exception e){}
+        }
+        listModel.addElement(id+"");
+    }
+
     public void addPlayerSideToList(String playerSide) {
         DefaultListModel<String> listModel = (DefaultListModel<String>) playerSideList.getModel();
         for (int i = 0; i < listModel.size(); i++) {
@@ -695,17 +711,60 @@ public class ChessPiecePanel extends JPanel {
         }
     }
 
-    public void addInitialPointIdToList() {
-        Integer id = showPointIDInputDialog(UIHandler.getInstance((UIHandler.EventCallback) callback).getPointList());
-        if (id == null) return;
-        DefaultListModel<String> listModel = (DefaultListModel<String>) pieceInitialPointIdList.getModel();
-        for (int i = 0; i < listModel.size(); i++) {
-            try {
-                if (Integer.parseInt(listModel.getElementAt(i)) == id.intValue()) return;
-            } catch (Exception e) {
+    public void startAddInitialPointIdForPiece() {
+        String dialogTitle = "Set initial piece placing point - Chreator";
+        String[] selectOptions = {"set IDs though dialog", "choose points through GUI", "Cancel"};
+        int result = JOptionPane.showOptionDialog(UIHandler.getMainWindow(),
+                "<html><center>Select the way to set the initial piece placing points for the piece</html>",
+                dialogTitle,
+                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+                null, selectOptions, selectOptions[selectOptions.length - 1]);
+        if (result == 0) {
+            ArrayList<Integer> ids = showPointIDInputDialog(UIHandler.getInstance(null).getPointList());
+            DefaultListModel<String> listModel = (DefaultListModel<String>) pieceInitialPointIdList.getModel();
+
+            if (ids != null) {
+                for (int i = ids.size() - 1; i >= 0; i--) {
+                    for (int j = 0; j < listModel.size(); j++) {
+                        try {
+                            if (ids.get(i).intValue() == Integer.parseInt(listModel.getElementAt(j)))
+                                ids.remove(i);
+                        } catch (Exception e) {
+                        }
+                    }
+                }
+
+                ArrayList<Point> pointList = UIHandler.getInstance(null).getPointList();
+                for (int i = ids.size() - 1; i >= 0; i--) {
+                    boolean needTobeDeleted = true;
+                    for (Point p : pointList) {
+                        if (p.getId() == ids.get(i).intValue()) {
+                            needTobeDeleted = false;
+                            break;
+                        }
+                    }
+                    if (needTobeDeleted) ids.remove(i);
+                }
+
+                if (ids.size() > 0) {
+                    String msg = "";
+                    for (int i = 0; i < ids.size(); i++)
+                        msg = msg + ids.get(i).intValue() + (i == ids.size() - 1 ? "" : ", ");
+
+                    if (JOptionPane.showConfirmDialog(UIHandler.getMainWindow(),
+                            "<html><center>Are you sure to add the initial piece placing point IDs for this chess piece?<br>" + msg + "</html",
+                            dialogTitle, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+                        for (Integer id: ids)
+                            addPointIdToList(id.intValue());
+                } else {
+                    JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "No new input initial piece placing point IDs can be added to the list",
+                            dialogTitle, JOptionPane.WARNING_MESSAGE);
+                }
             }
+        } else if (result == 1) {
+
         }
-        listModel.addElement(id + "");
+
     }
 
     public void addChessPieceToList(String pieceClassName) {
@@ -874,25 +933,11 @@ public class ChessPiecePanel extends JPanel {
         inApplyingProfile = false;
     }
 
-    private Integer showPointIDInputDialog(ArrayList<Point> pointList) {
-        String s;
-        Integer i = null;
-        do {
-            s = JOptionPane.showInputDialog(UIHandler.getMainWindow(), "<html><center>Enter the point ID that you would like to place this chess piece to,<br>at the start of the game.</html>",
-                    "Add initial point ID - Chreator", JOptionPane.QUESTION_MESSAGE);
-            if (s == null) return null;
-            try {
-                i = new Integer(Integer.parseInt(s));
-                for (Point p : pointList) {
-                    if (p.getId() == i.intValue())
-                        return i;
-                }
-            } catch (Exception e) {
-            }
-            JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "<html><center>Input error.<br>" +
-                    "Please check if the input point ID exists or not.<br>" +
-                    "You can find all the point IDs in the chess board tab.</html>", "ERROR - Add initial point ID - Chreator", JOptionPane.ERROR_MESSAGE);
-        } while (true);
+    private ArrayList<Integer> showPointIDInputDialog(ArrayList<Point> pointList) {
+        String s = JOptionPane.showInputDialog(UIHandler.getMainWindow(), "<html><center>Enter the point ID(s) that you would like to place this chess piece to," +
+                        "<br>at the start of the game.</html>",
+                "Add initial point ID - Chreator", JOptionPane.QUESTION_MESSAGE);
+        return s == null ? null : UIUtility.getPositiveIntegerListFromString(s);
     }
 
     private void allComponentInPanelSetEnabled(Component component, boolean enabled) {

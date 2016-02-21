@@ -2,13 +2,11 @@ package Chreator.UIModule;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -224,7 +222,7 @@ public class ProjectSettingPanel extends JPanel {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                File dir = UIHandler.getInstance(null).getFileDirectoryByDialog(JFileChooser.DIRECTORIES_ONLY);
+                File dir = UIUtility.showFileDirectorySelectionDialog(JFileChooser.DIRECTORIES_ONLY);
                 locationInputField.setText(dir == null ? locationInputField.getText() : dir.getAbsolutePath());
             }
         };
