@@ -20,43 +20,43 @@ public class PointEdgeDataCodeProducer {
 
 	private void printBoardPointsArrayCode() {
 
-		int i = DataAndSettingCodeProducer.DataAndSettingCodes
+		int i = DataAndSettingCodeProducer.dataAndSettingCodes
 				.indexOf("public static PointDataPackage[] boardPointsArray;");
 
-		DataAndSettingCodeProducer.DataAndSettingCodes.add(i + 1,
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 1,
 				"public static PointDataPackage[] boardPointsArray = new PointDataPackage[]{");
 
 		for (Point point : pointList) {
 			InfoPack infoPack = point.getPixelInformation();
 			
-			DataAndSettingCodeProducer.DataAndSettingCodes.add(i + 2, "new PointDataPackage(" + infoPack.posX + ", "
+			DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2, "new PointDataPackage(" + infoPack.posX + ", "
 					+ infoPack.posY + ", " + infoPack.width + ", " + infoPack.height + ", " + point.getId() + "),");
 		}
 
-		DataAndSettingCodeProducer.DataAndSettingCodes.add(i + pointList.size() + 2, "};");
-		DataAndSettingCodeProducer.DataAndSettingCodes.remove(i);
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + pointList.size() + 2, "};");
+		DataAndSettingCodeProducer.dataAndSettingCodes.remove(i);
 	}
 
 	private void printPointEdgeRelationsCode() {
 		
-		int i = DataAndSettingCodeProducer.DataAndSettingCodes
+		int i = DataAndSettingCodeProducer.dataAndSettingCodes
 				.indexOf("public static PointEdgePackage[] pointEdgeRelations;");
 		int k = 0;
 
-		DataAndSettingCodeProducer.DataAndSettingCodes.add(i + 1,
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 1,
 				"public static PointEdgePackage[] pointEdgeRelations = new PointEdgePackage[]{");
 
 		for (Point point : pointList) {
 			ArrayList<EdgePointPair> edgePointPairs = point.getAllEdgePointPair();
 			for (EdgePointPair edgePointPair : edgePointPairs) {
-				DataAndSettingCodeProducer.DataAndSettingCodes.add(i + 2,
+				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2,
 						"new PointEdgePackage(" + point.getId() + ", Edge.Direction." + edgePointPair.direction + ", "
 								+ edgePointPair.targetPoint.getId() + "),");
 				k++;
 			}
 		}
 
-		DataAndSettingCodeProducer.DataAndSettingCodes.add(i + k + 2, "};");
-		DataAndSettingCodeProducer.DataAndSettingCodes.remove(i);
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + k + 2, "};");
+		DataAndSettingCodeProducer.dataAndSettingCodes.remove(i);
 	}
 }

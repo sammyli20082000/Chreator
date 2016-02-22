@@ -35,7 +35,7 @@ public class CodeProducer {
 			file.mkdirs();
 		}
 		
-		dataAndSettingCodeProducer.produceDataAndSetting();
+		dataAndSettingCodeProducer.produceDataAndSettingJava();
 		boardModelCodeProducer.produceBoardModel();
 	}
 }
