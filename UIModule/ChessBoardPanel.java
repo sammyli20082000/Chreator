@@ -446,7 +446,11 @@ public class ChessBoardPanel extends JPanel {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     if (jb.isEnabled()) {
+<<<<<<< HEAD
                         imageFile = UIHandler.getInstance(null).getFileDirectoryByDialog(JFileChooser.FILES_ONLY);
+=======
+                        imageFile = UIUtility.showFileDirectorySelectionDialog(JFileChooser.FILES_ONLY);
+>>>>>>> origin/master
                         if (imageFile != null && !graphicAreaPanel.setBoardImage(imageFile)) {
                             JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
                                     "<html><center>Failed to read image file.<br>File type is not supported, file content is corrupted or file path cannot be accessed.</html>",
@@ -460,9 +464,9 @@ public class ChessBoardPanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String result = UIHandler.showVariableInputDialog("New edge direction - Chreator",
+                    String result = UIUtility.showVariableInputDialog("New edge direction - Chreator",
                             "Enter the name of new edge direction.",
-                            "The result name will be automatically capitalized.");
+                            "The result name will be automatically capitalized.", false);
                     if (result != null) addEdgeDirection(result);
                 }
             };
@@ -691,7 +695,7 @@ public class ChessBoardPanel extends JPanel {
         return graphicAreaPanel.getChessBoardPreferredSize();
     }
 
-    public ListModel getEdgeDirectionList(){
+    public ListModel getEdgeDirectionList() {
         return edgeDirectionList.getModel();
     }
 }

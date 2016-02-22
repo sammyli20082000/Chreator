@@ -2,12 +2,11 @@ package Chreator.UIModule;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Objects;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -110,7 +109,7 @@ public class ProjectSettingPanel extends JPanel {
         fromTemplateRadio = new JRadioButton("From template");
         temp1Radio = new JRadioButton("temp radio 1");
         temp2Radio = new JRadioButton("temp radio 2");
-        temp3Radio = new JRadioButton("temp radio3");
+        temp3Radio = new JRadioButton("temp radio 3");
         projectFolderDirNameLabel = new JLabel("<html><br>Project folder name</html>");
         templateDropDownMenu = new JComboBox(TemplateType.getAllString());
 
@@ -150,6 +149,21 @@ public class ProjectSettingPanel extends JPanel {
         c1.gridx--;
         c2.gridx--;
         c2.gridwidth++;
+
+        c1.gridy++;
+        c2.gridy++;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(temp1Radio, c2);
+
+        c1.gridy++;
+        c2.gridy++;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(temp2Radio, c2);
+
+        c1.gridy++;
+        c2.gridy++;
+        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(temp3Radio, c2);
 
         c1.gridy++;
         c2.gridy++;
@@ -208,11 +222,8 @@ public class ProjectSettingPanel extends JPanel {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                int result = fileChooser.showOpenDialog(null);
-                if (result == JFileChooser.APPROVE_OPTION)
-                    locationInputField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+                File dir = UIUtility.showFileDirectorySelectionDialog(JFileChooser.DIRECTORIES_ONLY);
+                locationInputField.setText(dir == null ? locationInputField.getText() : dir.getAbsolutePath());
             }
         };
     }
@@ -224,6 +235,9 @@ public class ProjectSettingPanel extends JPanel {
                 public void actionPerformed(ActionEvent e) {
                     fromTemplateRadio.setEnabled(true);
                     customProjectRadio.setEnabled(true);
+                    temp1Radio.setEnabled(true);
+                    temp2Radio.setEnabled(true);
+                    temp3Radio.setEnabled(true);
                     projectFolderDirNameLabel.setEnabled(true);
                     projectFolderNameInputField.setEnabled(true);
                     templateDropDownMenu.setEnabled(fromTemplateRadio.isSelected());
@@ -235,6 +249,9 @@ public class ProjectSettingPanel extends JPanel {
                 public void actionPerformed(ActionEvent e) {
                     templateDropDownMenu.setEnabled(false);
                     fromTemplateRadio.setEnabled(false);
+                    temp1Radio.setEnabled(false);
+                    temp2Radio.setEnabled(false);
+                    temp3Radio.setEnabled(false);
                     projectFolderDirNameLabel.setEnabled(false);
                     projectFolderNameInputField.setEnabled(false);
                     customProjectRadio.setEnabled(false);
