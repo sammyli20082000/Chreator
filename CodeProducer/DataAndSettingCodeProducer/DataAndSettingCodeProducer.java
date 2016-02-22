@@ -21,7 +21,7 @@ public class DataAndSettingCodeProducer {
 	
 	
 	public DataAndSettingCodeProducer(ArrayList<Point> pList) {
-		file = new File(CodeProducer.baseDir + "DataAndSetting.java");
+		file = new File(CodeProducer.baseDir + "\\DataAndSetting.java");
 		DataAndSettingCodes = new LinkedList<>();
 		
 		dataAndSettingFrameProducer = new DataAndSettingFrameProducer();

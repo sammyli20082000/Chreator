@@ -447,7 +447,7 @@ public class ChessBoardPanel extends JPanel {
                 public void actionPerformed(ActionEvent e) {
                     if (jb.isEnabled()) {
                         imageFile = UIHandler.getInstance(null).getFileDirectoryByDialog(JFileChooser.FILES_ONLY);
-                        if (!graphicAreaPanel.setBoardImage(imageFile)) {
+                        if (imageFile != null && !graphicAreaPanel.setBoardImage(imageFile)) {
                             JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
                                     "<html><center>Failed to read image file.<br>File type is not supported, file content is corrupted or file path cannot be accessed.</html>",
                                     "Failed to read image file", JOptionPane.ERROR_MESSAGE);

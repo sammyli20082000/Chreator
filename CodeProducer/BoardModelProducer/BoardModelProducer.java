@@ -43,9 +43,9 @@ public class BoardModelProducer {
 		edgeCodeProducer.printEdgeJavaFrameCode();
 		pointCodeProducer.printPointJavaFrameCode();
 		
-		File boardFile = new File(file.getAbsolutePath() + "Board.java");
-		File edgeFile = new File(file.getAbsolutePath() + "Edge.java");
-		File pointFile = new File(file.getAbsolutePath() + "Point.java");
+		File boardFile = new File(file.getAbsolutePath() + "\\Board.java");
+		File edgeFile = new File(file.getAbsolutePath() + "\\Edge.java");
+		File pointFile = new File(file.getAbsolutePath() + "\\Point.java");
 		
 		FileOutputStream fOutputStream1 = new FileOutputStream(boardFile.getAbsolutePath());
 		OutputStreamWriter oStreamWriter1 = new OutputStreamWriter(fOutputStream1, "utf-8");
