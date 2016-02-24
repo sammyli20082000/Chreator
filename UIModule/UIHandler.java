@@ -1,5 +1,6 @@
 package Chreator.UIModule;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -36,7 +37,6 @@ public class UIHandler {
             ProjectSettingPanel.EventCallback {
     }
 
-    public static Dimension screenResolution;
     public static String appName = "Chreator";
     public static double uiScaleRatio = 0.8;
     private static UIHandler uiHandler;
@@ -55,7 +55,6 @@ public class UIHandler {
             uiHandler = new UIHandler();
             if (eventCallback == null || !(eventCallback instanceof UIHandler.EventCallback))
                 return uiHandler;
-            screenResolution = Toolkit.getDefaultToolkit().getScreenSize();
             uiHandler.callback = eventCallback;
             uiHandler.prepareObjectInstance();
         }
@@ -71,8 +70,8 @@ public class UIHandler {
         }
         mainWindow = new JFrame(appName);
         mainWindow.setSize(
-                (int) (uiScaleRatio * screenResolution.getWidth()),
-                (int) (uiScaleRatio * screenResolution.getHeight())
+                (int) (uiScaleRatio * getScreenResolution().getWidth()),
+                (int) (uiScaleRatio * getScreenResolution().getHeight())
         );
         tabPane = new JTabbedPane();
         prepareTabPanels();
@@ -171,11 +170,19 @@ public class UIHandler {
         return projectSettingPanel.getProjectLocationBaseDir();
     }
 
+    public Color getEdgeInfoTriangleColorByDirection(String direction){
+        return chessBoardPanel.getEdgeDirectionColor(direction);
+    }
+
     public String getProjectFolderName() {
         return projectSettingPanel.getProjectFolderName();
     }
 
     public ListModel getEdgeDirectionList() {
         return chessBoardPanel.getEdgeDirectionList();
+    }
+
+    public static Dimension getScreenResolution(){
+        return Toolkit.getDefaultToolkit().getScreenSize();
     }
 }

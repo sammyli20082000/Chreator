@@ -69,12 +69,14 @@ public class ChessPiecePanel extends JPanel {
     private ArrayList<PieceProfile> pieceProfiles;
     private boolean inApplyingProfile = false;
     private Color jtfDefaultBackground = new JTextField().getBackground();
-    private JFrame pieceSetSizeWindow;
+    private JFrame pieceSetSizeWindow, pieceSetInitialPointIDWindow;
     private ChessPieceSetSizeGraphicAreaPanel pieceSetSizePanel;
+    private ChessPieceSetInitialPointGraphicAreaPanel pieceSetInitialPointPanel;
 
     public ChessPiecePanel(EventCallback eventCallback) {
         callback = eventCallback;
         pieceProfiles = new ArrayList<PieceProfile>();
+        Dimension screenResolution = UIHandler.getScreenResolution();
 
         pieceSetSizePanel = new ChessPieceSetSizeGraphicAreaPanel(
                 new ChessPieceSetSizeGraphicAreaPanel.OnSetSizeCallBack() {
@@ -90,8 +92,24 @@ public class ChessPiecePanel extends JPanel {
                 });
         pieceSetSizeWindow = new JFrame("Piece Set Size - Chreator");
         pieceSetSizeWindow.add(pieceSetSizePanel);
-        pieceSetSizeWindow.setLocation(UIHandler.screenResolution.width / 10, UIHandler.screenResolution.height / 10);
-        pieceSetSizeWindow.setSize(UIHandler.screenResolution.width * 4 / 5, UIHandler.screenResolution.height * 4 / 5);
+        pieceSetSizeWindow.setLocation(screenResolution.width / 10, screenResolution.height / 10);
+        pieceSetSizeWindow.setSize(screenResolution.width * 4 / 5, screenResolution.height * 4 / 5);
+
+        pieceSetInitialPointPanel = new ChessPieceSetInitialPointGraphicAreaPanel(
+                new ChessPieceSetInitialPointGraphicAreaPanel.OnSetInitialPointCallback() {
+                    @Override
+                    public void onSetInitialPointCallback(int[] ids) {
+                        PieceProfile profile = getSelectedProfile();
+                        profile.initialPointId.clear();
+                        for (int id : ids)
+                            profile.initialPointId.addElement(id + "");
+                    }
+                }
+        );
+        pieceSetInitialPointIDWindow = new JFrame("Piece Set Initial Placing Point ID - Chreator");
+        pieceSetInitialPointIDWindow.add(pieceSetInitialPointPanel);
+        pieceSetInitialPointIDWindow.setLocation(screenResolution.width / 10, screenResolution.height / 10);
+        pieceSetInitialPointIDWindow.setSize(screenResolution.width * 4 / 5, screenResolution.height * 4 / 5);
 
         setupLayout();
         addComponentListener(new ComponentAdapter() {
@@ -682,19 +700,20 @@ public class ChessPiecePanel extends JPanel {
         g.drawString(s, (jp.getWidth() - width) / 2, (jp.getHeight() + height) / 2);
     }
 
-    public void addPointIdToList(int id){
+    public void addPointIdToList(int id) {
         PieceProfile profile = getSelectedProfile();
         if (profile == null) return;
         if (profile.initialPointId == null) profile.initialPointId = new DefaultListModel<String>();
         DefaultListModel<String> listModel = profile.initialPointId;
 
-        for (int i=0;i<listModel.size();i++){
+        for (int i = 0; i < listModel.size(); i++) {
             String s = listModel.getElementAt(i);
-            try{
+            try {
                 if (id == Integer.parseInt(s)) return;
-            }catch (Exception e){}
+            } catch (Exception e) {
+            }
         }
-        listModel.addElement(id+"");
+        listModel.addElement(id + "");
     }
 
     public void addPlayerSideToList(String playerSide) {
@@ -754,7 +773,7 @@ public class ChessPiecePanel extends JPanel {
                     if (JOptionPane.showConfirmDialog(UIHandler.getMainWindow(),
                             "<html><center>Are you sure to add the initial piece placing point IDs for this chess piece?<br>" + msg + "</html",
                             dialogTitle, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-                        for (Integer id: ids)
+                        for (Integer id : ids)
                             addPointIdToList(id.intValue());
                 } else {
                     JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "No new input initial piece placing point IDs can be added to the list",
@@ -762,7 +781,19 @@ public class ChessPiecePanel extends JPanel {
                 }
             }
         } else if (result == 1) {
-
+            PieceProfile profile = getSelectedProfile();
+            if (profile != null) {
+                if (profile.initialPointId == null)
+                    profile.initialPointId = new DefaultListModel<String>();
+                int[] ids = new int[profile.initialPointId.size()];
+                for (int i=0;i<ids.length;i++)
+                    try{
+                        ids[i] = Integer.parseInt(profile.initialPointId.getElementAt(i));
+                    }catch (Exception e){}
+                pieceSetInitialPointIDWindow.setVisible(true);
+                pieceSetInitialPointPanel.updateContent(ids);
+                pieceSetInitialPointIDWindow.repaint();
+            }
         }
 
     }

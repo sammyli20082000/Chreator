@@ -225,11 +225,6 @@ public class ChessPieceSetSizeGraphicAreaPanel extends ChessBoardGraphicAreaPane
         repaint();
     }
 
-    @Override
-    protected ChessBoardPanel getChessBoardPanel() {
-        return UIHandler.getInstance(null).getChessBoardPanel();
-    }
-
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         paintComponentForChessBoard(g);

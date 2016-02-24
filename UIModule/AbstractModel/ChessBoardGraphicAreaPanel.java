@@ -276,8 +276,7 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
 
     protected void paintComponentForEdgeTriangles(Graphics g){
         for (EdgeTriangleInfo triangleInfo : getAllEdgeTriangleInfo()) {
-            ChessBoardPanel chessBoardPanel = getChessBoardPanel();
-            g.setColor(chessBoardPanel.getEdgeDirectionColor(triangleInfo.direction));
+            g.setColor(UIHandler.getInstance(null).getEdgeInfoTriangleColorByDirection(triangleInfo.direction));
             g.fillPolygon(new int[]{
                     (int) Math.round(triangleInfo.pos1X),
                     (int) Math.round(triangleInfo.pos2X),
@@ -364,8 +363,6 @@ public abstract class ChessBoardGraphicAreaPanel extends JPanel {
     abstract protected KeyListener createKeyAdapter();
 
     abstract protected void updateAllPoints();
-
-    abstract protected ChessBoardPanel getChessBoardPanel();
 
     protected Point findPointInListById(ArrayList<Point> pointList, int id) {
         for (Point p : pointList) {

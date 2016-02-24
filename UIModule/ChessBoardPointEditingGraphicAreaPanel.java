@@ -311,11 +311,6 @@ public class ChessBoardPointEditingGraphicAreaPanel extends ChessBoardGraphicAre
         repaint();
     }
 
-    @Override
-    protected ChessBoardPanel getChessBoardPanel() {
-        return UIHandler.getInstance(null).getChessBoardPanel();
-    }
-
     protected MouseAdapter createMouseAdapter() {
         return new MouseAdapter() {
             @Override
