@@ -90,27 +90,27 @@ public class UIHandler {
         menu.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-//                for (PieceProfile profile : chessPiecePanel.getPieceProfiles()) {
-//                    System.out.print(profile.pieceClassName +
-//                                    "; " + profile.playerSide +
-//                                    "; " + profile.sourcePicLink +
-//                                    "; " + profile.pieceColor.toString() +
-//                                    "; " + profile.imageRelativeWidth + " x " + profile.imageRelativeHeight +
-//                                    "; "
-//                    );
-//                    for (int i = 0; i < profile.initialPointId.size(); i++) {
-//                        System.out.print(profile.initialPointId.getElementAt(i) + ", ");
-//                    }
-//                    System.out.println();
-//                }
-//                System.out.println();
-
-                CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(), getPointList(), getEdgeDirectionList());
-                try {
-                    codeProducer.produceExecutable();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                for (PieceProfile profile : chessPiecePanel.getPieceProfiles()) {
+                    System.out.print(profile.pieceClassName +
+                                    "; " + profile.playerSide +
+                                    "; " + profile.sourcePicLink +
+                                    "; " + profile.pieceColor.toString() +
+                                    "; " + profile.imageRelativeWidth + " x " + profile.imageRelativeHeight +
+                                    "; "
+                    );
+                    for (int i = 0; i < profile.initialPointId.size(); i++) {
+                        System.out.print(profile.initialPointId.getElementAt(i) + ", ");
+                    }
+                    System.out.println();
                 }
+                System.out.println();
+
+//                CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(), getPointList(), getEdgeDirectionList(), getPlayerSideList());
+//                try {
+//                    codeProducer.produceExecutable();
+//                } catch (IOException e1) {
+//                    e1.printStackTrace();
+//                }
 
             }
         });
@@ -178,11 +178,15 @@ public class UIHandler {
         return projectSettingPanel.getProjectFolderName();
     }
 
-    public ListModel getEdgeDirectionList() {
+    public ListModel<String> getEdgeDirectionList() {
         return chessBoardPanel.getEdgeDirectionList();
     }
 
     public static Dimension getScreenResolution(){
         return Toolkit.getDefaultToolkit().getScreenSize();
+    }
+    
+    public ListModel<String> getPlayerSideList() {
+    	return chessPiecePanel.getPlayerSideList();
     }
 }

@@ -60,15 +60,15 @@ public class BoardModelProducer {
 		Writer writer3 = new BufferedWriter(oStreamWriter3);
 		
 		for(String code : boardCodes) {
-			writer1.write(code + "\n");
+			writer1.write(code + System.getProperty("line.separator"));
 		}
 		
 		for(String code : edgeCodes) {
-			writer2.write(code + "\n");
+			writer2.write(code + System.getProperty("line.separator"));
 		}
 		
 		for(String code : pointCodes) {
-			writer3.write(code + "\n");
+			writer3.write(code + System.getProperty("line.separator"));
 		}
 		
 		writer1.close();

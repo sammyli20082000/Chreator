@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.ListModel;
+
 import Chreator.CodeProducer.CodeProducer;
 import Chreator.ObjectModel.Point;
 
@@ -19,12 +21,12 @@ public class DataAndSettingCodeProducer {
 	private DataAndSettingFrameProducer dataAndSettingFrameProducer;
 	private PointEdgeDataCodeProducer pointEdgeDataCodeProducer;
 
-	public DataAndSettingCodeProducer(ArrayList<Point> pList) {
+	public DataAndSettingCodeProducer(ArrayList<Point> arrayList, ListModel playerSidesList) {
 		file = new File(CodeProducer.baseDir + "\\DataAndSetting.java");
 		dataAndSettingCodes = new LinkedList<>();
 
-		dataAndSettingFrameProducer = new DataAndSettingFrameProducer();
-		pointEdgeDataCodeProducer = new PointEdgeDataCodeProducer(pList);
+		dataAndSettingFrameProducer = new DataAndSettingFrameProducer(playerSidesList);
+		pointEdgeDataCodeProducer = new PointEdgeDataCodeProducer(arrayList);
 	}
 
 	public void produceDataAndSettingJava() throws IOException {
@@ -41,7 +43,7 @@ public class DataAndSettingCodeProducer {
 		pointEdgeDataCodeProducer.printPointEdgeDataCode();
 
 		for (String code : dataAndSettingCodes) {
-			writer.write(code + "\n");
+			writer.write(code + System.getProperty("line.separator"));
 		}
 
 		writer.close();

@@ -9,16 +9,19 @@ import java.io.Writer;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.ListModel;
+
 import Chreator.CodeProducer.CodeProducer;
 
 public class GameCodeProducer {
 	public static File file;
 	protected static List<String> gameCodes;
+	GameFrameProducer gameFrameProducer;
 
-	public GameCodeProducer() {
+	public GameCodeProducer(ListModel playerSidesList) {
 		file = new File(CodeProducer.baseDir + "\\Game.java");
 		gameCodes = new LinkedList<>();
-
+		gameFrameProducer = new GameFrameProducer(playerSidesList);
 	}
 
 	public void produceGameJava() throws IOException {
@@ -32,7 +35,7 @@ public class GameCodeProducer {
 		Writer writer = new BufferedWriter(oStreamWriter);
 
 		for (String code : gameCodes) {
-			writer.write(code + "\n");
+			writer.write(code + System.getProperty("line.separator"));
 		}
 
 		writer.close();

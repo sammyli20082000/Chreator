@@ -1,9 +1,15 @@
 package Chreator.CodeProducer.DataAndSettingCodeProducer;
 
+import javax.swing.ListModel;
+
+import Chreator.CodeProducer.GameCodeProducer.GameCodeProducer;
+
 public class DataAndSettingFrameProducer {
 
-	public DataAndSettingFrameProducer() {
-		
+	ListModel playerSidesList;
+	
+	public DataAndSettingFrameProducer(ListModel PlayerSidesList) {
+		this.playerSidesList = playerSidesList;
 	}
 
 	public void printDataAndSettingJavaFrame() {
@@ -38,10 +44,8 @@ public class DataAndSettingFrameProducer {
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("}");
 
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("public static class PieceData {");
-		DataAndSettingCodeProducer.dataAndSettingCodes.add("public static class PlayerSide {");
-		DataAndSettingCodeProducer.dataAndSettingCodes.add("}");
-		DataAndSettingCodeProducer.dataAndSettingCodes.add("public static Piece makeStandardPiece(String pieceType, String playerSide) {");
-		DataAndSettingCodeProducer.dataAndSettingCodes.add("}");
+		DataAndSettingCodeProducer.dataAndSettingCodes.add("public static class PlayerSide");
+		DataAndSettingCodeProducer.dataAndSettingCodes.add("public static Piece makeStandardPiece(String pieceType, String playerSide) {}");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("public static PieceDataPackage[] initialPiecePlacingData;");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("}");
 

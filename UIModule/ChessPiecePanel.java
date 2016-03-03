@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.ToolTipManager;
@@ -60,7 +61,7 @@ public class ChessPiecePanel extends JPanel {
     private int componentCounter = 0;
     private Dimension previewImagePanelSize = new Dimension(200, 200);
     private File imageFile;
-    private JList playerSideList, pieceClassNameList, pieceInitialPointIdList;
+    private JList playerSidesList, pieceClassNameList, pieceInitialPointIdList;
     private JButton addChessPieceButton, addPlayerSideButton, deleteChessPieceButton, deletePlayerSideButton,
             setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton, deletePiecePicButton, defaultRatioButton;
     private JTextField pieceColorGreenTextField, pieceColorBlueTextField, pieceColorRedTextField,
@@ -191,10 +192,10 @@ public class ChessPiecePanel extends JPanel {
         pieceClassNameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         pieceClassNameList.addListSelectionListener(createListSelectionListener(pieceClassNameList));
 
-        playerSideList = new JList(new DefaultListModel<String>());
-        playerSideList.setFixedCellWidth(1);
-        playerSideList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        playerSideList.addListSelectionListener(createListSelectionListener(playerSideList));
+        playerSidesList = new JList(new DefaultListModel<String>());
+        playerSidesList.setFixedCellWidth(1);
+        playerSidesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        playerSidesList.addListSelectionListener(createListSelectionListener(playerSidesList));
 
         addChessPieceButton = new JButton("Add Chess Piece");
         addPlayerSideButton = new JButton("Add Player Side");
@@ -213,7 +214,7 @@ public class ChessPiecePanel extends JPanel {
         addToPanel(pieceListAndPreviewPanel, deletePiecePicButton);
 
         addToPanel(pieceListAndPreviewPanel, new JLabel("<html><br>All Player Side</html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        addToPanel(pieceListAndPreviewPanel, new JScrollPane(playerSideList), GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+        addToPanel(pieceListAndPreviewPanel, new JScrollPane(playerSidesList), GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
         addToPanel(pieceListAndPreviewPanel, addPlayerSideButton);
         addToPanel(pieceListAndPreviewPanel, deletePlayerSideButton);
 
@@ -433,9 +434,9 @@ public class ChessPiecePanel extends JPanel {
                 public void mouseClicked(MouseEvent e) {
                     if (!jp.isEnabled()) return;
                     try {
-                        File f = UIUtility.showFileDirectorySelectionDialog(JFileChooser.FILES_ONLY);
-                        if (f != null) {
-                            getSelectedProfile().pieceImage = ImageIO.read(f);
+                        imageFile = UIUtility.showFileDirectorySelectionDialog(JFileChooser.FILES_ONLY);
+                        if (imageFile != null) {
+                            getSelectedProfile().pieceImage = ImageIO.read(imageFile);
                             fixPieceImageRatio();
                         }
                     } catch (Exception ex) {
@@ -507,7 +508,7 @@ public class ChessPiecePanel extends JPanel {
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if (playerSideList.getModel().getSize() == 0) {
+                    if (playerSidesList.getModel().getSize() == 0) {
                         JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
                                 "Please at least create one player side first.",
                                 "Error - Add chess piece - Chreator",
@@ -626,7 +627,7 @@ public class ChessPiecePanel extends JPanel {
     }
 
     private ListSelectionListener createListSelectionListener(JList list) {
-        if (list == playerSideList || list == pieceClassNameList)
+        if (list == playerSidesList || list == pieceClassNameList)
             return new ListSelectionListener() {
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
@@ -717,13 +718,13 @@ public class ChessPiecePanel extends JPanel {
     }
 
     public void addPlayerSideToList(String playerSide) {
-        DefaultListModel<String> listModel = (DefaultListModel<String>) playerSideList.getModel();
+        DefaultListModel<String> listModel = (DefaultListModel<String>) playerSidesList.getModel();
         for (int i = 0; i < listModel.size(); i++) {
             String s = listModel.getElementAt(i);
             if (s.equals(playerSide)) return;
         }
         listModel.addElement(playerSide);
-        playerSideList.setSelectedIndex(listModel.getSize() - 1);
+        playerSidesList.setSelectedIndex(listModel.getSize() - 1);
         for (int i = 0; i < pieceClassNameList.getModel().getSize(); i++) {
             String className = ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(i);
             addToPieceProfileList(playerSide, className);
@@ -806,8 +807,8 @@ public class ChessPiecePanel extends JPanel {
         }
         listModel.addElement(pieceClassName);
         pieceClassNameList.setSelectedIndex(listModel.size() - 1);
-        for (int i = 0; i < playerSideList.getModel().getSize(); i++) {
-            String playerSide = ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(i);
+        for (int i = 0; i < playerSidesList.getModel().getSize(); i++) {
+            String playerSide = ((DefaultListModel<String>) playerSidesList.getModel()).getElementAt(i);
             addToPieceProfileList(playerSide, pieceClassName);
         }
     }
@@ -822,10 +823,10 @@ public class ChessPiecePanel extends JPanel {
     }
 
     public void removePlayerSideFromList() {
-        int[] selectedIndices = playerSideList.getSelectedIndices();
+        int[] selectedIndices = playerSidesList.getSelectedIndices();
 
         if (selectedIndices.length > 0) {
-            DefaultListModel<String> listModel = (DefaultListModel<String>) playerSideList.getModel();
+            DefaultListModel<String> listModel = (DefaultListModel<String>) playerSidesList.getModel();
             for (int i = selectedIndices.length - 1; i >= 0; i--) {
                 for (int j = pieceProfiles.size() - 1; j >= 0; j--)
                     if (pieceProfiles.get(j).playerSide.equals(listModel.getElementAt(selectedIndices[i])))
@@ -834,7 +835,7 @@ public class ChessPiecePanel extends JPanel {
             }
 
             if (listModel.size() > 0)
-                playerSideList.setSelectedIndex(listModel.size() - 1);
+                playerSidesList.setSelectedIndex(listModel.size() - 1);
         }
     }
 
@@ -861,7 +862,7 @@ public class ChessPiecePanel extends JPanel {
 
     public void setPieceProfiles(ArrayList<PieceProfile> profiles) {
         pieceProfiles = profiles;
-        ((DefaultListModel<String>) playerSideList.getModel()).clear();
+        ((DefaultListModel<String>) playerSidesList.getModel()).clear();
         ((DefaultListModel<String>) pieceClassNameList.getModel()).clear();
         for (PieceProfile profile : pieceProfiles) {
             addPlayerSideToList(profile.playerSide);
@@ -889,11 +890,11 @@ public class ChessPiecePanel extends JPanel {
     }
 
     public PieceProfile getSelectedProfile() {
-        if (playerSideList.getSelectedIndices().length == 0 || pieceClassNameList.getSelectedIndices().length == 0)
+        if (playerSidesList.getSelectedIndices().length == 0 || pieceClassNameList.getSelectedIndices().length == 0)
             return null;
         else
             return getPieceProfile(
-                    ((DefaultListModel<String>) playerSideList.getModel()).getElementAt(playerSideList.getSelectedIndices()[0]),
+                    ((DefaultListModel<String>) playerSidesList.getModel()).getElementAt(playerSidesList.getSelectedIndices()[0]),
                     ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(pieceClassNameList.getSelectedIndices()[0])
             );
     }
@@ -917,9 +918,9 @@ public class ChessPiecePanel extends JPanel {
 
     private void applySelectedProfile() {
         inApplyingProfile = true;
-        if (playerSideList.getModel().getSize() == 0
+        if (playerSidesList.getModel().getSize() == 0
                 || pieceClassNameList.getModel().getSize() == 0
-                || playerSideList.getSelectedIndices().length == 0
+                || playerSidesList.getSelectedIndices().length == 0
                 || pieceClassNameList.getSelectedIndices().length == 0) {
             pieceClassNameField.setText("");
             piecePicLinkField.setText("");
@@ -994,5 +995,9 @@ public class ChessPiecePanel extends JPanel {
                 imageActualWidth = imaginaryTangent > previewImageTangent ? imaginaryWidth : imaginaryHeight / previewImageTangent;
         piecePicWidthTextField.setText((imageActualWidth / boardSize.getWidth()) + "");
         piecePicHeightTextField.setText((imageActualHeight / boardSize.getHeight()) + "");
+    }
+    
+    public ListModel getPlayerSideList() {
+    	return playerSidesList.getModel();
     }
 }

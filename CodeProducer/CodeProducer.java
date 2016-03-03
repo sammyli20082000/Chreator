@@ -18,14 +18,15 @@ public class CodeProducer {
 	private DataAndSettingCodeProducer dataAndSettingCodeProducer;
 	private PieceModelProducer pieceModelProducer;
 
-	public CodeProducer(String pathname, String folderName, ArrayList<Point> pList, ListModel edList) {
+	public CodeProducer(String pathname, String folderName, ArrayList<Point> arrayList, ListModel<String> edgeDirectionList,
+			ListModel<String> playerSidesList) {
 		if (folderName.equals("") || folderName.equals(null)) {
 			baseDir = pathname + "\\" + "Chess_Engine" + "\\Executable";
 		} else {
 			baseDir = pathname + "\\" + folderName + "\\Executable";
 		}
-		boardModelCodeProducer = new BoardModelProducer(edList);
-		dataAndSettingCodeProducer = new DataAndSettingCodeProducer(pList);
+		boardModelCodeProducer = new BoardModelProducer(edgeDirectionList);
+		dataAndSettingCodeProducer = new DataAndSettingCodeProducer(arrayList, playerSidesList);
 		pieceModelProducer = new PieceModelProducer();
 	}
 
@@ -34,7 +35,7 @@ public class CodeProducer {
 		if (!file.exists()) {
 			file.mkdirs();
 		}
-		
+
 		dataAndSettingCodeProducer.produceDataAndSettingJava();
 		boardModelCodeProducer.produceBoardModel();
 	}

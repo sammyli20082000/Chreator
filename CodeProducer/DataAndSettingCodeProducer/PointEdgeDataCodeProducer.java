@@ -2,6 +2,8 @@ package Chreator.CodeProducer.DataAndSettingCodeProducer;
 
 import java.util.ArrayList;
 
+import javax.swing.ListModel;
+
 import Chreator.ObjectModel.Point;
 import Chreator.ObjectModel.Point.EdgePointPair;
 import Chreator.ObjectModel.Point.InfoPack;
@@ -9,8 +11,8 @@ public class PointEdgeDataCodeProducer {
 
 	private ArrayList<Point> pointList;
 
-	public PointEdgeDataCodeProducer(ArrayList<Point> pList) {
-		pointList = pList;
+	public PointEdgeDataCodeProducer(ArrayList<Point> arrayList) {
+		this.pointList = arrayList;
 	}
 
 	public void printPointEdgeDataCode() {
