@@ -5,11 +5,9 @@ import javax.swing.ListModel;
 import Chreator.CodeProducer.GameCodeProducer.GameCodeProducer;
 
 public class DataAndSettingFrameProducer {
-
-	ListModel playerSidesList;
 	
 	public DataAndSettingFrameProducer(ListModel PlayerSidesList) {
-		this.playerSidesList = playerSidesList;
+		
 	}
 
 	public void printDataAndSettingJavaFrame() {

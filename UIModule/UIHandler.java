@@ -2,6 +2,7 @@ package Chreator.UIModule;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,164 +30,164 @@ import Chreator.ObjectModel.Point;
  * Created by him on 2015/12/20.
  */
 public class UIHandler {
-    public interface EventCallback extends
-            AIPanel.EventCallback,
-            ChessPiecePanel.EventCallback,
-            ChessBoardPanel.EventCallback,
-            GameRulePanel.EventCallback,
-            ProjectSettingPanel.EventCallback {
-    }
+	public interface EventCallback extends AIPanel.EventCallback, ChessPiecePanel.EventCallback,
+			ChessBoardPanel.EventCallback, GameRulePanel.EventCallback, ProjectSettingPanel.EventCallback {
+	}
 
-    public static String appName = "Chreator";
-    public static double uiScaleRatio = 0.8;
-    private static UIHandler uiHandler;
-    private EventCallback callback;
-    private JFrame mainWindow;
-    private JTabbedPane tabPane;
+	public static String appName = "Chreator";
+	public static double uiScaleRatio = 0.8;
+	private static UIHandler uiHandler;
+	private EventCallback callback;
+	private JFrame mainWindow;
+	private JTabbedPane tabPane;
 
-    private AIPanel aiPanel;
-    private ChessBoardPanel chessBoardPanel;
-    private ChessPiecePanel chessPiecePanel;
-    private GameRulePanel gameRulePanel;
-    private ProjectSettingPanel projectSettingPanel;
+	private AIPanel aiPanel;
+	private ChessBoardPanel chessBoardPanel;
+	private ChessPiecePanel chessPiecePanel;
+	private GameRulePanel gameRulePanel;
+	private ProjectSettingPanel projectSettingPanel;
 
-    public static UIHandler getInstance(EventCallback eventCallback) {
-        if (uiHandler == null && eventCallback != null) {
-            uiHandler = new UIHandler();
-            if (eventCallback == null || !(eventCallback instanceof UIHandler.EventCallback))
-                return uiHandler;
-            uiHandler.callback = eventCallback;
-            uiHandler.prepareObjectInstance();
-        }
-        return uiHandler;
-    }
+	public static UIHandler getInstance(EventCallback eventCallback) {
+		if (uiHandler == null && eventCallback != null) {
+			uiHandler = new UIHandler();
+			if (eventCallback == null || !(eventCallback instanceof UIHandler.EventCallback))
+				return uiHandler;
+			uiHandler.callback = eventCallback;
+			uiHandler.prepareObjectInstance();
+		}
+		return uiHandler;
+	}
 
-    private void prepareObjectInstance() {
-        ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        mainWindow = new JFrame(appName);
-        mainWindow.setSize(
-                (int) (uiScaleRatio * getScreenResolution().getWidth()),
-                (int) (uiScaleRatio * getScreenResolution().getHeight())
-        );
-        tabPane = new JTabbedPane();
-        prepareTabPanels();
-        mainWindow.add(tabPane);
-        debugBar();
+	private void prepareObjectInstance() {
+		ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		mainWindow = new JFrame(appName);
+		mainWindow.setSize((int) (uiScaleRatio * getScreenResolution().getWidth()),
+				(int) (uiScaleRatio * getScreenResolution().getHeight()));
+		tabPane = new JTabbedPane();
+		prepareTabPanels();
+		mainWindow.add(tabPane);
+		debugBar();
 
-        mainWindow.addComponentListener(getWindowResizeHandler());
-        mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainWindow.setLocationRelativeTo(null);
-        mainWindow.setVisible(true);
-    }
+		mainWindow.addComponentListener(getWindowResizeHandler());
+		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mainWindow.setLocationRelativeTo(null);
+		mainWindow.setVisible(true);
+	}
 
-    private void debugBar() {
-        JMenuBar bar = new JMenuBar();
-        JButton menu = new JButton("print debug");
-        menu.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                for (PieceProfile profile : chessPiecePanel.getPieceProfiles()) {
-                    System.out.print(profile.pieceClassName +
-                                    "; " + profile.playerSide +
-                                    "; " + profile.sourcePicLink +
-                                    "; " + profile.pieceColor.toString() +
-                                    "; " + profile.imageRelativeWidth + " x " + profile.imageRelativeHeight +
-                                    "; "
-                    );
-                    for (int i = 0; i < profile.initialPointId.size(); i++) {
-                        System.out.print(profile.initialPointId.getElementAt(i) + ", ");
-                    }
-                    System.out.println();
-                }
-                System.out.println();
+	private void debugBar() {
+		JMenuBar bar = new JMenuBar();
+		JButton menu = new JButton("print debug");
+		menu.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+//				for (PieceProfile profile : chessPiecePanel.getPieceProfiles()) {
+//					System.out.print(profile.pieceClassName + "; " + profile.playerSide + "; " + profile.sourcePicLink
+//							+ "; " + profile.pieceColor.toString() + "; " + profile.imageRelativeWidth + " x "
+//							+ profile.imageRelativeHeight + "; ");
+//					for (int i = 0; i < profile.initialPointId.size(); i++) {
+//						System.out.print(profile.initialPointId.getElementAt(i) + ", ");
+//					}
+//					System.out.println();
+//				}
+//				System.out.println();
+//				for(int i = 0; i < chessPiecePanel.getPieceInitialPointIdList().getSize(); i++) {
+//					System.out.println(chessPiecePanel.getPieceInitialPointIdList().getElementAt(i));
+//				}
 
-//                CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(), getPointList(), getEdgeDirectionList(), getPlayerSideList());
-//                try {
-//                    codeProducer.produceExecutable();
-//                } catch (IOException e1) {
-//                    e1.printStackTrace();
-//                }
+				CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(),
+						getPointList(), getEdgeDirectionList(), getPlayerSideList(), getPieceProfiles());
 
-            }
-        });
-        bar.add(menu);
-        mainWindow.setJMenuBar(bar);
-    }
+				try {
+					codeProducer.produceExecutable();
+				} catch (Exception e1) {
+				}
 
-    private void prepareTabPanels() {
-        aiPanel = new AIPanel(callback);
-        chessBoardPanel = new ChessBoardPanel(callback);
-        chessPiecePanel = new ChessPiecePanel(callback);
-        gameRulePanel = new GameRulePanel(callback);
-        projectSettingPanel = new ProjectSettingPanel(callback);
+			}
+		});
+		bar.add(menu);
+		mainWindow.setJMenuBar(bar);
+	}
 
-        tabPane.addTab(ProjectSettingPanel.tabName, projectSettingPanel);
-        tabPane.addTab(ChessBoardPanel.tabName, chessBoardPanel);
-        tabPane.addTab(ChessPiecePanel.tabName, chessPiecePanel);
-        tabPane.addTab(GameRulePanel.tabName, gameRulePanel);
-        tabPane.addTab(AIPanel.tabName, aiPanel);
-    }
+	private void prepareTabPanels() {
+		aiPanel = new AIPanel(callback);
+		chessBoardPanel = new ChessBoardPanel(callback);
+		chessPiecePanel = new ChessPiecePanel(callback);
+		gameRulePanel = new GameRulePanel(callback);
+		projectSettingPanel = new ProjectSettingPanel(callback);
 
-    private ComponentAdapter getWindowResizeHandler() {
-        return new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                super.componentResized(e);
-            }
-        };
-    }
+		tabPane.addTab(ProjectSettingPanel.tabName, projectSettingPanel);
+		tabPane.addTab(ChessBoardPanel.tabName, chessBoardPanel);
+		tabPane.addTab(ChessPiecePanel.tabName, chessPiecePanel);
+		tabPane.addTab(GameRulePanel.tabName, gameRulePanel);
+		tabPane.addTab(AIPanel.tabName, aiPanel);
+	}
 
-    public static JFrame getMainWindow() {
-        if (uiHandler != null) return uiHandler.mainWindow;
-        else return null;
-    }
+	private ComponentAdapter getWindowResizeHandler() {
+		return new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				super.componentResized(e);
+			}
+		};
+	}
 
-    public ArrayList<Point> getPointList() {
-        return chessBoardPanel.getPointList();
-    }
+	public static JFrame getMainWindow() {
+		if (uiHandler != null)
+			return uiHandler.mainWindow;
+		else
+			return null;
+	}
 
-    public void setChessPieceProfiles(ArrayList<PieceProfile> pieceProfiles) {
-        chessPiecePanel.setPieceProfiles(pieceProfiles);
-    }
+	public ArrayList<Point> getPointList() {
+		return chessBoardPanel.getPointList();
+	}
 
-    public ArrayList<PieceProfile> getChessPieceProfile() {
-        return chessPiecePanel.getPieceProfiles();
-    }
+	public void setChessPieceProfiles(ArrayList<PieceProfile> pieceProfiles) {
+		chessPiecePanel.setPieceProfiles(pieceProfiles);
+	}
 
-    ChessBoardPanel getChessBoardPanel() {
-        return chessBoardPanel;
-    }
+	public ArrayList<PieceProfile> getChessPieceProfile() {
+		return chessPiecePanel.getPieceProfiles();
+	}
 
-    ChessPiecePanel getChessPiecePanel() {
-        return chessPiecePanel;
-    }
+	ChessBoardPanel getChessBoardPanel() {
+		return chessBoardPanel;
+	}
 
-    public String getProjectLocationBaseDir() {
-        return projectSettingPanel.getProjectLocationBaseDir();
-    }
+	ChessPiecePanel getChessPiecePanel() {
+		return chessPiecePanel;
+	}
 
-    public Color getEdgeInfoTriangleColorByDirection(String direction){
-        return chessBoardPanel.getEdgeDirectionColor(direction);
-    }
+	public String getProjectLocationBaseDir() {
+		return projectSettingPanel.getProjectLocationBaseDir();
+	}
 
-    public String getProjectFolderName() {
-        return projectSettingPanel.getProjectFolderName();
-    }
+	public Color getEdgeInfoTriangleColorByDirection(String direction) {
+		return chessBoardPanel.getEdgeDirectionColor(direction);
+	}
 
-    public ListModel<String> getEdgeDirectionList() {
-        return chessBoardPanel.getEdgeDirectionList();
-    }
+	public String getProjectFolderName() {
+		return projectSettingPanel.getProjectFolderName();
+	}
 
-    public static Dimension getScreenResolution(){
-        return Toolkit.getDefaultToolkit().getScreenSize();
-    }
-    
-    public ListModel<String> getPlayerSideList() {
-    	return chessPiecePanel.getPlayerSideList();
-    }
+	public ListModel<String> getEdgeDirectionList() {
+		return chessBoardPanel.getEdgeDirectionList();
+	}
+
+	public static Dimension getScreenResolution() {
+		return Toolkit.getDefaultToolkit().getScreenSize();
+	}
+
+	public ListModel<String> getPlayerSideList() {
+		return chessPiecePanel.getPlayerSideList();
+	}
+	
+	public ArrayList<PieceProfile> getPieceProfiles() {
+		return chessPiecePanel.getPieceProfiles();
+	}
 }

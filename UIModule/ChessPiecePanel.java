@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.JobAttributes;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -101,9 +102,29 @@ public class ChessPiecePanel extends JPanel {
                     @Override
                     public void onSetInitialPointCallback(int[] ids) {
                         PieceProfile profile = getSelectedProfile();
+                        int[] idsBackup = new int[profile.initialPointId.size()];
+                        
+                        for(int i = 0; i < profile.initialPointId.getSize(); i++) {
+                        	idsBackup[i] = Integer.parseInt(profile.initialPointId.getElementAt(i));
+                        }
                         profile.initialPointId.clear();
-                        for (int id : ids)
+                        
+                        if (isInitialPointUsed(ids)) {
+                        	int option = JOptionPane.showConfirmDialog(null,
+            						"There are already another piece using the selected point(s) as its initial point. Do you still want to continue? This may causes unexpected situation during compilation.",
+            						"Warning", JOptionPane.OK_CANCEL_OPTION);
+            				if (option != JOptionPane.OK_OPTION) {
+            					for (int id : idsBackup) {
+                                    profile.initialPointId.addElement(id + "");
+                                }
+            					pieceSetInitialPointPanel.updateContent(idsBackup);
+            					return;
+            				}
+                        }
+                        
+                        for (int id : ids) {
                             profile.initialPointId.addElement(id + "");
+                        }
                     }
                 }
         );
@@ -703,6 +724,8 @@ public class ChessPiecePanel extends JPanel {
 
     public void addPointIdToList(int id) {
         PieceProfile profile = getSelectedProfile();
+        ArrayList<PieceProfile> profiles = getPieceProfiles();
+        
         if (profile == null) return;
         if (profile.initialPointId == null) profile.initialPointId = new DefaultListModel<String>();
         DefaultListModel<String> listModel = profile.initialPointId;
@@ -714,6 +737,18 @@ public class ChessPiecePanel extends JPanel {
             } catch (Exception e) {
             }
         }
+        
+        int[] idBackup = new int[1];
+        idBackup[0] = id;
+        if (isInitialPointUsed(idBackup)) {
+        	int option = JOptionPane.showConfirmDialog(null,
+					"There are already another piece using the selected point(s) as its initial point. Do you still want to continue? This may causes unexpected situation during compilation.",
+					"Warning", JOptionPane.OK_CANCEL_OPTION);
+			if (option != JOptionPane.OK_OPTION) {
+				return;
+			}
+        }
+        
         listModel.addElement(id + "");
     }
 
@@ -997,7 +1032,24 @@ public class ChessPiecePanel extends JPanel {
         piecePicHeightTextField.setText((imageActualHeight / boardSize.getHeight()) + "");
     }
     
+    private boolean isInitialPointUsed(int[] ids) {
+    	for (int id : ids) {
+        	for (PieceProfile pieceProfile : getPieceProfiles()) {
+        		for (int i = 0; i < pieceProfile.initialPointId.size(); i++) { 
+        			if (pieceProfile.initialPointId.getElementAt(i).equals(id + "")) {
+        				return true;
+        			}
+        		}
+        	}
+        }
+    	return false;
+    }
+    
     public ListModel getPlayerSideList() {
     	return playerSidesList.getModel();
+    }
+    
+    public ListModel getPieceInitialPointIdList() {
+    	return pieceInitialPointIdList.getModel();
     }
 }

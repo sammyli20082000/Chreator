@@ -1,9 +1,18 @@
 package Chreator.CodeProducer.DataAndSettingCodeProducer;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 import javax.swing.ListModel;
 
+import Chreator.CodeProducer.CodeProducer;
+import Chreator.CodeProducer.PieceModelProducer.individualPieceCodeProducer;
 import Chreator.ObjectModel.PieceProfile;
 
 public class PieceDataProducer {
@@ -16,7 +25,13 @@ public class PieceDataProducer {
 		this.pieceProfiles = pieceProfiles;
 	}
 
-	public void printPlayerSideCode() {
+	public void printPieceDataCode() {
+		printPlayerSideCode();
+		printMakeStandardPieceCode();
+		printPieceDataPackageCode();
+	}
+
+	private void printPlayerSideCode() {
 		int i = DataAndSettingCodeProducer.dataAndSettingCodes.indexOf("public static class PlayerSide");
 
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 1, "public static class PlayerSide {");
@@ -30,27 +45,49 @@ public class PieceDataProducer {
 		DataAndSettingCodeProducer.dataAndSettingCodes.remove(i);
 	}
 
-	public void printMakeStandardPieceCode() {
+	private void printPieceDataPackageCode() {
+		int addedLines = 0;
+		int i = DataAndSettingCodeProducer.dataAndSettingCodes
+				.indexOf("public static PieceDataPackage[] initialPiecePlacingData;");
+
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 1,
+				"public static PieceDataPackage[] initialPiecePlacingData = new PieceDataPackage[] {");
+
+		for (int j = 0; j < pieceProfiles.size(); j++) {
+			for (int k = 0; k < pieceProfiles.get(j).initialPointId.size(); k++) {
+				addedLines++;
+				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2,
+						"new PieceDataPackage(" + pieceProfiles.get(j).initialPointId.getElementAt(k) + ", \""
+								+ pieceProfiles.get(j).pieceClassName + "\", PlayerSide."
+								+ pieceProfiles.get(j).playerSide + "),");
+			}
+		}
+
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2 + addedLines, "};");
+		DataAndSettingCodeProducer.dataAndSettingCodes.remove(i);
+	}
+
+	private void printMakeStandardPieceCode() {
+		int addedLines = 0;
 		int i = DataAndSettingCodeProducer.dataAndSettingCodes
 				.indexOf("public static Piece makeStandardPiece(String pieceType, String playerSide) {}");
 
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 1,
 				"public static Piece makeStandardPiece(String pieceType, String playerSide) {");
 
-		for (int j = 0; j < pieceProfiles.size(); j++) {
-			for (int k = 0; k < playerSidesList.getSize(); k++) {
-				if (j == 0) {
-					DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2,
-							"if (pieceType.equals(\"" + pieceProfiles.get(j).pieceClassName
-									+ "\") && playerSide.equals(PlayerSide." + playerSidesList.getElementAt(k) + ")");
-					
-				} else {
+//		File f = new File(pieceProfiles.get(j).sourcePicLink);
+//		File picF = new File(CodeProducer.baseDir + "\\pictures\\" + f.getName());
+//		try {
+//			Files.copy(Paths.get(f.getAbsolutePath()), Paths.get(picF.getAbsolutePath()),
+//					StandardCopyOption.REPLACE_EXISTING);
+//		} catch (Exception e) {
+//
+//		}
 
-				}
-			}
-		}
-
-		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2 + pieceProfiles.size(), "}");
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2 + addedLines, "else");
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3 + addedLines, "return null;");
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 4 + addedLines, "}");
 		DataAndSettingCodeProducer.dataAndSettingCodes.remove(i);
 	}
+
 }
