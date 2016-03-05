@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -14,17 +15,30 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
+
+import Chreator.ProjectCompiler;
 
 /**
  * Created by him on 2015/12/20.
  */
 public class ProjectSettingPanel extends JPanel {
     public interface EventCallback {
+        public boolean onSetJDKLocation(String JDKLocation);
 
+        public void onRunGameExecutable(String projectLocation);
+
+        public void onCompileProject(String projectLocation, ProjectCompiler.AsyncCompilationCallBack callback);
     }
 
     public enum TemplateType {
@@ -48,14 +62,16 @@ public class ProjectSettingPanel extends JPanel {
 
     private JPanel basePanel, newProjectPanel;
     private JRadioButton openProjectRadio, newProjectRadio, fromTemplateRadio, customProjectRadio, temp1Radio, temp2Radio, temp3Radio;
-    private JTextField locationInputField, projectFolderNameInputField;
+    private JTextField locationInputField, projectFolderNameInputField, JDKLocationDisplayField;
     private ButtonGroup startProjectButtonGroup, newProjectButtonGroup;
-    private JButton browseLocationButton, executeButton, compileButton, runButton;
-    private JComboBox templateDropDownMenu;
-    private JLabel projectFolderDirNameLabel;
+    private JButton browseLocationButton, executeSettingButton, browseJDKButton, runExecutableButton, compileButton;
+    private JComboBox templateDropDownMenu, codeEditorFontDropDownMenu;
+    private JLabel projectFolderDirNameLabel, JDKLocationLabel;
 
-    private int componentCounter = 0;
+    private int columnCounter = 0, rowCounter = 0;
     private int editTextColumn = 17;
+
+    private boolean isJDKLocationFieldChangedByProgram = false;
 
     public ProjectSettingPanel(EventCallback eventCallback) {
         callback = eventCallback;
@@ -68,10 +84,20 @@ public class ProjectSettingPanel extends JPanel {
         basePanel = new JPanel();
         basePanel.setLayout(new GridBagLayout());
         basePanel.setBorder(BorderFactory.createRaisedBevelBorder());
+
+        setupProjectSettingTitle();
         setupLocationPanel();
         setupProjectHandleWayPanel();
         setupNewProjectPanel();
-        setupBottomButtons();
+
+        rowCounter++;
+        columnCounter = 0;
+        addToBasePanel(createSpaceLabel());
+
+        rowCounter++;
+        columnCounter = 0;
+        setupOtherSettingPanel();
+
         registerEventListener();
 
         GridBagConstraints c = new GridBagConstraints();
@@ -84,18 +110,39 @@ public class ProjectSettingPanel extends JPanel {
         newProjectRadio.addActionListener(getRadioButtonsActionListener(newProjectRadio));
         customProjectRadio.addActionListener(getRadioButtonsActionListener(customProjectRadio));
         fromTemplateRadio.addActionListener(getRadioButtonsActionListener(fromTemplateRadio));
-        browseLocationButton.addActionListener(getBrowseButtonActionListener());
+        browseLocationButton.addActionListener(getBrowseButtonActionListener(browseLocationButton));
+        browseJDKButton.addActionListener(getBrowseButtonActionListener(browseJDKButton));
+        compileButton.addActionListener(getButtonActionListener(compileButton));
+        runExecutableButton.addActionListener(getButtonActionListener(runExecutableButton));
+        ((AbstractDocument) JDKLocationDisplayField.getDocument()).setDocumentFilter(createDocumentFilter(JDKLocationDisplayField));
     }
 
-    private void setupBottomButtons() {
-        executeButton = new JButton("Execute setting");
-        compileButton = new JButton("Compile project");
-        runButton = new JButton("Run executable");
+    private void setupOtherSettingPanel() {
+        JDKLocationDisplayField = new JTextField() {
+            public void setEnabled(boolean opt) {
+                super.setEnabled(opt);
+                if (opt) setBackground(basePanel.getBackground());
+                else setBackground(ProjectCompiler.isCompilerReady() ? Color.GREEN : Color.RED);
+            }
+        };
+        runExecutableButton = new JButton("Run executable");
+        browseJDKButton = new JButton("Browse");
+        compileButton = new JButton("Compile");
 
-        addToBasePanel(executeButton, GridBagConstraints.EAST, GridBagConstraints.NONE);
-        addToBasePanel(new JLabel(" "));
+        JDKLocationDisplayField.setOpaque(true);
+        JDKLocationDisplayField.setBackground(ProjectCompiler.isCompilerReady() ? Color.green : Color.red);
+        JDKLocationDisplayField.setColumns(editTextColumn);
+
+        addToBasePanel(new JLabel("<html><u><b>Other Settings<br></html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        addToBasePanel(new JLabel("JDK Location"));
+        addToBasePanel(JDKLocationDisplayField, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+        addToBasePanel(browseJDKButton, GridBagConstraints.LINE_END, GridBagConstraints.NONE);
         addToBasePanel(compileButton);
-        addToBasePanel(runButton);
+        addToBasePanel(runExecutableButton);
+    }
+
+    private void setupProjectSettingTitle() {
+        addToBasePanel(new JLabel("<html><u><b>Project Settings<br></html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
     }
 
     private void setupNewProjectPanel() {
@@ -112,6 +159,7 @@ public class ProjectSettingPanel extends JPanel {
         temp3Radio = new JRadioButton("temp radio 3");
         projectFolderDirNameLabel = new JLabel("<html><br>Project folder name</html>");
         templateDropDownMenu = new JComboBox(TemplateType.getAllString());
+        executeSettingButton = new JButton("Execute setting");
 
         templateDropDownMenu.setEditable(false);
         fromTemplateRadio.setSelected(true);
@@ -130,21 +178,21 @@ public class ProjectSettingPanel extends JPanel {
         c2.weightx = 1.0;
         c2.gridwidth = 2;
         c2.fill = GridBagConstraints.HORIZONTAL;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         newProjectPanel.add(customProjectRadio, c2);
 
         c1.gridy++;
         c2.gridy++;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         newProjectPanel.add(fromTemplateRadio, c2);
 
         c1.gridy++;
         c2.gridy++;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         c1.gridx++;
         c2.gridx++;
         c2.gridwidth--;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         newProjectPanel.add(templateDropDownMenu, c2);
         c1.gridx--;
         c2.gridx--;
@@ -152,30 +200,31 @@ public class ProjectSettingPanel extends JPanel {
 
         c1.gridy++;
         c2.gridy++;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         newProjectPanel.add(temp1Radio, c2);
 
         c1.gridy++;
         c2.gridy++;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         newProjectPanel.add(temp2Radio, c2);
 
         c1.gridy++;
         c2.gridy++;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         newProjectPanel.add(temp3Radio, c2);
 
         c1.gridy++;
         c2.gridy++;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         newProjectPanel.add(projectFolderDirNameLabel, c2);
 
         c1.gridy++;
         c2.gridy++;
-        newProjectPanel.add(makeSpaceLabel(), c1);
+        newProjectPanel.add(createSpaceLabel(), c1);
         newProjectPanel.add(projectFolderNameInputField, c2);
 
         addToBasePanel(newProjectPanel, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+        addToBasePanel(executeSettingButton, GridBagConstraints.EAST, GridBagConstraints.NONE);
     }
 
     private void setupProjectHandleWayPanel() {
@@ -193,7 +242,7 @@ public class ProjectSettingPanel extends JPanel {
     }
 
     private void setupLocationPanel() {
-        JLabel locationLabel = new JLabel("Project Location");
+        JLabel locationLabel = new JLabel("<html>Project Location</html>");
         locationInputField = new JTextField();
         browseLocationButton = new JButton("Browse");
 
@@ -206,26 +255,101 @@ public class ProjectSettingPanel extends JPanel {
 
     private void addToBasePanel(Component p, int anchor, int fill) {
         GridBagConstraints c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = componentCounter;
+        c.gridx = rowCounter;
+        c.gridy = columnCounter;
         c.anchor = anchor;
         c.fill = fill;
         basePanel.add(p, c);
-        componentCounter++;
+        columnCounter++;
     }
 
     private void addToBasePanel(Component p) {
         addToBasePanel(p, GridBagConstraints.WEST, GridBagConstraints.NONE);
     }
 
-    private ActionListener getBrowseButtonActionListener() {
-        return new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                File dir = UIUtility.showFileDirectorySelectionDialog(JFileChooser.DIRECTORIES_ONLY);
-                locationInputField.setText(dir == null ? locationInputField.getText() : dir.getAbsolutePath());
-            }
-        };
+    private ActionListener getButtonActionListener(JButton jb) {
+        if (jb == compileButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    ProjectCompiler.AsyncCompilationCallBack callBack = new ProjectCompiler.AsyncCompilationCallBack() {
+                        @Override
+                        public void onCompilationFinished(boolean result) {
+                            compileProjectFinished(result);
+                        }
+                    };
+                    File dir = new File(locationInputField.getText());
+                    String proj = projectFolderNameInputField.getText();
+                    if (ProjectCompiler.isCompilerReady()) {
+                        compileButton.setEnabled(false);
+                        compileButton.setText("Compiling...");
+                        callback.onCompileProject(new File(dir.getAbsolutePath() + "/" + proj).getAbsolutePath(), callBack);
+                    } else
+                        JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+                                "Failed to find JDK, make sure the JDK is installed and the correct path is provided, then try again.",
+                                "Java compiler not ready - Chreator", JOptionPane.ERROR_MESSAGE);
+                }
+            };
+        else if (jb == runExecutableButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    File dir = new File(locationInputField.getText()), proj = new File(projectFolderNameInputField.getText());
+                    callback.onRunGameExecutable(new File(dir.getAbsolutePath() + "/" + proj).getAbsolutePath());
+                }
+            };
+        else if (jb == executeSettingButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    executeProjectSettings();
+                }
+            };
+        else return null;
+    }
+
+    private ActionListener getBrowseButtonActionListener(JButton jb) {
+        if (jb == browseLocationButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    File dir = UIUtility.showFileDirectorySelectionDialog(JFileChooser.DIRECTORIES_ONLY);
+                    locationInputField.setText(dir == null ? locationInputField.getText() : dir.getAbsolutePath());
+                }
+            };
+        else if (jb == browseJDKButton)
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    File dir = UIUtility.showFileDirectorySelectionDialog(JFileChooser.DIRECTORIES_ONLY);
+                    if (dir != null)
+                        setJDKLocation(dir.getAbsolutePath());
+                }
+            };
+        else return null;
+    }
+
+    private DocumentFilter createDocumentFilter(JTextField jtf) {
+        if (jtf == JDKLocationDisplayField)
+            return new DocumentFilter() {
+                public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws
+                        BadLocationException {
+                    if (isJDKLocationFieldChangedByProgram)
+                        super.replace(fb, offset, length, text, attrs);
+                }
+
+                public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr) throws
+                        BadLocationException {
+                    if (isJDKLocationFieldChangedByProgram)
+                        super.insertString(fb, offset, string, attr);
+                }
+
+                public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws
+                        BadLocationException {
+                    if (isJDKLocationFieldChangedByProgram) super.remove(fb, offset, length);
+                }
+            };
+        else return null;
     }
 
     private ActionListener getRadioButtonsActionListener(JRadioButton jrb) {
@@ -282,10 +406,59 @@ public class ProjectSettingPanel extends JPanel {
         return projectFolderNameInputField.getText();
     }
 
-    private JLabel makeSpaceLabel() {
+    private JLabel createSpaceLabel() {
         JLabel label = new JLabel("0000");
         label.setForeground(new Color(0f, 0f, 0f, 0f));
         label.setOpaque(true);
         return label;
+    }
+
+    public void setJDKLocation(String location) {
+        isJDKLocationFieldChangedByProgram = true;
+        JDKLocationDisplayField.setText(location);
+        isJDKLocationFieldChangedByProgram = false;
+        JDKLocationDisplayField.setBackground(callback.onSetJDKLocation(location) ? Color.green : Color.red);
+    }
+
+    private void executeProjectSettings() {
+
+    }
+
+    private boolean isFolderNameValid(String dir) {
+        String[] banned = {"\\", "/", ":", "*", "?", "\"", "<", ">", "|"};
+        for (String s : banned)
+            if (dir.contains(s))
+                return false;
+        return true;
+    }
+
+    private void compileProjectFinished(boolean result) {
+        compileButton.setEnabled(true);
+        compileButton.setText("Compile");
+        if (!result) {
+            List<Diagnostic<? extends JavaFileObject>> errorList = ProjectCompiler.getErrorMessageForLastCompilation();
+            /*String msg = "";
+            if (errorList == null)
+                msg = "Error happened with the compiler";
+            else
+                for (Diagnostic<? extends JavaFileObject> diagnostic : errorList) {
+                    if (diagnostic.getKind().equals(Diagnostic.Kind.ERROR))
+                        msg += "code ----> " + diagnostic.getCode() + "\n"
+                                + "column number ----> " + diagnostic.getColumnNumber() + "\n"
+                                + "end position ----> " + diagnostic.getEndPosition() + "\n"
+                                + "kind ----> " + diagnostic.getKind() + "\n"
+                                + "line number ----> " + diagnostic.getLineNumber() + "\n"
+                                + "message ----> " + diagnostic.getMessage(null) + "\n"
+                                + "position ----> " + diagnostic.getPosition() + "\n"
+                                + "source ----> " + diagnostic.getSource() + "\n"
+                                + "start position ----> " + diagnostic.getStartPosition() + "\n"
+                                + "<---------->";
+                }
+            System.out.println(msg);*/
+            JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+                    "<html>Compilation failed:<br>" + (errorList == null ? "Error happened with the compiler" : errorList),
+                    "Compilation failed - Chreator",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

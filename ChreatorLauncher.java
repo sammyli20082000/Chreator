@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
@@ -15,25 +16,10 @@ import Chreator.UIModule.UIHandler;
  */
 public class ChreatorLauncher {
     private UIHandler ui;
+    private String sourceFolder = "src", binaryFolder = "bin";
 
     public static void main(String[] args) {
         new ChreatorLauncher();
-
-//        ProjectCompiler.setJDKLocation("D:/Program Files/Java/jdk1.8.0_74");
-
-        // compile java files in the list,
-        // return null if errors with the compilation process;
-        // non null empty list for successful compilation;
-        // a list with something for errors are found in the java source files
-//        long start = System.nanoTime(), end;
-//        boolean result = ProjectCompiler.compileProject("E:/workspace/android_studio/ChessEngine/lib_executable/src/main/java", "E:/Download");
-//        end = System.nanoTime();
-//
-//        if (result)
-//            System.out.println(ProjectCompiler.startGameExecutable("E:/Download"));
-//        else
-//            System.out.println(ProjectCompiler.getErrorMessageForLastCompilation());
-//        System.out.println("Compilation Time: " + ((end - start) / 1000 / 1000) + "ms");
     }
 
     public ChreatorLauncher() {
@@ -42,6 +28,28 @@ public class ChreatorLauncher {
 
     private UIHandler.EventCallback getUIEventCallback() {
         return new UIHandler.EventCallback() {
+
+            @Override
+            public boolean onSetJDKLocation(String JDKLocation) {
+                boolean result = ProjectCompiler.setJDKLocation(JDKLocation);
+                if (!result)
+                    JOptionPane.showMessageDialog(ui.getMainWindow(),
+                            "<html><center>Failed to find JDK with the specified location," +
+                                    "<br>source code syntax checking and compilation will not start.</html>",
+                            "Set JDK failed - Chreator", JOptionPane.ERROR_MESSAGE);
+                return result;
+            }
+
+            @Override
+            public void onRunGameExecutable(String projectLocation) {
+                ProjectCompiler.startGameExecutable(new File(projectLocation).getAbsolutePath() + "/" + binaryFolder);
+            }
+
+            @Override
+            public void onCompileProject(String projectLocation, ProjectCompiler.AsyncCompilationCallBack callBack) {
+                ProjectCompiler.compileProject(new File(projectLocation).getAbsolutePath() + "/" + sourceFolder,
+                        new File(projectLocation).getAbsolutePath() + "/" + binaryFolder, callBack);
+            }
         };
     }
 }
