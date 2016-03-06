@@ -2,15 +2,22 @@ package Chreator.UIModule;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -19,7 +26,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -28,6 +38,7 @@ import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import Chreator.ProjectCompiler;
+import Chreator.UIModule.AbstractModel.DocumentAdapter;
 
 /**
  * Created by him on 2015/12/20.
@@ -62,13 +73,13 @@ public class ProjectSettingPanel extends JPanel {
 
     private JPanel basePanel, newProjectPanel;
     private JRadioButton openProjectRadio, newProjectRadio, fromTemplateRadio, customProjectRadio, temp1Radio, temp2Radio, temp3Radio;
-    private JTextField locationInputField, projectFolderNameInputField, JDKLocationDisplayField;
+    private JTextField locationInputField, projectFolderNameInputField, JDKLocationDisplayField, codeEditorFontSizeTextField;
     private ButtonGroup startProjectButtonGroup, newProjectButtonGroup;
     private JButton browseLocationButton, executeSettingButton, browseJDKButton, runExecutableButton, compileButton;
     private JComboBox templateDropDownMenu, codeEditorFontDropDownMenu;
-    private JLabel projectFolderDirNameLabel, JDKLocationLabel;
+    private JLabel projectFolderDirNameLabel;
 
-    private int columnCounter = 0, rowCounter = 0;
+    private int columnCounter = 0;
     private int editTextColumn = 17;
 
     private boolean isJDKLocationFieldChangedByProgram = false;
@@ -78,31 +89,48 @@ public class ProjectSettingPanel extends JPanel {
         setLayout(new GridBagLayout());
         setBackground(Color.DARK_GRAY);
         setupLayout();
+        setFontSizeOfCodeEditors(codeEditorFontSizeTextField.getFont().getSize());
+        setFontOfCodeEditors(codeEditorFontSizeTextField.getFont().getName());
     }
 
     private void setupLayout() {
+        JPanel baseContainer = new JPanel(new GridBagLayout());
+        baseContainer.setBorder(BorderFactory.createRaisedBevelBorder());
+        JPanel[] basePanels = new JPanel[3];
+
         basePanel = new JPanel();
         basePanel.setLayout(new GridBagLayout());
-        basePanel.setBorder(BorderFactory.createRaisedBevelBorder());
-
+        columnCounter = 0;
         setupProjectSettingTitle();
         setupLocationPanel();
         setupProjectHandleWayPanel();
         setupNewProjectPanel();
+        basePanels[0] = basePanel;
 
-        rowCounter++;
+        basePanel = new JPanel();
+        basePanel.setLayout(new GridBagLayout());
         columnCounter = 0;
         addToBasePanel(createSpaceLabel());
+        basePanels[1] = basePanel;
 
-        rowCounter++;
+        basePanel = new JPanel();
+        basePanel.setLayout(new GridBagLayout());
         columnCounter = 0;
         setupOtherSettingPanel();
+        basePanels[2] = basePanel;
 
         registerEventListener();
 
         GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.CENTER;
-        add(basePanel, c);
+        c.anchor = GridBagConstraints.PAGE_START;
+        c.gridx = 0;
+        c.gridy = 0;
+
+        for (JPanel jp : basePanels) {
+            baseContainer.add(jp, c);
+            c.gridx++;
+        }
+        add(baseContainer);
     }
 
     private void registerEventListener() {
@@ -114,7 +142,9 @@ public class ProjectSettingPanel extends JPanel {
         browseJDKButton.addActionListener(getBrowseButtonActionListener(browseJDKButton));
         compileButton.addActionListener(getButtonActionListener(compileButton));
         runExecutableButton.addActionListener(getButtonActionListener(runExecutableButton));
-        ((AbstractDocument) JDKLocationDisplayField.getDocument()).setDocumentFilter(createDocumentFilter(JDKLocationDisplayField));
+        ((AbstractDocument) JDKLocationDisplayField.getDocument()).setDocumentFilter(getTextFieldDocumentFilter(JDKLocationDisplayField));
+        codeEditorFontDropDownMenu.addItemListener(getDropDownMenuItemListener(codeEditorFontDropDownMenu));
+        codeEditorFontSizeTextField.getDocument().addDocumentListener(getTextFieldDocumentLister(codeEditorFontSizeTextField));
     }
 
     private void setupOtherSettingPanel() {
@@ -128,15 +158,31 @@ public class ProjectSettingPanel extends JPanel {
         runExecutableButton = new JButton("Run executable");
         browseJDKButton = new JButton("Browse");
         compileButton = new JButton("Compile");
+        codeEditorFontDropDownMenu = new JComboBox(new DefaultComboBoxModel<String>());
+        codeEditorFontSizeTextField = new JTextField();
 
         JDKLocationDisplayField.setOpaque(true);
         JDKLocationDisplayField.setBackground(ProjectCompiler.isCompilerReady() ? Color.green : Color.red);
         JDKLocationDisplayField.setColumns(editTextColumn);
+        codeEditorFontSizeTextField.setOpaque(true);
+        codeEditorFontSizeTextField.setBackground(Color.red);
+        codeEditorFontSizeTextField.setColumns(editTextColumn);
+
+        for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts())
+            codeEditorFontDropDownMenu.addItem(f.getFontName());
 
         addToBasePanel(new JLabel("<html><u><b>Other Settings<br></html>"), GridBagConstraints.CENTER, GridBagConstraints.NONE);
         addToBasePanel(new JLabel("JDK Location"));
         addToBasePanel(JDKLocationDisplayField, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
         addToBasePanel(browseJDKButton, GridBagConstraints.LINE_END, GridBagConstraints.NONE);
+
+        addToBasePanel(new JLabel("<html><br>Font for code editors:</html>"));
+        addToBasePanel(codeEditorFontDropDownMenu, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+
+        addToBasePanel(new JLabel("<html><br>Font size for Code</html>"));
+        addToBasePanel(codeEditorFontSizeTextField, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+
+        addToBasePanel(createSpaceLabel());
         addToBasePanel(compileButton);
         addToBasePanel(runExecutableButton);
     }
@@ -255,7 +301,7 @@ public class ProjectSettingPanel extends JPanel {
 
     private void addToBasePanel(Component p, int anchor, int fill) {
         GridBagConstraints c = new GridBagConstraints();
-        c.gridx = rowCounter;
+        c.gridx = 0;
         c.gridy = columnCounter;
         c.anchor = anchor;
         c.fill = fill;
@@ -265,6 +311,18 @@ public class ProjectSettingPanel extends JPanel {
 
     private void addToBasePanel(Component p) {
         addToBasePanel(p, GridBagConstraints.WEST, GridBagConstraints.NONE);
+    }
+
+    private ItemListener getDropDownMenuItemListener(JComboBox jcb) {
+        if (jcb == codeEditorFontDropDownMenu)
+            return new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    SimpleCodeEditor.setFontForAllEditors((String) jcb.getSelectedItem(), SimpleCodeEditor.getFontForAllEditors().getSize());
+                }
+            };
+        else
+            return null;
     }
 
     private ActionListener getButtonActionListener(JButton jb) {
@@ -329,7 +387,7 @@ public class ProjectSettingPanel extends JPanel {
         else return null;
     }
 
-    private DocumentFilter createDocumentFilter(JTextField jtf) {
+    private DocumentFilter getTextFieldDocumentFilter(JTextField jtf) {
         if (jtf == JDKLocationDisplayField)
             return new DocumentFilter() {
                 public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws
@@ -398,6 +456,25 @@ public class ProjectSettingPanel extends JPanel {
         } else return null;
     }
 
+    private DocumentListener getTextFieldDocumentLister(JTextField jtf) {
+        if (jtf == codeEditorFontSizeTextField)
+            return new DocumentAdapter() {
+                @Override
+                public void editedUpdate(DocumentEvent e) {
+                    super.editedUpdate(e);
+                    try {
+                        int size = Integer.parseInt(codeEditorFontSizeTextField.getText());
+                        if (size < 1) throw new Exception();
+                        codeEditorFontSizeTextField.setBackground(Color.green);
+                        SimpleCodeEditor.setFontForAllEditors(SimpleCodeEditor.getFontForAllEditors().getName(), size);
+                    } catch (Exception ex) {
+                        codeEditorFontSizeTextField.setBackground(Color.red);
+                    }
+                }
+            };
+        else return null;
+    }
+
     public String getProjectLocationBaseDir() {
         return locationInputField.getText();
     }
@@ -460,5 +537,18 @@ public class ProjectSettingPanel extends JPanel {
                     "Compilation failed - Chreator",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    public boolean setFontOfCodeEditors(String s) {
+        for (int i = 0; i < codeEditorFontDropDownMenu.getModel().getSize(); i++)
+            if (codeEditorFontDropDownMenu.getModel().getElementAt(i).equals(s)) {
+                codeEditorFontDropDownMenu.setSelectedIndex(i);
+                return true;
+            }
+        return false;
+    }
+
+    public void setFontSizeOfCodeEditors(int size) {
+        codeEditorFontSizeTextField.setText(size + "");
     }
 }

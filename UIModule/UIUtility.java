@@ -8,7 +8,7 @@ import javax.swing.JOptionPane;
 
 abstract public class UIUtility {
 
-    private static String browseDir = "E:\\Download\\XiangQi_material";
+    private static String browseDir = "E:\\Download";
 
     public static File showFileDirectorySelectionDialog(int JFileChooserSelectionMode) {
         File selectedFile = null;
