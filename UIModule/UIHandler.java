@@ -85,27 +85,27 @@ public class UIHandler {
 		menu.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-//				for (PieceProfile profile : chessPiecePanel.getPieceProfiles()) {
-//					System.out.print(profile.pieceClassName + "; " + profile.playerSide + "; " + profile.sourcePicLink
-//							+ "; " + profile.pieceColor.toString() + "; " + profile.imageRelativeWidth + " x "
-//							+ profile.imageRelativeHeight + "; ");
-//					for (int i = 0; i < profile.initialPointId.size(); i++) {
-//						System.out.print(profile.initialPointId.getElementAt(i) + ", ");
-//					}
-//					System.out.println();
-//				}
-//				System.out.println();
-//				for(int i = 0; i < chessPiecePanel.getPieceInitialPointIdList().getSize(); i++) {
-//					System.out.println(chessPiecePanel.getPieceInitialPointIdList().getElementAt(i));
-//				}
-
-				CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(),
-						getPointList(), getEdgeDirectionList(), getPlayerSideList(), getPieceProfiles());
-
-				try {
-					codeProducer.produceExecutable();
-				} catch (Exception e1) {
+				for (PieceProfile profile : chessPiecePanel.getPieceProfiles()) {
+					System.out.print(profile.pieceClassName + "; " + profile.playerSide + "; " + profile.sourcePicLink
+							+ "; " + profile.pieceColor.toString() + "; " + profile.imageRelativeWidth + " x "
+							+ profile.imageRelativeHeight + "; ");
+					for (int i = 0; i < profile.initialPointId.size(); i++) {
+						System.out.print(profile.initialPointId.getElementAt(i) + ", ");
+					}
+					System.out.println();
 				}
+				System.out.println();
+				for(int i = 0; i < chessPiecePanel.getPieceInitialPointIdList().getSize(); i++) {
+					System.out.println(chessPiecePanel.getPieceInitialPointIdList().getElementAt(i));
+				}
+
+//				CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(),
+//						getPointList(), getEdgeDirectionList(), getPlayerSideList(), getPieceProfiles());
+//
+//				try {
+//					codeProducer.produceExecutable();
+//				} catch (Exception e1) {
+//				}
 
 			}
 		});

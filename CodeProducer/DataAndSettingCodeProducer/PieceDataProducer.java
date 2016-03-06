@@ -1,5 +1,6 @@
 package Chreator.CodeProducer.DataAndSettingCodeProducer;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 import javax.swing.ListModel;
 
 import Chreator.CodeProducer.CodeProducer;
-import Chreator.CodeProducer.PieceModelProducer.individualPieceCodeProducer;
+import Chreator.CodeProducer.PieceModelProducer.IndividualPieceCodeProducer;
 import Chreator.ObjectModel.PieceProfile;
 
 public class PieceDataProducer {
@@ -75,14 +76,39 @@ public class PieceDataProducer {
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 1,
 				"public static Piece makeStandardPiece(String pieceType, String playerSide) {");
 
-//		File f = new File(pieceProfiles.get(j).sourcePicLink);
-//		File picF = new File(CodeProducer.baseDir + "\\pictures\\" + f.getName());
-//		try {
-//			Files.copy(Paths.get(f.getAbsolutePath()), Paths.get(picF.getAbsolutePath()),
-//					StandardCopyOption.REPLACE_EXISTING);
-//		} catch (Exception e) {
-//
-//		}
+		for (int j = 0; j < pieceProfiles.size(); j++) {
+			File picF;
+			if (!pieceProfiles.get(j).sourcePicLink.equals("")) {
+				File f = new File(pieceProfiles.get(j).sourcePicLink);
+				picF = new File(CodeProducer.baseDir + "\\pic\\" + f.getName());
+			} else {
+				picF = new File(CodeProducer.baseDir + "\\pic\\" + pieceProfiles.get(j).playerSide + "_"
+						+ pieceProfiles.get(j).pieceClassName + ".jpg");
+				
+			}
+			if (j == 0) {
+				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2,
+						"if (pieceType.equals(\"" + pieceProfiles.get(j).pieceClassName
+								+ "\") && playerSide.equals(PlayerSide." + pieceProfiles.get(j).playerSide + "))");
+				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3,
+						"return new " + pieceProfiles.get(j).pieceClassName + "(playerSide, \""
+								+ picF.getAbsolutePath().replace("\\", "\\\\") + "\", "
+								+ pieceProfiles.get(j).imageRelativeWidth + ", "
+								+ pieceProfiles.get(j).imageRelativeHeight + ", " + pieceProfiles.get(j).pieceClassName
+								+ ");");
+			} else {
+				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2 + addedLines,
+						"else if (pieceType.equals(\"" + pieceProfiles.get(j).pieceClassName
+								+ "\") && playerSide.equals(PlayerSide." + pieceProfiles.get(j).playerSide + "))");
+				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3 + addedLines,
+						"return new " + pieceProfiles.get(j).pieceClassName + "(playerSide, \""
+								+ picF.getAbsolutePath().replace("\\", "\\\\") + "\", "
+								+ pieceProfiles.get(j).imageRelativeWidth + ", "
+								+ pieceProfiles.get(j).imageRelativeHeight + ", " + pieceProfiles.get(j).pieceClassName
+								+ ");");
+			}
+			addedLines += 2;
+		}
 
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2 + addedLines, "else");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3 + addedLines, "return null;");

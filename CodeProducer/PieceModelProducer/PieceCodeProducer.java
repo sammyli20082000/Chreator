@@ -32,18 +32,17 @@ public class PieceCodeProducer {
 		PieceModelProducer.pieceCodes.add("private String imageLink;");
 		PieceModelProducer.pieceCodes.add("private double height, width; // 0 to 1");
 		
-		PieceModelProducer.pieceCodes.add("public Piece(String s, String l, double w, double h, String n){");
+		PieceModelProducer.pieceCodes.add("public Piece(String side, String imageLink, double w, double h, String name) {");
 		PieceModelProducer.pieceCodes.add("id = idCounter;");
 		PieceModelProducer.pieceCodes.add("idCounter++;");
-		PieceModelProducer.pieceCodes.add("imageLink = l;");
-		PieceModelProducer.pieceCodes.add("side = s;");
+		PieceModelProducer.pieceCodes.add("this.imageLink = imageLink;");
+		PieceModelProducer.pieceCodes.add("this.side = side;");
 		PieceModelProducer.pieceCodes.add("height = h;");
 		PieceModelProducer.pieceCodes.add("width = w;");
-		PieceModelProducer.pieceCodes.add("name = n;");
+		PieceModelProducer.pieceCodes.add("this.name = name;");
 		PieceModelProducer.pieceCodes.add("try {");
 		PieceModelProducer.pieceCodes.add("pieceImage = ImageIO.read(new File(imageLink));");
 		PieceModelProducer.pieceCodes.add("} catch (Exception e) {");
-		// TODO: handle situation that without image here
 		PieceModelProducer.pieceCodes.add("}");
 		PieceModelProducer.pieceCodes.add("}");
 		

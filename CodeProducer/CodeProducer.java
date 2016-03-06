@@ -34,7 +34,7 @@ public class CodeProducer {
 		}
 		boardModelCodeProducer = new BoardModelProducer(edgeDirectionList);
 		dataAndSettingCodeProducer = new DataAndSettingCodeProducer(arrayList, playerSidesList, piecePorfiles);
-		pieceModelProducer = new PieceModelProducer();
+		pieceModelProducer = new PieceModelProducer(piecePorfiles);
 	}
 
 	public void produceExecutable() throws Exception {
@@ -44,7 +44,7 @@ public class CodeProducer {
 			file.mkdirs();
 		}
 		
-		File picF = new File(baseDir + "\\pictures");
+		File picF = new File(baseDir + "\\pic");
 		if (!picF.exists()) {
 			picF.mkdirs();
 		}
