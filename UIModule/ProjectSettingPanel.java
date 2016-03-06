@@ -8,8 +8,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
@@ -18,15 +16,16 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -65,6 +64,15 @@ public class ProjectSettingPanel extends JPanel {
             return new String[]{
                     XIANGQI.string
             };
+        }
+    }
+
+    public class FontDropDownMenuRenderer extends DefaultListCellRenderer{
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus){
+            Component p = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            Font f = p.getFont();
+            p.setFont(new Font((String) value, f.getStyle(), f.getSize()));
+            return p;
         }
     }
 
@@ -167,6 +175,7 @@ public class ProjectSettingPanel extends JPanel {
         codeEditorFontSizeTextField.setOpaque(true);
         codeEditorFontSizeTextField.setBackground(Color.red);
         codeEditorFontSizeTextField.setColumns(editTextColumn);
+        codeEditorFontDropDownMenu.setRenderer(new FontDropDownMenuRenderer());
 
         for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts())
             codeEditorFontDropDownMenu.addItem(f.getFontName());
