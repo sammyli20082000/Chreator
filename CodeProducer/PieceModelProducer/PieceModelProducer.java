@@ -48,6 +48,10 @@ public class PieceModelProducer {
 		for (String code : pieceCodes) {
 			writer1.write(code + System.getProperty("line.separator"));
 		}
+		
+		writer1.close();
+		oStreamWriter1.close();
+		fOutputStream1.close();
 
 		for (int i = 0; i < pieceProfiles.size(); i++) {
 			individualPieceCodeProducer = new IndividualPieceCodeProducer(pieceProfiles.get(i));
@@ -62,6 +66,10 @@ public class PieceModelProducer {
 			for (String code : individualPieceCodes.get(i)) {
 				writer2.write(code + System.getProperty("line.separator"));
 			}
+			
+			writer2.close();
+			oStreamWriter2.close();
+			fOutputStream2.close();
 		}
 	}
 }

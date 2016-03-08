@@ -39,7 +39,6 @@ public class CodeProducer {
 
 	public void produceExecutable() throws Exception {
 		File file = new File(baseDir);
-		System.out.println(file.getAbsolutePath());
 		if (!file.exists()) {
 			file.mkdirs();
 		}
@@ -51,5 +50,6 @@ public class CodeProducer {
 
 		dataAndSettingCodeProducer.produceDataAndSettingJava();
 		boardModelCodeProducer.produceBoardModel();
+		pieceModelProducer.producePieceModel();
 	}
 }

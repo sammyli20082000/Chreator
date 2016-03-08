@@ -62,7 +62,7 @@ public class IndividualPieceCodeProducer {
 
 	private void makePieceImage(String imageLink, String playerSide, String pieceClassName, Color pieceColor) {
 		File picF;
-		if (imageLink.equals("")) {
+		if (!imageLink.equals("")) {
 			File file = new File(imageLink);
 			picF = new File(CodeProducer.baseDir + "\\pic\\" + file.getName());
 			try {
