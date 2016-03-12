@@ -1,5 +1,7 @@
 package Chreator.CodeProducer.BoardModelProducer;
 
+import org.omg.CORBA.PUBLIC_MEMBER;
+
 public class PointCodeProducer {
 	
 	public PointCodeProducer() {
@@ -71,8 +73,24 @@ public class PointCodeProducer {
 		BoardModelProducer.pointCodes.add("edges.put(dir, point);");
 		BoardModelProducer.pointCodes.add("}");
 		
-		BoardModelProducer.pointCodes.add("public Point getNextPointByDirection(Edge.Direction dir) {");
+		BoardModelProducer.pointCodes.add("public Point getImmediateNextPointAt(Edge.Direction dir) {");
+		BoardModelProducer.pointCodes.add("try {");
 		BoardModelProducer.pointCodes.add("return edges.get(dir);");
+		BoardModelProducer.pointCodes.add("} catch (Exception e) {");
+		BoardModelProducer.pointCodes.add("return null;");
+		BoardModelProducer.pointCodes.add("}");
+		BoardModelProducer.pointCodes.add("}");
+		
+		BoardModelProducer.pointCodes.add("public Point getImmediateNextPointAt(Edge.Direction[] dirs) {");
+		BoardModelProducer.pointCodes.add("Point point = this;");
+		BoardModelProducer.pointCodes.add("for (int i = 0; i < dirs.length; i++) {");
+		BoardModelProducer.pointCodes.add("try {");
+		BoardModelProducer.pointCodes.add("point = point.getImmediateNextPointOn(dirs[i]);");
+		BoardModelProducer.pointCodes.add("} catch (Exception e) {");
+		BoardModelProducer.pointCodes.add("return null;");
+		BoardModelProducer.pointCodes.add("}");
+		BoardModelProducer.pointCodes.add("}");
+		BoardModelProducer.pointCodes.add("return point;");
 		BoardModelProducer.pointCodes.add("}");
 		
 		// TODO: add more functions facilitating points selections
