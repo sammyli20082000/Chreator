@@ -9,6 +9,7 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.JobAttributes;
+import java.awt.ScrollPane;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -180,7 +181,7 @@ public class ChessPiecePanel extends JPanel {
 		codeEditor.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
 		add(scrollPane, BorderLayout.LINE_START);
-		add(codeEditor, BorderLayout.CENTER);
+		add(new JScrollPane(codeEditor), BorderLayout.CENTER);
 		add(pieceProfileEditorPanel, BorderLayout.LINE_END);
 
 		codeEditor.getDocument().addDocumentListener(createDocumentAdapter(codeEditor));

@@ -1,16 +1,27 @@
 package Chreator.CodeProducer.DataAndSettingCodeProducer;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 import javax.swing.ListModel;
 
+import Chreator.CodeProducer.CodeProducer;
 import Chreator.CodeProducer.GameCodeProducer.GameCodeProducer;
 
 public class DataAndSettingFrameProducer {
 
-	public DataAndSettingFrameProducer(ListModel PlayerSidesList) {
+	File imageFile;
 
+	public DataAndSettingFrameProducer(ListModel PlayerSidesList, String boardImageLink) {
+		imageFile = new File(CodeProducer.pathname + "\\pic\\board.png");
 	}
 
 	public void printDataAndSettingJavaFrame() {
+		DataAndSettingCodeProducer.dataAndSettingCodes.add("package Executable;");
+		
+		DataAndSettingCodeProducer.dataAndSettingCodes.add("import java.io.File;");
 
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("import Executable.BoardModel.*;");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("import Executable.PieceModel.*;");
@@ -22,17 +33,28 @@ public class DataAndSettingFrameProducer {
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("String s;");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("try {");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(
-				"s = new File(DataAndSetting.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent() + \"\\pic\\\";");
+				"s = new File(DataAndSetting.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent() + \"\\\\pic\";");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("} catch (Exception e) {");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(
-				"s = new File(DataAndSetting.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent() + \"\\pic\\\";");
+				"s = new File(DataAndSetting.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent() + \"\\\\pic\\\\\";");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("}");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("return s;");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("}");
 
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("public static class BoardData {");
-		DataAndSettingCodeProducer.dataAndSettingCodes.add("}");
-
+		DataAndSettingCodeProducer.dataAndSettingCodes
+				.add("public static String imageLink = localDir + \"board.png\";");
+		BufferedImage bImage = null;
+		try {
+			bImage = ImageIO.read(imageFile);
+			DataAndSettingCodeProducer.dataAndSettingCodes
+			.add("public static int preferredPixelWidth = " + bImage.getWidth() + ";");
+	DataAndSettingCodeProducer.dataAndSettingCodes
+			.add("public static int preferredPixelHeight = " + bImage.getHeight() + ";");
+	DataAndSettingCodeProducer.dataAndSettingCodes.add("}");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("public static class PointEdgePackage {");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("public int sourceID, targetID;");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("public Edge.Direction edgeDirection;");

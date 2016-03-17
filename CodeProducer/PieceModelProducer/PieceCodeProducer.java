@@ -62,7 +62,7 @@ public class PieceCodeProducer {
 		PieceModelProducer.pieceCodes.add("return width;");
 		PieceModelProducer.pieceCodes.add("}");
 		
-		PieceModelProducer.pieceCodes.add("public String getId() {");
+		PieceModelProducer.pieceCodes.add("public int getId() {");
 		PieceModelProducer.pieceCodes.add("return id;");
 		PieceModelProducer.pieceCodes.add("}");
 		

@@ -15,6 +15,7 @@ public class PointCodeProducer {
 		BoardModelProducer.pointCodes.add("import Executable.PieceModel.Piece;");
 		
 		BoardModelProducer.pointCodes.add("public class Point implements Serializable {");
+		BoardModelProducer.pointCodes.add("public static int idCounter = 0;");
 		BoardModelProducer.pointCodes.add("private int id;");
 		BoardModelProducer.pointCodes.add("private Piece piece;");
 		BoardModelProducer.pointCodes.add("private Map<Edge.Direction, Point> edges = new HashMap<Edge.Direction, Point>();");
@@ -65,7 +66,7 @@ public class PointCodeProducer {
 		BoardModelProducer.pointCodes.add("return height;");
 		BoardModelProducer.pointCodes.add("}");
 		
-		BoardModelProducer.pointCodes.add("public double setPiece(Piece p) {");
+		BoardModelProducer.pointCodes.add("public void setPiece(Piece p) {");
 		BoardModelProducer.pointCodes.add("piece = p;");
 		BoardModelProducer.pointCodes.add("}");
 		
@@ -85,7 +86,7 @@ public class PointCodeProducer {
 		BoardModelProducer.pointCodes.add("Point point = this;");
 		BoardModelProducer.pointCodes.add("for (int i = 0; i < dirs.length; i++) {");
 		BoardModelProducer.pointCodes.add("try {");
-		BoardModelProducer.pointCodes.add("point = point.getImmediateNextPointOn(dirs[i]);");
+		BoardModelProducer.pointCodes.add("point = point.getImmediateNextPointAt(dirs[i]);");
 		BoardModelProducer.pointCodes.add("} catch (Exception e) {");
 		BoardModelProducer.pointCodes.add("return null;");
 		BoardModelProducer.pointCodes.add("}");

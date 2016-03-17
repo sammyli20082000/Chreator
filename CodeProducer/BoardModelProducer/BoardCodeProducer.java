@@ -1,5 +1,7 @@
 package Chreator.CodeProducer.BoardModelProducer;
 
+import java.util.ArrayList;
+
 public class BoardCodeProducer {
 	
 	public BoardCodeProducer() {
@@ -10,6 +12,7 @@ public class BoardCodeProducer {
 		BoardModelProducer.boardCodes.add("package Executable.BoardModel;");
 		BoardModelProducer.boardCodes.add("import java.util.ArrayList;");
 		BoardModelProducer.boardCodes.add("import Executable.PieceModel.Piece;");
+		BoardModelProducer.boardCodes.add("import Executable.ObjectModel.Move;");
 		
 		BoardModelProducer.boardCodes.add("public class Board {");
 		BoardModelProducer.boardCodes.add("ArrayList<Point> points;");
@@ -69,6 +72,27 @@ public class BoardCodeProducer {
 		BoardModelProducer.boardCodes.add("public void movePiece(Piece piece, Point fromPoint, Point toPoint) {");
 		BoardModelProducer.boardCodes.add("toPoint.setPiece(piece);");
 		BoardModelProducer.boardCodes.add("fromPoint.setPiece(null);");
+		BoardModelProducer.boardCodes.add("}");
+		
+		BoardModelProducer.boardCodes.add("public String getMoveString(Piece piece, Point fromPoint, Point toPoint) {");
+		BoardModelProducer.boardCodes.add("return piece.getName() + \" from \" + fromPoint.getId() + \" to \" + toPoint.getId();");
+		BoardModelProducer.boardCodes.add("}");
+		
+		BoardModelProducer.boardCodes.add("public ArrayList<Move> generateAllValidMoves(String side) {");
+		BoardModelProducer.boardCodes.add("ArrayList<Move> validMoves = new ArrayList<>();");
+		BoardModelProducer.boardCodes.add("for (Point point : points) {");
+		BoardModelProducer.boardCodes.add("if (point.getPiece() != null && point.getPiece().getSide().equals(side)) {");
+		BoardModelProducer.boardCodes.add("ArrayList<Point> tempMovables = point.getPieceInsideMovable();");
+		BoardModelProducer.boardCodes.add("for (Point tempMovable : tempMovables) {");
+		BoardModelProducer.boardCodes.add("validMoves.add(Move.transformingMove(point.getId(), tempMovable.getId()));");
+		BoardModelProducer.boardCodes.add("}");
+		BoardModelProducer.boardCodes.add("}");
+		BoardModelProducer.boardCodes.add("}");
+		BoardModelProducer.boardCodes.add("return validMoves;");
+		BoardModelProducer.boardCodes.add("}");
+		
+		BoardModelProducer.boardCodes.add("public boolean canContinue() {");
+		BoardModelProducer.boardCodes.add("return true;");
 		BoardModelProducer.boardCodes.add("}");
 		
 		BoardModelProducer.boardCodes.add("public static void filpboard() {");

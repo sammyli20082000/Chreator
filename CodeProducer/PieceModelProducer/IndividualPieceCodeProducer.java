@@ -42,15 +42,16 @@ public class IndividualPieceCodeProducer {
 		indiPieceCode.add("public class " + pieceProfile.pieceClassName + " extends Piece {");
 
 		indiPieceCode
-				.add("public " + pieceProfile.pieceClassName + "(Strings, String l, double w, double h, String n) {");
+				.add("public " + pieceProfile.pieceClassName + "(String s, String l, double w, double h, String n) {");
 		indiPieceCode.add("super(s, l, w, h, n);");
 		indiPieceCode.add("}");
 
 		indiPieceCode.add("@Override");
-		indiPieceCode.add("public ArrayList<Point> moveInvolvingOtherPiece(Point p) {}");
+		indiPieceCode.add("public ArrayList<Point> moveInvolvingOtherPiece(Point p) {");
 
 		printIndividualPieceJavaCode(indiPieceCode);
 		
+		indiPieceCode.add("}");
 		indiPieceCode.add("}");
 
 		return indiPieceCode;
@@ -88,7 +89,7 @@ public class IndividualPieceCodeProducer {
 		File picF;
 		if (!imageLink.equals("")) {
 			File file = new File(imageLink);
-			picF = new File(CodeProducer.baseDir + "\\pic\\" + file.getName());
+			picF = new File(CodeProducer.pathname + "\\pic\\" + file.getName());
 			try {
 				Files.copy(Paths.get(file.getAbsolutePath()), Paths.get(picF.getAbsolutePath()),
 						StandardCopyOption.REPLACE_EXISTING);
@@ -96,7 +97,7 @@ public class IndividualPieceCodeProducer {
 
 			}
 		} else {
-			picF = new File(CodeProducer.baseDir + "\\pic\\" + playerSide + "_" + pieceClassName + ".png");
+			picF = new File(CodeProducer.pathname + "\\pic\\" + playerSide + "_" + pieceClassName + ".png");
 			BufferedImage bImage = new BufferedImage(200, 200, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D graphics = bImage.createGraphics();
 
