@@ -1,9 +1,14 @@
 package Chreator.CodeProducer.DataAndSettingCodeProducer;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
 import javax.swing.ListModel;
 
+import Chreator.CodeProducer.CodeProducer;
 import Chreator.ObjectModel.Point;
 import Chreator.ObjectModel.Point.EdgePointPair;
 import Chreator.ObjectModel.Point.InfoPack;
@@ -21,7 +26,6 @@ public class PointEdgeDataCodeProducer {
 	}
 
 	private void printBoardPointsArrayCode() {
-
 		int i = DataAndSettingCodeProducer.dataAndSettingCodes
 				.indexOf("public static PointDataPackage[] boardPointsArray;");
 
@@ -29,7 +33,7 @@ public class PointEdgeDataCodeProducer {
 				"public static PointDataPackage[] boardPointsArray = new PointDataPackage[]{");
 
 		for (Point point : pointList) {
-			InfoPack infoPack = point.getPixelInformation();
+			InfoPack infoPack = point.getRelativeInformation();
 			
 			DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2, "new PointDataPackage(" + infoPack.posX + ", "
 					+ infoPack.posY + ", " + infoPack.width + ", " + infoPack.height + ", " + point.getId() + "),");

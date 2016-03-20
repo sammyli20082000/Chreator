@@ -10,11 +10,11 @@ public class ComputerMakeMoveCodeProducer {
 		i = j = GameCodeProducer.gameCodes.indexOf("public void computerMakeMove(Move move)");
 		
 		GameCodeProducer.gameCodes.add(++j, "public void computerMakeMove(Move move) {");
-		GameCodeProducer.gameCodes.add(++j, "handleUIEventCallBack().onPieceOnPointSelected(board.getPointByID(move.fromPoint));");
-		GameCodeProducer.gameCodes.add(++j, "if (board.getPointByID(move.toPoint).getPiece() == null) {");
-		GameCodeProducer.gameCodes.add(++j, "handleUIEventCallBack().onPointSelected(board.getPointByID(move.toPoint));");
+		GameCodeProducer.gameCodes.add(++j, "handleUIEventCallBack().onPieceOnPointSelected(board.getPointById(move.fromPoint));");
+		GameCodeProducer.gameCodes.add(++j, "if (board.getPointById(move.toPoint).getPiece() == null) {");
+		GameCodeProducer.gameCodes.add(++j, "handleUIEventCallBack().onPointSelected(board.getPointById(move.toPoint));");
 		GameCodeProducer.gameCodes.add(++j, "} else {");
-		GameCodeProducer.gameCodes.add(++j, "handleUIEventCallBack().onPieceOnPointSelected(board.getPointByID(move.toPoint));");
+		GameCodeProducer.gameCodes.add(++j, "handleUIEventCallBack().onPieceOnPointSelected(board.getPointById(move.toPoint));");
 		GameCodeProducer.gameCodes.add(++j, "}");
 		GameCodeProducer.gameCodes.add(++j, "}");
 		

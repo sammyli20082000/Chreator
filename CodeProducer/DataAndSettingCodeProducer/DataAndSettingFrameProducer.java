@@ -33,7 +33,7 @@ public class DataAndSettingFrameProducer {
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("String s;");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("try {");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(
-				"s = new File(DataAndSetting.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent() + \"\\\\pic\";");
+				"s = new File(DataAndSetting.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent() + \"\\\\pic\\\\\";");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add("} catch (Exception e) {");
 		DataAndSettingCodeProducer.dataAndSettingCodes.add(
 				"s = new File(DataAndSetting.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent() + \"\\\\pic\\\\\";");

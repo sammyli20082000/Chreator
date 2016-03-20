@@ -74,8 +74,8 @@ public class GameFrameProducer {
 				.add("for (int i = 0; i < DataAndSetting.PointEdgeData.pointEdgeRelations.length; i++) {");
 		GameCodeProducer.gameCodes.add(
 				"DataAndSetting.PointEdgePackage dataPackage = DataAndSetting.PointEdgeData.pointEdgeRelations[i];");
-		GameCodeProducer.gameCodes.add("board.getPointByID(dataPackage.sourceID).addEdge(dataPackage.edgeDirection,");
-		GameCodeProducer.gameCodes.add("board.getPointByID(dataPackage.targetID));");
+		GameCodeProducer.gameCodes.add("board.getPointById(dataPackage.sourceID).addEdge(dataPackage.edgeDirection,");
+		GameCodeProducer.gameCodes.add("board.getPointById(dataPackage.targetID));");
 		GameCodeProducer.gameCodes.add("}");
 
 		GameCodeProducer.gameCodes.add("currPieces = new ArrayList<Piece>();");
@@ -85,7 +85,7 @@ public class GameFrameProducer {
 				"DataAndSetting.PieceDataPackage dataPackage = DataAndSetting.PieceData.initialPiecePlacingData[i];");
 		GameCodeProducer.gameCodes.add(
 				"Piece newPiece = DataAndSetting.PieceData.makeStandardPiece(dataPackage.pieceType, dataPackage.playerSide);");
-		GameCodeProducer.gameCodes.add("board.getPointByID(dataPackage.pointID).setPiece(newPiece);");
+		GameCodeProducer.gameCodes.add("board.getPointById(dataPackage.pointID).setPiece(newPiece);");
 		GameCodeProducer.gameCodes.add("currPieces.add(newPiece);");
 		GameCodeProducer.gameCodes.add("}");
 

@@ -43,7 +43,7 @@ public class BoardCodeProducer {
 		BoardModelProducer.boardCodes.add("points = p;");
 		BoardModelProducer.boardCodes.add("}");
 		
-		BoardModelProducer.boardCodes.add("public Point getPointByID(int id) {");
+		BoardModelProducer.boardCodes.add("public Point getPointById(int id) {");
 		BoardModelProducer.boardCodes.add("for (Point p : points) {");
 		BoardModelProducer.boardCodes.add("if (p.getId() == id)");
 		BoardModelProducer.boardCodes.add("return p;");
