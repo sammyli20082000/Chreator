@@ -33,57 +33,39 @@ public class IndividualPieceCodeProducer {
 
 	private List<String> printIndividualPieceJavaFrame(PieceProfile pieceProfile) {
 		List<String> indiPieceCode = new LinkedList<>();
-
-		indiPieceCode.add("package Executable.PieceModel;");
-		indiPieceCode.add("import java.util.ArrayList;");
-		indiPieceCode.add("import Executable.BoardModel.Edge.Direction;");
-		indiPieceCode.add("import Executable.BoardModel.Point;");
-
-		indiPieceCode.add("public class " + pieceProfile.pieceClassName + " extends Piece {");
-
-		indiPieceCode
-				.add("public " + pieceProfile.pieceClassName + "(String s, String l, double w, double h, String n) {");
-		indiPieceCode.add("super(s, l, w, h, n);");
-		indiPieceCode.add("}");
-
-		indiPieceCode.add("@Override");
-		indiPieceCode.add("public ArrayList<Point> moveInvolvingOtherPiece(Point p) {");
-
-		printIndividualPieceJavaCode(indiPieceCode);
-		
-		indiPieceCode.add("}");
-		indiPieceCode.add("}");
-
-		return indiPieceCode;
-	}
-
-	private void printIndividualPieceJavaCode(List<String> list) {
-		list.add("ArrayList<Point> validMoves = new ArrayList<>();");
-		list.add("Point tempPoint;");
-		list.add("ArrayList<Point> tempPointList;");
-		list.add("Direction[] dirs;");
 		
 		String[] tempCode = pieceProfile.code.split("\n");
 		for (int i = 0; i < tempCode.length; i++) {
-			list.add(tempCode[i]);
+			indiPieceCode.add(tempCode[i]);
 		}
-		
-		list.add("for (int i = 0; i < validMoves.size(); i++) {");
-		list.add("if (validMoves.get(i) == null) {");
-		list.add("validMoves.remove(i);");
-		list.add("i--;");
-		list.add("}");
-		list.add("}");
-		
-		list.add("for (int i = 0; i < validMoves.size(); i++) {");
-		list.add("if (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {");
-		list.add("validMoves.remove(i);");
-		list.add("i--;");
-		list.add("}");
-		list.add("}");
-		
-		list.add("return validMoves;");
+			
+		return indiPieceCode;
 	}
+
+//	private void printIndividualPieceJavaCode(List<String> list) {
+//		list.add("ArrayList<Point> validMoves = new ArrayList<>();");
+//		list.add("Point tempPoint;");
+//		list.add("ArrayList<Point> tempPointList;");
+//		list.add("Direction[] dirs;");
+//		
+//		
+//		
+//		list.add("for (int i = 0; i < validMoves.size(); i++) {");
+//		list.add("if (validMoves.get(i) == null) {");
+//		list.add("validMoves.remove(i);");
+//		list.add("i--;");
+//		list.add("}");
+//		list.add("}");
+//		
+//		list.add("for (int i = 0; i < validMoves.size(); i++) {");
+//		list.add("if (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {");
+//		list.add("validMoves.remove(i);");
+//		list.add("i--;");
+//		list.add("}");
+//		list.add("}");
+//		
+//		list.add("return validMoves;");
+//	}
 
 	private void makePieceImage(String imageLink, String playerSide, String pieceClassName, Color pieceColor) {
 		File picF;

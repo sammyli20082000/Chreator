@@ -694,11 +694,15 @@ public class ChessPiecePanel extends JPanel {
 				public void actionPerformed(ActionEvent e) {
 					PieceProfile profile = getSelectedProfile();
 					if (profile != null) {
-						String tempCode = codeEditor.getText();
+						int caretPos = codeEditor.getCaretPosition();
 						String codeToAdd = "point = p.getImmediateNextPointAt(Direction.***);\n"
-								+ "validMoves.add(point);\n";
+								+ "\t\tvalidMoves.add(point);";
+						
+						String[] tempCode = new String[2];
+						tempCode[0] = codeEditor.getText().substring(0, caretPos);
+						tempCode[1] = codeEditor.getText().substring(caretPos);
 
-						codeEditor.setText("" + tempCode + "\n" + codeToAdd);
+						codeEditor.setText("" + tempCode[0] + codeToAdd + tempCode[1]);
 					}
 				}
 			};
@@ -708,12 +712,16 @@ public class ChessPiecePanel extends JPanel {
 				public void actionPerformed(ActionEvent e) {
 					PieceProfile profile = getSelectedProfile();
 					if (profile != null) {
-						String tempCode = codeEditor.getText();
+						int caretPos = codeEditor.getCaretPosition();
 						String codeToAdd = "dirs = new String[] {Direction.***, Direction.***, ...};\n"
-								+ "point = p.getImmediateNextPointAt(dirs);\n"
-								+ "validMoves.add(point);\n";
+								+ "\t\tpoint = p.getImmediateNextPointAt(dirs);\n"
+								+ "\t\tvalidMoves.add(point);";
+						
+						String[] tempCode = new String[2];
+						tempCode[0] = codeEditor.getText().substring(0, caretPos);
+						tempCode[1] = codeEditor.getText().substring(caretPos);
 
-						codeEditor.setText("" + tempCode + "\n" + codeToAdd);
+						codeEditor.setText("" + tempCode[0] + codeToAdd + tempCode[1]);
 					}
 				}
 			};
@@ -860,7 +868,47 @@ public class ChessPiecePanel extends JPanel {
 		playerSidesList.setSelectedIndex(listModel.getSize() - 1);
 		for (int i = 0; i < pieceClassNameList.getModel().getSize(); i++) {
 			String className = ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(i);
-			addToPieceProfileList(playerSide, className);
+			
+			String codes = ""
+					+ "package Executable.PieceModel;\n"
+					+ "import java.util.*;\n"
+					+ "import Executable.BoardModel.Edge.Direction;\n"
+					+ "import Executable.BoardModel.Point;\n"
+					+ "public class " + className + " extends Piece {\n"
+					+ "\n"
+					+ "\tpublic " + className + "(String s, String l, double w, double h, String n) {\n"
+					+ "\t\tsuper(s, l, w, h, n);\n"
+					+ "\t}\n"
+					+ "\n"
+					+ "\t@Override\n"
+					+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n"
+					+ "\n"
+					+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n"
+					+ "\t\tPoint tempPoint;\n"
+					+ "\t\tArrayList<Point> tempPointList;\n"
+					+ "\t\tDirection[] dirs;\n"
+					+ "// Do not alter the codes above----------------------------\n"
+					+ "\t\t\n"
+					+ "\t\t\n"
+					+ "\t\t\n"
+					+ "// Do not alter the codes below----------------------------\n"
+					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
+					+ "\t\t\tif (validMoves.get(i) == null) {\n"
+					+ "\t\t\t\tvalidMoves.remove(i);\n"
+					+ "\t\t\t\ti--;\n"
+					+ "\t\t\t}\n"
+					+ "\t\t}\n"
+					+ "\n"
+					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
+					+ "\t\t\tif (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {\n"
+					+ "\t\t\t\tvalidMoves.remove(i);\n"
+					+ "\t\t\t\ti--;\n"
+					+ "\t\t\t}\n"
+					+ "\t\t}\n"
+					+ "\t}\n"
+					+ "}\n";
+			
+			addToPieceProfileList(playerSide, className, codes);
 		}
 	}
 
@@ -944,10 +992,51 @@ public class ChessPiecePanel extends JPanel {
 				return;
 		}
 		listModel.addElement(pieceClassName);
+		
 		pieceClassNameList.setSelectedIndex(listModel.size() - 1);
 		for (int i = 0; i < playerSidesList.getModel().getSize(); i++) {
 			String playerSide = ((DefaultListModel<String>) playerSidesList.getModel()).getElementAt(i);
-			addToPieceProfileList(playerSide, pieceClassName);
+			
+			String codes = ""
+					+ "package Executable.PieceModel;\n"
+					+ "import java.util.*;\n"
+					+ "import Executable.BoardModel.Edge.Direction;\n"
+					+ "import Executable.BoardModel.Point;\n"
+					+ "public class " + pieceClassName + " extends Piece {\n"
+					+ "\n"
+					+ "\tpublic " + pieceClassName + "(String s, String l, double w, double h, String n) {\n"
+					+ "\t\tsuper(s, l, w, h, n);\n"
+					+ "\t}\n"
+					+ "\n"
+					+ "\t@Override\n"
+					+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n"
+					+ "\n"
+					+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n"
+					+ "\t\tPoint tempPoint;\n"
+					+ "\t\tArrayList<Point> tempPointList;\n"
+					+ "\t\tDirection[] dirs;\n"
+					+ "// Do not alter the codes above----------------------------\n"
+					+ "\t\t\n"
+					+ "\t\t\n"
+					+ "\t\t\n"
+					+ "// Do not alter the codes below----------------------------\n"
+					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
+					+ "\t\t\tif (validMoves.get(i) == null) {\n"
+					+ "\t\t\t\tvalidMoves.remove(i);\n"
+					+ "\t\t\t\ti--;\n"
+					+ "\t\t\t}\n"
+					+ "\t\t}\n"
+					+ "\n"
+					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
+					+ "\t\t\tif (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {\n"
+					+ "\t\t\t\tvalidMoves.remove(i);\n"
+					+ "\t\t\t\ti--;\n"
+					+ "\t\t\t}\n"
+					+ "\t\t}\n"
+					+ "\t}\n"
+					+ "}\n";
+			
+			addToPieceProfileList(playerSide, pieceClassName, codes);
 		}
 	}
 
@@ -1008,7 +1097,7 @@ public class ChessPiecePanel extends JPanel {
 		}
 	}
 
-	private PieceProfile addToPieceProfileList(String playerSide, String pieceClassName) {
+	private PieceProfile addToPieceProfileList(String playerSide, String pieceClassName, String codes) {
 		for (PieceProfile profile : pieceProfiles)
 			if (profile.playerSide.equals(playerSide) && profile.pieceClassName.equals(pieceClassName))
 				return null;
@@ -1016,15 +1105,67 @@ public class ChessPiecePanel extends JPanel {
 		profile.imageRelativeHeight = sharedPieceHeight;
 		profile.imageRelativeWidth = sharedPieceWidth;
 		profile.pieceColor = sharedColor;
+		profile.code = codes;
 		pieceProfiles.add(profile);
 		return profile;
 	}
+	
+//	private PieceProfile addToPieceProfileList(String playerSide, String pieceClassName) {
+//		for (PieceProfile profile : pieceProfiles)
+//			if (profile.playerSide.equals(playerSide) && profile.pieceClassName.equals(pieceClassName))
+//				return null;
+//		PieceProfile profile = new PieceProfile(playerSide, pieceClassName);
+//		profile.imageRelativeHeight = sharedPieceHeight;
+//		profile.imageRelativeWidth = sharedPieceWidth;
+//		profile.pieceColor = sharedColor;
+//		pieceProfiles.add(profile);
+//		return profile;
+//	}
 
 	public PieceProfile getPieceProfile(String playerSide, String className) {
 		for (PieceProfile profile : pieceProfiles)
 			if (profile.playerSide.equals(playerSide) && profile.pieceClassName.equals(className))
 				return profile;
-		return addToPieceProfileList(playerSide, className);
+		
+		String codes = ""
+				+ "package Executable.PieceModel;\n"
+				+ "import java.util.*;\n"
+				+ "import Executable.BoardModel.Edge.Direction;\n"
+				+ "import Executable.BoardModel.Point;\n"
+				+ "public class " + className + " extends Piece {\n"
+				+ "\n"
+				+ "\tpublic " + className + "(String s, String l, double w, double h, String n) {\n"
+				+ "\t\tsuper(s, l, w, h, n);\n"
+				+ "\t}\n"
+				+ "\n"
+				+ "\t@Override\n"
+				+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n"
+				+ "\n"
+				+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n"
+				+ "\t\tPoint tempPoint;\n"
+				+ "\t\tArrayList<Point> tempPointList;\n"
+				+ "\t\tDirection[] dirs;\n"
+				+ "// Do not alter the codes above----------------------------\n"
+				+ "\t\t\n"
+				+ "\t\t\n"
+				+ "\t\t\n"
+				+ "// Do not alter the codes below----------------------------\n"
+				+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
+				+ "\t\t\tif (validMoves.get(i) == null) {\n"
+				+ "\t\t\t\tvalidMoves.remove(i);\n"
+				+ "\t\t\t\ti--;\n"
+				+ "\t\t\t}\n"
+				+ "\t\t}\n"
+				+ "\n"
+				+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
+				+ "\t\t\tif (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {\n"
+				+ "\t\t\t\tvalidMoves.remove(i);\n"
+				+ "\t\t\t\ti--;\n"
+				+ "\t\t\t}\n"
+				+ "\t\t}\n"
+				+ "\t}\n"
+				+ "}\n";
+		return addToPieceProfileList(playerSide, className, codes);
 	}
 
 	public PieceProfile getSelectedProfile() {
