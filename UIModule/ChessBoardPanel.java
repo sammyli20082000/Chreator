@@ -603,7 +603,7 @@ public class ChessBoardPanel extends JPanel {
 		nextPointIdField.setText(id + "");
 	}
 
-	private void addEdgeDirection(String s) {
+	public void addEdgeDirection(String s) {
 		s = s.toUpperCase();
 		DefaultListModel<String> listModel = (DefaultListModel<String>) edgeDirectionList.getModel();
 		for (int i = 0; i < listModel.getSize(); i++)
@@ -625,6 +625,10 @@ public class ChessBoardPanel extends JPanel {
 				return listCellRenderer.getBackground(i);
 		}
 		return null;
+	}
+	
+	public Point addSinglePoint(double posX, double posY, double width, double height, int id) {
+		return graphicAreaPanel.addSinglePoint(posX, posY, width, height, id);
 	}
 
 	public void addPointAction() {
@@ -737,5 +741,16 @@ public class ChessBoardPanel extends JPanel {
 			}
 			return boardPicF.getName();
 		}
+	}
+	
+	public boolean setBoardImage(String pathname) {
+		imageFromFileRadio.setSelected(true);
+		imageFromFileRadio.doClick();
+		
+		imageFile = new File(pathname);
+		if (imageFile != null && !graphicAreaPanel.setBoardImage(imageFile))
+			return false;
+		
+		return true;
 	}
 }

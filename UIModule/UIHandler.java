@@ -33,6 +33,7 @@ import Chreator.ObjectModel.Point.InfoPack;
 public class UIHandler {
 	public interface EventCallback extends AIPanel.EventCallback, ChessPiecePanel.EventCallback,
 			ChessBoardPanel.EventCallback, GameRulePanel.EventCallback, ProjectSettingPanel.EventCallback {
+		
 	}
 
 	public static String appName = "Chreator";
@@ -72,7 +73,7 @@ public class UIHandler {
 		tabPane = new JTabbedPane();
 		prepareTabPanels();
 		mainWindow.add(tabPane);
-		debugBar();
+//		debugBar();
 
 		mainWindow.addComponentListener(getWindowResizeHandler());
 		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -80,24 +81,24 @@ public class UIHandler {
 		mainWindow.setVisible(true);
 	}
 
-	private void debugBar() {
-		JMenuBar bar = new JMenuBar();
-		JButton menu = new JButton("print debug");
-		menu.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(),
-						getPointList(), getEdgeDirectionList(), getPlayerSideList(), getPieceProfiles(), getBoardImage());
-
-				try {
-					codeProducer.produceExecutable();
-				} catch (Exception e1) {
-				}
-			}
-		});
-		bar.add(menu);
-		mainWindow.setJMenuBar(bar);
-	}
+//	private void debugBar() {
+//		JMenuBar bar = new JMenuBar();
+//		JButton menu = new JButton("print debug");
+//		menu.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(),
+//						getPointList(), getEdgeDirectionList(), getPlayerSideList(), getPieceProfiles(), getBoardImage());
+//
+//				try {
+//					codeProducer.produceExecutable();
+//				} catch (Exception e1) {
+//				}
+//			}
+//		});
+//		bar.add(menu);
+//		mainWindow.setJMenuBar(bar);
+//	}
 
 	private void prepareTabPanels() {
 		aiPanel = new AIPanel(callback);
@@ -111,6 +112,12 @@ public class UIHandler {
 		tabPane.addTab(ChessPiecePanel.tabName, chessPiecePanel);
 		tabPane.addTab(GameRulePanel.tabName, gameRulePanel);
 		tabPane.addTab(AIPanel.tabName, aiPanel);
+		
+		for (int i = 0; i < tabPane.getComponentCount(); i++) {
+			tabPane.setSelectedIndex(i);
+		}
+		
+		tabPane.setSelectedIndex(0);
 	}
 
 	private ComponentAdapter getWindowResizeHandler() {
@@ -129,15 +136,15 @@ public class UIHandler {
 			return null;
 	}
 
+	public void setChessPieceProfiles(ArrayList<PieceProfile> pieceProfiles) {
+		chessPiecePanel.setPieceProfiles(pieceProfiles);
+	}
+	
 	public ArrayList<Point> getPointList() {
 		return chessBoardPanel.getPointList();
 	}
 
-	public void setChessPieceProfiles(ArrayList<PieceProfile> pieceProfiles) {
-		chessPiecePanel.setPieceProfiles(pieceProfiles);
-	}
-
-	public ArrayList<PieceProfile> getChessPieceProfile() {
+	public ArrayList<PieceProfile> getChessPieceProfiles() {
 		return chessPiecePanel.getPieceProfiles();
 	}
 
@@ -173,11 +180,23 @@ public class UIHandler {
 		return chessPiecePanel.getPlayerSideList();
 	}
 	
-	public ArrayList<PieceProfile> getPieceProfiles() {
-		return chessPiecePanel.getPieceProfiles();
-	}
-	
 	public String getBoardImage() {
 		return chessBoardPanel.getBoardImage();
+	}
+	
+	public boolean setBoardImage(String pathname) {
+		return chessBoardPanel.setBoardImage(pathname);
+	}
+	
+	public void addEdgeDirection(String dir) {
+		chessBoardPanel.addEdgeDirection(dir);
+	}
+	
+	public Point addSinglePoint(double posX, double posY, double width, double height, int id) {
+		return chessBoardPanel.addSinglePoint(posX, posY, width, height, id);
+	}
+
+	public void addPlayerSides(String playerSide) {
+		chessPiecePanel.addPlayerSideToList(playerSide);
 	}
 }

@@ -51,8 +51,8 @@ public class DataAndSettingCodeProducer {
 		OutputStreamWriter oStreamWriter = new OutputStreamWriter(fOutputStream, "utf-8");
 		Writer writer = new BufferedWriter(oStreamWriter);
 		
-		File imageFile = new File(CodeProducer.pathname + "\\pic\\board.png");
 		File boardImage = new File(boardImageLink);
+		File imageFile = new File(CodeProducer.pathname + "\\pic\\" + boardImage.getName());
 		try {
 			Files.copy(Paths.get(boardImage.getAbsolutePath()), Paths.get(imageFile.getAbsolutePath()),
 					StandardCopyOption.REPLACE_EXISTING);

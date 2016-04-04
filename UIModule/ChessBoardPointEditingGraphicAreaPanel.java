@@ -217,6 +217,20 @@ public class ChessBoardPointEditingGraphicAreaPanel extends ChessBoardGraphicAre
         repaint();
         return true;
     }
+    
+    public Point addSinglePoint(double posX, double posY, double width, double height, int id) {
+    	Point p = new Point(ChessBoardPointEditingGraphicAreaPanel.this, posX,posY, width, height, id);
+        pointList.add(p);
+        selectedPointList.clear();
+        selectedPointList.add(p);
+
+        editingMode = EditingMode.SELECTING;
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        UIHandler.getInstance(null).getChessBoardPanel().setNextPointIdField(getNextUsableId());
+        UIHandler.getInstance(null).getChessBoardPanel().setNextPointIdField(getNextUsableId());
+        repaint();
+        return p;
+    }
 
     public boolean addRectGrid(int id, int row, int column) {
         if (!verifyPointID(id)) return false;

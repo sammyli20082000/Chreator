@@ -86,14 +86,18 @@ public class PieceDataProducer {
 						+ pieceProfiles.get(j).pieceClassName + ".png");
 
 			}
+
+			String tempPieceName = pieceProfiles.get(j).pieceClassName.substring(0, 1).toUpperCase()
+					+ pieceProfiles.get(j).pieceClassName.substring(1).toUpperCase();
+			String tempPlayerSide = pieceProfiles.get(j).playerSide.substring(0, 1).toUpperCase()
+					+ pieceProfiles.get(j).playerSide.substring(1).toUpperCase();
 			if (j == 0) {
 				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2,
 						"if (pieceType.equals(\"" + pieceProfiles.get(j).pieceClassName
 								+ "\") && playerSide.equals(PlayerSide." + pieceProfiles.get(j).playerSide + "))");
 				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3,
-						"return new " + pieceProfiles.get(j).pieceClassName + "(playerSide, localDir + \""
-								+ picF.getName() + "\", "
-								+ pieceProfiles.get(j).imageRelativeWidth + ", "
+						"return new " + tempPlayerSide + tempPieceName + "(playerSide, localDir + \"" + picF.getName()
+								+ "\", " + pieceProfiles.get(j).imageRelativeWidth + ", "
 								+ pieceProfiles.get(j).imageRelativeHeight + ", " + "\""
 								+ pieceProfiles.get(j).pieceClassName + "\"" + ");");
 			} else {
@@ -101,18 +105,20 @@ public class PieceDataProducer {
 						"else if (pieceType.equals(\"" + pieceProfiles.get(j).pieceClassName
 								+ "\") && playerSide.equals(PlayerSide." + pieceProfiles.get(j).playerSide + "))");
 				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3 + addedLines,
-						"return new " + pieceProfiles.get(j).pieceClassName + "(playerSide, localDir + \""
-								+ picF.getName() + "\", "
-								+ pieceProfiles.get(j).imageRelativeWidth + ", "
+						"return new " + tempPlayerSide + tempPieceName + "(playerSide, localDir + \"" + picF.getName()
+								+ "\", " + pieceProfiles.get(j).imageRelativeWidth + ", "
 								+ pieceProfiles.get(j).imageRelativeHeight + ", " + "\""
-								+ pieceProfiles.get(j).pieceClassName + "\"" +");");
+								+ pieceProfiles.get(j).pieceClassName + "\"" + ");");
+				if (j == pieceProfiles.size() - 1) {
+					DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 4 + addedLines, "else");
+					addedLines++;
+				}
 			}
 			addedLines += 2;
 		}
 
-		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2 + addedLines, "else");
-		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3 + addedLines, "return null;");
-		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 4 + addedLines, "}");
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2 + addedLines, "return null;");
+		DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3 + addedLines, "}");
 		DataAndSettingCodeProducer.dataAndSettingCodes.remove(i);
 	}
 

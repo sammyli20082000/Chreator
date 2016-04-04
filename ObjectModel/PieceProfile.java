@@ -14,6 +14,10 @@ public class PieceProfile {
     public double imageRelativeHeight, imageRelativeWidth;
     public DefaultListModel<String> initialPointId;
     public BufferedImage pieceImage;
+    
+    public PieceProfile() {
+    	
+    }
 
     public PieceProfile(String playerSide, String pieceClassName) {
         this.playerSide = playerSide;

@@ -29,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
@@ -66,6 +67,7 @@ public class ChessPiecePanel extends JPanel {
 	private Dimension previewImagePanelSize = new Dimension(200, 200);
 	private File imageFile;
 	private JList playerSidesList, pieceClassNameList, pieceInitialPointIdList;
+	private JRadioButton syncCodeRadioBtn, notSyncCodeRadioBtn, syncSizeRadioBtn;
 	private JButton addChessPieceButton, addPlayerSideButton, deleteChessPieceButton, deletePlayerSideButton,
 			setPieceSizeButton, addInitialPointIdButton, deleteInitialPointIdButton, deletePiecePicButton,
 			defaultRatioButton, addFunction1Button, addFunction2Button, addFunction3Button;
@@ -234,6 +236,13 @@ public class ChessPiecePanel extends JPanel {
 		deleteChessPieceButton.addActionListener(createJButtonActionListener(deleteChessPieceButton));
 		deletePiecePicButton.addActionListener(createJButtonActionListener(deletePiecePicButton));
 
+		syncCodeRadioBtn = new JRadioButton("Make codes synchronized");
+		notSyncCodeRadioBtn = new JRadioButton("Make codes independent");
+
+		syncCodeRadioBtn.addActionListener(createJRadioButtonActionListener(syncCodeRadioBtn));
+		notSyncCodeRadioBtn.addActionListener(createJRadioButtonActionListener(notSyncCodeRadioBtn));
+		syncCodeRadioBtn.setSelected(true);
+
 		addToPanel(pieceListAndPreviewPanel, new JLabel("Selected Chess Piece Image Preview"),
 				GridBagConstraints.CENTER, GridBagConstraints.NONE);
 		addToPanel(pieceListAndPreviewPanel, previewImagePanel);
@@ -250,6 +259,8 @@ public class ChessPiecePanel extends JPanel {
 				GridBagConstraints.NONE);
 		addToPanelFillRemaining(pieceListAndPreviewPanel, new JScrollPane(pieceClassNameList),
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		addToPanel(pieceListAndPreviewPanel, syncCodeRadioBtn);
+		addToPanel(pieceListAndPreviewPanel, notSyncCodeRadioBtn);
 		addToPanel(pieceListAndPreviewPanel, addChessPieceButton);
 		addToPanel(pieceListAndPreviewPanel, deleteChessPieceButton);
 	}
@@ -369,6 +380,10 @@ public class ChessPiecePanel extends JPanel {
 		setPieceSizeButton.addActionListener(createJButtonActionListener(setPieceSizeButton));
 		defaultRatioButton.addActionListener(createJButtonActionListener(defaultRatioButton));
 
+		syncSizeRadioBtn = new JRadioButton("Make all pieces having the same size");
+		syncSizeRadioBtn.addActionListener(createJRadioButtonActionListener(syncSizeRadioBtn));
+		syncSizeRadioBtn.setSelected(true);
+
 		GridBagConstraints c1 = new GridBagConstraints(), c2 = new GridBagConstraints();
 		String t = "    ";
 		c1.gridx = 0;
@@ -409,6 +424,7 @@ public class ChessPiecePanel extends JPanel {
 		addToPanel(pieceInfoSettingPanel, new JLabel("Piece Size"), GridBagConstraints.LINE_START,
 				GridBagConstraints.HORIZONTAL);
 		temp = new JPanel(new GridBagLayout());
+		temp.add(syncSizeRadioBtn);
 		temp.add(new JLabel(t + "Width(0~1): "), c1);
 		addToPanel(pieceInfoSettingPanel, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
 		temp = new JPanel(new GridBagLayout());
@@ -515,8 +531,18 @@ public class ChessPiecePanel extends JPanel {
 				|| jtf == piecePicHeightTextField || jtf == piecePicWidthTextField)
 			return new Chreator.UIModule.AbstractModel.DocumentAdapter() {
 				public void editedUpdate(DocumentEvent e) {
-					if (!inApplyingProfile && verifyTextFields(jtf))
+					if (!inApplyingProfile && verifyTextFields(jtf)) {
 						updateCurrentProfile();
+
+						if (syncSizeRadioBtn.isSelected()
+								&& (jtf == piecePicHeightTextField || jtf == piecePicWidthTextField))
+							for (int i = 0; i < pieceProfiles.size(); i++) {
+								if (jtf == piecePicHeightTextField)
+									pieceProfiles.get(i).imageRelativeHeight = Double.parseDouble(jtf.getText());
+								else
+									pieceProfiles.get(i).imageRelativeWidth = Double.parseDouble(jtf.getText());
+							}
+					}
 					PieceProfile profile = getSelectedProfile();
 					if (profile != null) {
 						sharedPieceHeight = profile.imageRelativeHeight;
@@ -535,7 +561,21 @@ public class ChessPiecePanel extends JPanel {
 			return new Chreator.UIModule.AbstractModel.DocumentAdapter() {
 				public void editedUpdate(DocumentEvent e) {
 					if (!inApplyingProfile)
-						updateCurrentProfile();
+						if (notSyncCodeRadioBtn.isSelected())
+							updateCurrentProfile();
+						else {
+							updateCurrentProfile();
+
+							PieceProfile profile = getSelectedProfile();
+							for (int i = 0; i < pieceProfiles.size(); i++) {
+								String profile2PieceClassName = pieceProfiles.get(i).pieceClassName;
+								String profile2PlayerSide = pieceProfiles.get(i).playerSide;
+
+								if (profile2PieceClassName.equals(profile.pieceClassName)
+										&& !profile2PlayerSide.equals(profile.playerSide))
+									pieceProfiles.get(i).code = sce.getText();
+							}
+						}
 				}
 			};
 		else
@@ -560,6 +600,33 @@ public class ChessPiecePanel extends JPanel {
 				public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws BadLocationException {
 					if (inApplyingProfile)
 						super.remove(fb, offset, length);
+				}
+			};
+		else
+			return null;
+	}
+
+	private ActionListener createJRadioButtonActionListener(JRadioButton jrb) {
+		if (jrb == syncCodeRadioBtn)
+			return new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					notSyncCodeRadioBtn.setSelected(false);
+					syncCodeRadioBtn.setSelected(true);
+
+					JOptionPane.showMessageDialog(null,
+							"After ticking this box, codes will be shared among the same type of pieces (independent of player side).");
+				}
+			};
+		else if (jrb == notSyncCodeRadioBtn)
+			return new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					notSyncCodeRadioBtn.setSelected(true);
+					syncCodeRadioBtn.setSelected(false);
+
+					JOptionPane.showMessageDialog(null,
+							"After ticking this box, codes will NOT be shared among the same type of pieces (dependent of player side).");
 				}
 			};
 		else
@@ -697,7 +764,7 @@ public class ChessPiecePanel extends JPanel {
 						int caretPos = codeEditor.getCaretPosition();
 						String codeToAdd = "point = p.getImmediateNextPointAt(Direction.***);\n"
 								+ "\t\tvalidMoves.add(point);";
-						
+
 						String[] tempCode = new String[2];
 						tempCode[0] = codeEditor.getText().substring(0, caretPos);
 						tempCode[1] = codeEditor.getText().substring(caretPos);
@@ -714,9 +781,8 @@ public class ChessPiecePanel extends JPanel {
 					if (profile != null) {
 						int caretPos = codeEditor.getCaretPosition();
 						String codeToAdd = "dirs = new String[] {Direction.***, Direction.***, ...};\n"
-								+ "\t\tpoint = p.getImmediateNextPointAt(dirs);\n"
-								+ "\t\tvalidMoves.add(point);";
-						
+								+ "\t\tpoint = p.getImmediateNextPointAt(dirs);\n" + "\t\tvalidMoves.add(point);";
+
 						String[] tempCode = new String[2];
 						tempCode[0] = codeEditor.getText().substring(0, caretPos);
 						tempCode[1] = codeEditor.getText().substring(caretPos);
@@ -731,7 +797,7 @@ public class ChessPiecePanel extends JPanel {
 				public void actionPerformed(ActionEvent e) {
 					PieceProfile profile = getSelectedProfile();
 					if (profile != null) {
-						
+
 					}
 				}
 			};
@@ -868,46 +934,27 @@ public class ChessPiecePanel extends JPanel {
 		playerSidesList.setSelectedIndex(listModel.getSize() - 1);
 		for (int i = 0; i < pieceClassNameList.getModel().getSize(); i++) {
 			String className = ((DefaultListModel<String>) pieceClassNameList.getModel()).getElementAt(i);
-			
-			String codes = ""
-					+ "package Executable.PieceModel;\n"
-					+ "import java.util.*;\n"
-					+ "import Executable.BoardModel.Edge.Direction;\n"
-					+ "import Executable.BoardModel.Point;\n"
-					+ "public class " + className + " extends Piece {\n"
-					+ "\n"
-					+ "\tpublic " + className + "(String s, String l, double w, double h, String n) {\n"
-					+ "\t\tsuper(s, l, w, h, n);\n"
-					+ "\t}\n"
-					+ "\n"
-					+ "\t@Override\n"
-					+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n"
-					+ "\n"
-					+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n"
-					+ "\t\tPoint tempPoint;\n"
-					+ "\t\tArrayList<Point> tempPointList;\n"
-					+ "\t\tDirection[] dirs;\n"
-					+ "// Do not alter the codes above----------------------------\n"
-					+ "\t\t\n"
-					+ "\t\t\n"
-					+ "\t\t\n"
+
+			String tempPlayerSide = playerSide.substring(0, 1).toUpperCase() + playerSide.substring(1).toLowerCase();
+			String tempClassName = className.substring(0, 1).toUpperCase() + className.substring(1).toLowerCase();
+
+			String codes = "" + "package Executable.PieceModel;\n" + "import java.util.*;\n"
+					+ "import Executable.BoardModel.Edge.Direction;\n" + "import Executable.BoardModel.Point;\n"
+					+ "public class " + tempPlayerSide + tempClassName + " extends Piece {\n" + "\n" + "\tpublic "
+					+ tempPlayerSide + className + "(String s, String l, double w, double h, String n) {\n"
+					+ "\t\tsuper(s, l, w, h, n);\n" + "\t}\n" + "\n" + "\t@Override\n"
+					+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n" + "\n"
+					+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n" + "\t\tPoint tempPoint;\n"
+					+ "\t\tArrayList<Point> tempPointList;\n" + "\t\tDirection[] dirs;\n"
+					+ "// Do not alter the codes above----------------------------\n" + "\t\t\n" + "\t\t\n" + "\t\t\n"
 					+ "// Do not alter the codes below----------------------------\n"
-					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
-					+ "\t\t\tif (validMoves.get(i) == null) {\n"
-					+ "\t\t\t\tvalidMoves.remove(i);\n"
-					+ "\t\t\t\ti--;\n"
-					+ "\t\t\t}\n"
-					+ "\t\t}\n"
-					+ "\n"
+					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n" + "\t\t\tif (validMoves.get(i) == null) {\n"
+					+ "\t\t\t\tvalidMoves.remove(i);\n" + "\t\t\t\ti--;\n" + "\t\t\t}\n" + "\t\t}\n" + "\n"
 					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
 					+ "\t\t\tif (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {\n"
-					+ "\t\t\t\tvalidMoves.remove(i);\n"
-					+ "\t\t\t\ti--;\n"
-					+ "\t\t\t}\n"
-					+ "\t\t}\n"
-					+ "\t}\n"
-					+ "}\n";
-			
+					+ "\t\t\t\tvalidMoves.remove(i);\n" + "\t\t\t\ti--;\n" + "\t\t\t}\n" + "\t\t}\n" + "\t\n"
+					+ "\treturn validMoves;\n" + "\t}\n" + "}\n";
+
 			addToPieceProfileList(playerSide, className, codes);
 		}
 	}
@@ -992,50 +1039,31 @@ public class ChessPiecePanel extends JPanel {
 				return;
 		}
 		listModel.addElement(pieceClassName);
-		
+
 		pieceClassNameList.setSelectedIndex(listModel.size() - 1);
 		for (int i = 0; i < playerSidesList.getModel().getSize(); i++) {
 			String playerSide = ((DefaultListModel<String>) playerSidesList.getModel()).getElementAt(i);
-			
-			String codes = ""
-					+ "package Executable.PieceModel;\n"
-					+ "import java.util.*;\n"
-					+ "import Executable.BoardModel.Edge.Direction;\n"
-					+ "import Executable.BoardModel.Point;\n"
-					+ "public class " + pieceClassName + " extends Piece {\n"
-					+ "\n"
-					+ "\tpublic " + pieceClassName + "(String s, String l, double w, double h, String n) {\n"
-					+ "\t\tsuper(s, l, w, h, n);\n"
-					+ "\t}\n"
-					+ "\n"
-					+ "\t@Override\n"
-					+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n"
-					+ "\n"
-					+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n"
-					+ "\t\tPoint tempPoint;\n"
-					+ "\t\tArrayList<Point> tempPointList;\n"
-					+ "\t\tDirection[] dirs;\n"
-					+ "// Do not alter the codes above----------------------------\n"
-					+ "\t\t\n"
-					+ "\t\t\n"
-					+ "\t\t\n"
+
+			String tempPlayerSide = playerSide.substring(0, 1).toUpperCase() + playerSide.substring(1).toLowerCase();
+			String tempClassName = pieceClassName.substring(0, 1).toUpperCase() + pieceClassName.substring(1).toLowerCase();
+
+			String codes = "" + "package Executable.PieceModel;\n" + "import java.util.*;\n"
+					+ "import Executable.BoardModel.Edge.Direction;\n" + "import Executable.BoardModel.Point;\n"
+					+ "public class " + tempPlayerSide + tempClassName + " extends Piece {\n" + "\n" + "\tpublic "
+					+ tempPlayerSide + pieceClassName + "(String s, String l, double w, double h, String n) {\n"
+					+ "\t\tsuper(s, l, w, h, n);\n" + "\t}\n" + "\n" + "\t@Override\n"
+					+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n" + "\n"
+					+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n" + "\t\tPoint tempPoint;\n"
+					+ "\t\tArrayList<Point> tempPointList;\n" + "\t\tDirection[] dirs;\n"
+					+ "// Do not alter the codes above----------------------------\n" + "\t\t\n" + "\t\t\n" + "\t\t\n"
 					+ "// Do not alter the codes below----------------------------\n"
-					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
-					+ "\t\t\tif (validMoves.get(i) == null) {\n"
-					+ "\t\t\t\tvalidMoves.remove(i);\n"
-					+ "\t\t\t\ti--;\n"
-					+ "\t\t\t}\n"
-					+ "\t\t}\n"
-					+ "\n"
+					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n" + "\t\t\tif (validMoves.get(i) == null) {\n"
+					+ "\t\t\t\tvalidMoves.remove(i);\n" + "\t\t\t\ti--;\n" + "\t\t\t}\n" + "\t\t}\n" + "\n"
 					+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
 					+ "\t\t\tif (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {\n"
-					+ "\t\t\t\tvalidMoves.remove(i);\n"
-					+ "\t\t\t\ti--;\n"
-					+ "\t\t\t}\n"
-					+ "\t\t}\n"
-					+ "\t}\n"
-					+ "}\n";
-			
+					+ "\t\t\t\tvalidMoves.remove(i);\n" + "\t\t\t\ti--;\n" + "\t\t\t}\n" + "\t\t}\n" + "\t\n"
+					+ "\treturn validMoves;\n" + "\t}\n" + "}\n";
+
 			addToPieceProfileList(playerSide, pieceClassName, codes);
 		}
 	}
@@ -1109,62 +1137,46 @@ public class ChessPiecePanel extends JPanel {
 		pieceProfiles.add(profile);
 		return profile;
 	}
-	
-//	private PieceProfile addToPieceProfileList(String playerSide, String pieceClassName) {
-//		for (PieceProfile profile : pieceProfiles)
-//			if (profile.playerSide.equals(playerSide) && profile.pieceClassName.equals(pieceClassName))
-//				return null;
-//		PieceProfile profile = new PieceProfile(playerSide, pieceClassName);
-//		profile.imageRelativeHeight = sharedPieceHeight;
-//		profile.imageRelativeWidth = sharedPieceWidth;
-//		profile.pieceColor = sharedColor;
-//		pieceProfiles.add(profile);
-//		return profile;
-//	}
+
+	// private PieceProfile addToPieceProfileList(String playerSide, String
+	// pieceClassName) {
+	// for (PieceProfile profile : pieceProfiles)
+	// if (profile.playerSide.equals(playerSide) &&
+	// profile.pieceClassName.equals(pieceClassName))
+	// return null;
+	// PieceProfile profile = new PieceProfile(playerSide, pieceClassName);
+	// profile.imageRelativeHeight = sharedPieceHeight;
+	// profile.imageRelativeWidth = sharedPieceWidth;
+	// profile.pieceColor = sharedColor;
+	// pieceProfiles.add(profile);
+	// return profile;
+	// }
 
 	public PieceProfile getPieceProfile(String playerSide, String className) {
 		for (PieceProfile profile : pieceProfiles)
 			if (profile.playerSide.equals(playerSide) && profile.pieceClassName.equals(className))
 				return profile;
-		
-		String codes = ""
-				+ "package Executable.PieceModel;\n"
-				+ "import java.util.*;\n"
-				+ "import Executable.BoardModel.Edge.Direction;\n"
-				+ "import Executable.BoardModel.Point;\n"
-				+ "public class " + className + " extends Piece {\n"
-				+ "\n"
-				+ "\tpublic " + className + "(String s, String l, double w, double h, String n) {\n"
-				+ "\t\tsuper(s, l, w, h, n);\n"
-				+ "\t}\n"
-				+ "\n"
-				+ "\t@Override\n"
-				+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n"
-				+ "\n"
-				+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n"
-				+ "\t\tPoint tempPoint;\n"
-				+ "\t\tArrayList<Point> tempPointList;\n"
-				+ "\t\tDirection[] dirs;\n"
-				+ "// Do not alter the codes above----------------------------\n"
-				+ "\t\t\n"
-				+ "\t\t\n"
-				+ "\t\t\n"
+
+		String tempPlayerSide = playerSide.substring(0, 1).toUpperCase() + playerSide.substring(1).toLowerCase();
+		String tempClassName = className.substring(0, 1).toUpperCase() + className.substring(1).toLowerCase();
+
+		String codes = "" + "package Executable.PieceModel;\n" + "import java.util.*;\n"
+				+ "import Executable.BoardModel.Edge.Direction;\n" + "import Executable.BoardModel.Point;\n"
+				+ "public class " + tempPlayerSide + tempClassName + " extends Piece {\n" + "\n" + "\tpublic "
+				+ tempPlayerSide + className + "(String s, String l, double w, double h, String n) {\n"
+				+ "\t\tsuper(s, l, w, h, n);\n" + "\t}\n" + "\n" + "\t@Override\n"
+				+ "\tpublic ArrayList<Point> moveInvolvingOtherPiece(Point p) {\n" + "\n"
+				+ "\t\tArrayList<Point> validMoves = new ArrayList<>();\n" + "\t\tPoint tempPoint;\n"
+				+ "\t\tArrayList<Point> tempPointList;\n" + "\t\tDirection[] dirs;\n"
+				+ "// Do not alter the codes above----------------------------\n" + "\t\t\n" + "\t\t\n" + "\t\t\n"
 				+ "// Do not alter the codes below----------------------------\n"
-				+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
-				+ "\t\t\tif (validMoves.get(i) == null) {\n"
-				+ "\t\t\t\tvalidMoves.remove(i);\n"
-				+ "\t\t\t\ti--;\n"
-				+ "\t\t\t}\n"
-				+ "\t\t}\n"
-				+ "\n"
+				+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n" + "\t\t\tif (validMoves.get(i) == null) {\n"
+				+ "\t\t\t\tvalidMoves.remove(i);\n" + "\t\t\t\ti--;\n" + "\t\t\t}\n" + "\t\t}\n" + "\n"
 				+ "\t\tfor (int i = 0; i < validMoves.size(); i++) {\n"
 				+ "\t\t\tif (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {\n"
-				+ "\t\t\t\tvalidMoves.remove(i);\n"
-				+ "\t\t\t\ti--;\n"
-				+ "\t\t\t}\n"
-				+ "\t\t}\n"
-				+ "\t}\n"
-				+ "}\n";
+				+ "\t\t\t\tvalidMoves.remove(i);\n" + "\t\t\t\ti--;\n" + "\t\t\t}\n" + "\t\t}\n" + "\t\n"
+				+ "\treturn validMoves;\n" + "\t}\n" + "}\n";
+
 		return addToPieceProfileList(playerSide, className, codes);
 	}
 

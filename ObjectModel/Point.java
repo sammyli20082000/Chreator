@@ -40,6 +40,13 @@ public class Point {
         edges = new ArrayList<EdgePointPair>();
         setSizeByRelative(0.0, 0.0, 0.05, 0.05);
     }
+    
+    public Point(ChessBoardGraphicAreaPanel graphicAreaPanel, double posX, double posY, double width, double height, int id) {
+    	this.graphicAreaPanel = graphicAreaPanel;
+    	this.id = id;
+    	edges = new ArrayList<EdgePointPair>();
+    	setSizeByRelative(posX, posY, width, height);
+    }
 
     public void setSizeByRelative(double posX, double posY, double width, double height) {
         posXRelative = posX;

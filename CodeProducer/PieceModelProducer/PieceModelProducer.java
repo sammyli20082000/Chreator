@@ -37,7 +37,7 @@ public class PieceModelProducer {
 		if (!file.exists()) {
 			file.mkdirs();
 		}
-		
+
 		pieceCodeProducer.printPieceJavaFrameCode();
 
 		File pieceFile = new File(file.getAbsolutePath() + "\\Piece.java");
@@ -48,25 +48,29 @@ public class PieceModelProducer {
 		for (String code : pieceCodes) {
 			writer1.write(code + System.getProperty("line.separator"));
 		}
-		
+
 		writer1.close();
 		oStreamWriter1.close();
 		fOutputStream1.close();
 
 		for (int i = 0; i < pieceProfiles.size(); i++) {
 			individualPieceCodeProducer = new IndividualPieceCodeProducer(pieceProfiles.get(i));
-			
+
 			individualPieceCodeProducer.printIndividualPieceJava();
-			
-			File individualPieceFile = new File(file.getAbsolutePath() + "\\" + pieceProfiles.get(i).pieceClassName + ".java");
+
+			String pieceClassName = pieceProfiles.get(i).pieceClassName.substring(0, 1).toUpperCase()
+					+ pieceProfiles.get(i).pieceClassName.substring(1).toLowerCase();
+			String pieceSide = pieceProfiles.get(i).playerSide.substring(0, 1).toUpperCase()
+					+ pieceProfiles.get(i).playerSide.substring(1).toLowerCase();
+			File individualPieceFile = new File(file.getAbsolutePath() + "\\" + pieceSide + pieceClassName + ".java");
 			FileOutputStream fOutputStream2 = new FileOutputStream(individualPieceFile.getAbsolutePath());
 			OutputStreamWriter oStreamWriter2 = new OutputStreamWriter(fOutputStream2, "utf-8");
 			Writer writer2 = new BufferedWriter(oStreamWriter2);
-			
+
 			for (String code : individualPieceCodes.get(i)) {
 				writer2.write(code + System.getProperty("line.separator"));
 			}
-			
+
 			writer2.close();
 			oStreamWriter2.close();
 			fOutputStream2.close();

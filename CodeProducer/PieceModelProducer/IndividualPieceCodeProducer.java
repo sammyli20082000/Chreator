@@ -42,31 +42,6 @@ public class IndividualPieceCodeProducer {
 		return indiPieceCode;
 	}
 
-//	private void printIndividualPieceJavaCode(List<String> list) {
-//		list.add("ArrayList<Point> validMoves = new ArrayList<>();");
-//		list.add("Point tempPoint;");
-//		list.add("ArrayList<Point> tempPointList;");
-//		list.add("Direction[] dirs;");
-//		
-//		
-//		
-//		list.add("for (int i = 0; i < validMoves.size(); i++) {");
-//		list.add("if (validMoves.get(i) == null) {");
-//		list.add("validMoves.remove(i);");
-//		list.add("i--;");
-//		list.add("}");
-//		list.add("}");
-//		
-//		list.add("for (int i = 0; i < validMoves.size(); i++) {");
-//		list.add("if (validMoves.get(i).getPiece() != null && validMoves.get(i).getPiece().getSide() == this.getSide()) {");
-//		list.add("validMoves.remove(i);");
-//		list.add("i--;");
-//		list.add("}");
-//		list.add("}");
-//		
-//		list.add("return validMoves;");
-//	}
-
 	private void makePieceImage(String imageLink, String playerSide, String pieceClassName, Color pieceColor) {
 		File picF;
 		if (!imageLink.equals("")) {
