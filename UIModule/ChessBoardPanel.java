@@ -15,6 +15,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Random;
@@ -43,6 +44,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import Chreator.CodeProducer.CodeProducer;
+import Chreator.CodeProducer.FolderCopyer;
 import Chreator.ObjectModel.Point;
 
 /**
@@ -723,7 +725,13 @@ public class ChessBoardPanel extends JPanel {
 
 	public String getBoardImage() {
 		if (imageFromFileRadio.isSelected()) {
-			return imageFile.getAbsolutePath();
+			File boardPicF = new File("board.png");
+			try {
+				FolderCopyer.copyFolder(imageFile, boardPicF);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return boardPicF.getName();
 		} else {
 			File boardPicF = new File("board.png");
 			BufferedImage bImage = new BufferedImage(Integer.parseInt(blankImageWidth.getText()),

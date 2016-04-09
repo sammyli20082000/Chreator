@@ -25,10 +25,12 @@ public class PieceTabLoader {
 
 	ArrayList<String> playerSides;
 	ArrayList<String> indiPieceData;
+	ArrayList<PieceProfile> pieceProfiles;
 	String[] initPointId;
 
 	public PieceTabLoader() {
 		indiPieceFiles = new ArrayList<>();
+		pieceProfiles = new ArrayList<>();
 		playerSides = new ArrayList<>();
 		indiPieceData = new ArrayList<>();
 
@@ -46,28 +48,44 @@ public class PieceTabLoader {
 		for (String playerSide : playerSides)
 			uiHandler.addPlayerSides(playerSide.toUpperCase());
 
-//		for (int i = 0; i < initPointId.length; i++)
-//			System.out.println(initPointId[i]);
-		
 		for (String line : indiPieceData) {
 			String[] temp1 = line.split(" ");
 			String[] temp2 = line.split(",");
 			String[] temp3 = line.split("\"");
 
 			for (String side : playerSides) {
-				String pieceName = temp1[2].substring(0, temp1[2].indexOf("("));
-				PieceProfile pieceProfile = new PieceProfile(side, pieceName);
-				pieceProfile.imageRelativeWidth = Double.parseDouble(CodeLoader.stripNonDigits(temp2[2]));
-				pieceProfile.imageRelativeHeight = Double.parseDouble(CodeLoader.stripNonDigits(temp2[3]));
-				pieceProfile.sourcePicLink = CodeLoader.baseDir + "\\pic\\" + temp3[1];
-				pieceProfile.pieceImage = ImageIO.read(new File(CodeLoader.baseDir + "\\pic\\" + temp3[1]));
+				if (line.contains(side)) {
+					String pieceName = temp1[2].substring(side.length(), temp1[2].indexOf("("));
+					PieceProfile pieceProfile = new PieceProfile(side, pieceName);
+					pieceProfile.imageRelativeWidth = Double.parseDouble(CodeLoader.stripNonDigits(temp2[2]));
+					pieceProfile.imageRelativeHeight = Double.parseDouble(CodeLoader.stripNonDigits(temp2[3]));
+					pieceProfile.sourcePicLink = CodeLoader.baseDir + "\\pic\\" + temp3[1];
+					pieceProfile.pieceImage = ImageIO.read(new File(CodeLoader.baseDir + "\\pic\\" + temp3[1]));
 
-				String tempPlayerSide = side.substring(0, 1).toUpperCase() + side.substring(1).toLowerCase();
-				String tempPieceName = pieceName.substring(0, 1).toUpperCase() + pieceName.substring(1).toLowerCase();
-				pieceProfile.code = loadIndiPieceCodes(new File(
-						CodeLoader.baseDir + "\\Executable\\PieceModel\\" + tempPlayerSide + tempPieceName + ".java"));
+					String tempPlayerSide = side.substring(0, 1).toUpperCase() + side.substring(1).toLowerCase();
+					String tempPieceName = pieceName.substring(0, 1).toUpperCase()
+							+ pieceName.substring(1).toLowerCase();
+					pieceProfile.code = loadIndiPieceCodes(new File(CodeLoader.baseDir
+							+ "\\src\\Executable\\PieceModel\\" + tempPlayerSide + tempPieceName + ".java"));
+
+					pieceProfiles.add(pieceProfile);
+				}
 			}
 		}
+
+		for (PieceProfile profile : pieceProfiles) {
+			for (int i = 0; i < initPointId.length; i++) {
+				String[] temp = initPointId[i].split("\"");
+
+				if (temp.length > 1 && temp[1].contains(profile.pieceClassName.toLowerCase())
+						&& temp[2].substring(11).contains(profile.playerSide)) {
+					profile.initialPointId.addElement(CodeLoader.stripNonDigits(temp[0]));
+				}
+			}
+
+			uiHandler.addPieceProfile(profile);
+		}
+
 	}
 
 	private void loadDataAndSettingPlayerSideRelated() throws FileNotFoundException, IOException {
@@ -102,15 +120,15 @@ public class PieceTabLoader {
 			}
 		}
 	}
-	
+
 	private void loadDataAndSettingInitPointIdRelated() throws FileNotFoundException, IOException {
 		if (!dataAndSettingFile.exists()) {
 			return;
 		}
-		
+
 		try (BufferedReader br = new BufferedReader(new FileReader(dataAndSettingFile))) {
 			String line, temp = "";
-			while((line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null) {
 				if (line.contains("public static PieceDataPackage[] initialPiecePlacingData")) {
 					while (true) {
 						if (line.trim().equals("")) {
@@ -125,10 +143,9 @@ public class PieceTabLoader {
 						if (line.contains("};"))
 							break;
 					}
-					
-					System.out.println(temp);
+
 					initPointId = temp.split("\\)");
-					
+
 					break;
 				}
 			}
@@ -183,7 +200,7 @@ public class PieceTabLoader {
 		try (BufferedReader br = new BufferedReader(new FileReader(indiPieceFile))) {
 			String line;
 			while ((line = br.readLine()) != null) {
-				codes += line;
+				codes += line + "\n";
 			}
 		}
 

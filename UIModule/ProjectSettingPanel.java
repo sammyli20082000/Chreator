@@ -560,6 +560,9 @@ public class ProjectSettingPanel extends JPanel {
 
 			}
 		} else if (openProjectRadio.isSelected()) {
+			UIHandler uiHandler = UIHandler.getInstance(null);
+			uiHandler.onLoadNewAllElements();
+			
 			CodeLoader codeLoader = new CodeLoader(locationInputField.getText());
 			if (CodeLoader.baseDir.equals("")) {
 				return;

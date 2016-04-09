@@ -59,10 +59,10 @@ public class BoardTabLoader {
 				String temp = CodeLoader.stripNonDigits(resultStr[j]);
 				if (!temp.equals(""))
 					results[j] = Double.parseDouble(temp);
-
-				Point p = uiHandler.addSinglePoint(results[0], results[1], results[2], results[3], (int) results[4]);
-				points.put((int) results[4], p);
 			}
+			
+			Point p = uiHandler.addSinglePoint(results[0], results[1], results[2], results[3], (int) results[4]);
+			points.put((int) results[4], p);
 		}
 
 		for (int i = 1; i < pointEdgePackageLines.length; i++) {

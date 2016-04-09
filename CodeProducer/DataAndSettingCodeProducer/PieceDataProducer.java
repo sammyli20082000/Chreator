@@ -88,9 +88,9 @@ public class PieceDataProducer {
 			}
 
 			String tempPieceName = pieceProfiles.get(j).pieceClassName.substring(0, 1).toUpperCase()
-					+ pieceProfiles.get(j).pieceClassName.substring(1).toUpperCase();
+					+ pieceProfiles.get(j).pieceClassName.substring(1).toLowerCase();
 			String tempPlayerSide = pieceProfiles.get(j).playerSide.substring(0, 1).toUpperCase()
-					+ pieceProfiles.get(j).playerSide.substring(1).toUpperCase();
+					+ pieceProfiles.get(j).playerSide.substring(1).toLowerCase();
 			if (j == 0) {
 				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2,
 						"if (pieceType.equals(\"" + pieceProfiles.get(j).pieceClassName
