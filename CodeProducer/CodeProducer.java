@@ -16,6 +16,7 @@ import Chreator.CodeProducer.GameCodeProducer.GameCodeProducer;
 import Chreator.CodeProducer.PieceModelProducer.PieceModelProducer;
 import Chreator.ObjectModel.PieceProfile;
 import Chreator.ObjectModel.Point;
+import Chreator.UIModule.ProjectSettingPanel.GameType;
 
 public class CodeProducer {
 	public static String baseDir;
@@ -28,7 +29,7 @@ public class CodeProducer {
 
 	public CodeProducer(String pathname, String folderName, ArrayList<Point> arrayList,
 			ListModel<String> edgeDirectionList, ListModel<String> playerSidesList,
-			ArrayList<PieceProfile> piecePorfiles, String boardImageLink) {
+			ArrayList<PieceProfile> piecePorfiles, String boardImageLink, GameType type) {
 		if (pathname.equals("") || pathname.equals(null)) {
 			JOptionPane.showMessageDialog(null, "Please specify a file path!");
 			return;
@@ -44,7 +45,7 @@ public class CodeProducer {
 		boardModelCodeProducer = new BoardModelProducer(edgeDirectionList);
 		dataAndSettingCodeProducer = new DataAndSettingCodeProducer(arrayList, playerSidesList, piecePorfiles, boardImageLink);
 		pieceModelProducer = new PieceModelProducer(piecePorfiles);
-		gameCodeProducer = new GameCodeProducer(playerSidesList);
+		gameCodeProducer = new GameCodeProducer(playerSidesList, type);
 	}
 
 	public void produceExecutable() throws Exception {

@@ -12,6 +12,7 @@ import java.util.List;
 import javax.swing.ListModel;
 
 import Chreator.CodeProducer.CodeProducer;
+import Chreator.UIModule.ProjectSettingPanel.GameType;
 
 public class GameCodeProducer {
 	public static File file;
@@ -21,11 +22,11 @@ public class GameCodeProducer {
 	HandleFileEventCallBackProducer handleFileEventCallBackProducer;
 	ComputerMakeMoveCodeProducer computerMakeMoveCodeProducer;
 
-	public GameCodeProducer(ListModel<String> playerSidesList) {
+	public GameCodeProducer(ListModel<String> playerSidesList, GameType type) {
 		file = new File(CodeProducer.baseDir + "\\Game.java");
 		gameCodes = new LinkedList<>();
-		gameFrameProducer = new GameFrameProducer(playerSidesList);
-		handleUIEventCallBackProducer  = new HandleUIEventCallBackProducer(playerSidesList);
+		gameFrameProducer = new GameFrameProducer(playerSidesList, type);
+		handleUIEventCallBackProducer  = new HandleUIEventCallBackProducer(playerSidesList, type);
 		computerMakeMoveCodeProducer = new ComputerMakeMoveCodeProducer();
 		handleFileEventCallBackProducer = new HandleFileEventCallBackProducer();
 	}

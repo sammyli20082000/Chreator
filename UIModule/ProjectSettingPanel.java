@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.lang.model.element.Element;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
@@ -67,6 +68,11 @@ public class ProjectSettingPanel extends JPanel {
 			return new String[] { XIANGQI.string };
 		}
 	}
+	
+	public static enum GameType {
+		ADD_TYPE,
+		MOVE_TYPE;
+	}
 
 	public class FontDropDownMenuRenderer extends DefaultListCellRenderer {
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
@@ -82,8 +88,8 @@ public class ProjectSettingPanel extends JPanel {
 	private EventCallback callback;
 
 	private JPanel basePanel, newProjectPanel;
-	private JRadioButton openProjectRadio, newProjectRadio, fromTemplateRadio, customProjectRadio, temp1Radio,
-			temp2Radio, temp3Radio;
+	private JRadioButton openProjectRadio, newProjectRadio, fromTemplateRadio, customProjectRadio, addTypeRadio,
+			moveTypeRadio, addMoveTypeRadio;
 	private JTextField locationInputField, projectFolderNameInputField, JDKLocationDisplayField,
 			codeEditorFontSizeTextField;
 	private ButtonGroup startProjectButtonGroup, newProjectButtonGroup;
@@ -150,6 +156,8 @@ public class ProjectSettingPanel extends JPanel {
 		newProjectRadio.addActionListener(getRadioButtonsActionListener(newProjectRadio));
 		customProjectRadio.addActionListener(getRadioButtonsActionListener(customProjectRadio));
 		fromTemplateRadio.addActionListener(getRadioButtonsActionListener(fromTemplateRadio));
+		addTypeRadio.addActionListener(getRadioButtonsActionListener(addTypeRadio));
+		moveTypeRadio.addActionListener(getRadioButtonsActionListener(moveTypeRadio));
 		browseLocationButton.addActionListener(getBrowseButtonActionListener(browseLocationButton));
 		browseJDKButton.addActionListener(getBrowseButtonActionListener(browseJDKButton));
 		executeSettingButton.addActionListener(getButtonActionListener(executeSettingButton));
@@ -224,9 +232,9 @@ public class ProjectSettingPanel extends JPanel {
 		projectFolderNameInputField = new JTextField();
 		customProjectRadio = new JRadioButton("Custom project");
 		fromTemplateRadio = new JRadioButton("From template");
-		temp1Radio = new JRadioButton("temp radio 1");
-		temp2Radio = new JRadioButton("temp radio 2");
-		temp3Radio = new JRadioButton("temp radio 3");
+		addTypeRadio = new JRadioButton("piece ADDING");
+		moveTypeRadio = new JRadioButton("Piece MOVING");
+		addMoveTypeRadio = new JRadioButton("piece ADDING & MOVING");
 		projectFolderDirNameLabel = new JLabel("<html><br>Project folder name</html>");
 		templateDropDownMenu = new JComboBox(TemplateType.getAllString());
 		executeSettingButton = new JButton("Execute setting");
@@ -234,11 +242,11 @@ public class ProjectSettingPanel extends JPanel {
 		templateDropDownMenu.setEditable(false);
 		fromTemplateRadio.setSelected(true);
 
-		newProjectButtonGroup.add(customProjectRadio);
-		newProjectButtonGroup.add(fromTemplateRadio);
-		newProjectButtonGroup.add(temp1Radio);
-		newProjectButtonGroup.add(temp2Radio);
-		newProjectButtonGroup.add(temp3Radio);
+//		newProjectButtonGroup.add(customProjectRadio);
+//		newProjectButtonGroup.add(fromTemplateRadio);
+		newProjectButtonGroup.add(addTypeRadio);
+		newProjectButtonGroup.add(moveTypeRadio);
+		newProjectButtonGroup.add(addMoveTypeRadio);
 
 		GridBagConstraints c1 = new GridBagConstraints(), c2 = new GridBagConstraints();
 		c1.gridx = 0;
@@ -248,22 +256,22 @@ public class ProjectSettingPanel extends JPanel {
 		c2.weightx = 1.0;
 		c2.gridwidth = 2;
 		c2.fill = GridBagConstraints.HORIZONTAL;
-		newProjectPanel.add(createSpaceLabel(), c1);
-		newProjectPanel.add(customProjectRadio, c2);
+//		newProjectPanel.add(createSpaceLabel(), c1);
+//		newProjectPanel.add(customProjectRadio, c2);
 
 		c1.gridy++;
 		c2.gridy++;
-		newProjectPanel.add(createSpaceLabel(), c1);
-		newProjectPanel.add(fromTemplateRadio, c2);
+//		newProjectPanel.add(createSpaceLabel(), c1);
+//		newProjectPanel.add(fromTemplateRadio, c2);
 
 		c1.gridy++;
 		c2.gridy++;
-		newProjectPanel.add(createSpaceLabel(), c1);
+//		newProjectPanel.add(createSpaceLabel(), c1);
 		c1.gridx++;
 		c2.gridx++;
 		c2.gridwidth--;
-		newProjectPanel.add(createSpaceLabel(), c1);
-		newProjectPanel.add(templateDropDownMenu, c2);
+//		newProjectPanel.add(createSpaceLabel(), c1);
+//		newProjectPanel.add(templateDropDownMenu, c2);
 		c1.gridx--;
 		c2.gridx--;
 		c2.gridwidth++;
@@ -271,17 +279,17 @@ public class ProjectSettingPanel extends JPanel {
 		c1.gridy++;
 		c2.gridy++;
 		newProjectPanel.add(createSpaceLabel(), c1);
-		newProjectPanel.add(temp1Radio, c2);
+		newProjectPanel.add(addTypeRadio, c2);
 
 		c1.gridy++;
 		c2.gridy++;
 		newProjectPanel.add(createSpaceLabel(), c1);
-		newProjectPanel.add(temp2Radio, c2);
+		newProjectPanel.add(moveTypeRadio, c2);
 
 		c1.gridy++;
 		c2.gridy++;
 		newProjectPanel.add(createSpaceLabel(), c1);
-		newProjectPanel.add(temp3Radio, c2);
+		newProjectPanel.add(addMoveTypeRadio, c2);
 
 		c1.gridy++;
 		c2.gridy++;
@@ -448,9 +456,9 @@ public class ProjectSettingPanel extends JPanel {
 				public void actionPerformed(ActionEvent e) {
 					fromTemplateRadio.setEnabled(true);
 					customProjectRadio.setEnabled(true);
-					temp1Radio.setEnabled(true);
-					temp2Radio.setEnabled(true);
-					temp3Radio.setEnabled(true);
+					addTypeRadio.setEnabled(true);
+					moveTypeRadio.setEnabled(true);
+					addMoveTypeRadio.setEnabled(true);
 					projectFolderDirNameLabel.setEnabled(true);
 					projectFolderNameInputField.setEnabled(true);
 					templateDropDownMenu.setEnabled(fromTemplateRadio.isSelected());
@@ -463,9 +471,9 @@ public class ProjectSettingPanel extends JPanel {
 				public void actionPerformed(ActionEvent e) {
 					templateDropDownMenu.setEnabled(false);
 					fromTemplateRadio.setEnabled(false);
-					temp1Radio.setEnabled(false);
-					temp2Radio.setEnabled(false);
-					temp3Radio.setEnabled(false);
+					addTypeRadio.setEnabled(false);
+					moveTypeRadio.setEnabled(false);
+					addMoveTypeRadio.setEnabled(false);
 					projectFolderDirNameLabel.setEnabled(false);
 					projectFolderNameInputField.setEnabled(false);
 					customProjectRadio.setEnabled(false);
@@ -486,7 +494,32 @@ public class ProjectSettingPanel extends JPanel {
 					templateDropDownMenu.setEnabled(false);
 				}
 			};
-		} else
+		} else if (jrb == addTypeRadio) {
+			return new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					moveTypeRadio.setSelected(false);
+					addMoveTypeRadio.setSelected(false);
+				}
+			};
+		} else if (jrb == moveTypeRadio) {
+			return new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					addTypeRadio.setSelected(false);
+					addMoveTypeRadio.setSelected(false);
+				}
+			};
+		} else if (jrb == addMoveTypeRadio) {
+			return new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					moveTypeRadio.setSelected(false);
+					addTypeRadio.setSelected(false);
+				}
+			};
+		}
+		else
 			return null;
 	}
 
@@ -544,7 +577,7 @@ public class ProjectSettingPanel extends JPanel {
 
 			CodeProducer codeProducer = new CodeProducer(getProjectLocationBaseDir(), getProjectFolderName(),
 					uiHandler.getPointList(), uiHandler.getEdgeDirectionList(), uiHandler.getPlayerSideList(),
-					uiHandler.getChessPieceProfiles(), uiHandler.getBoardImage());
+					uiHandler.getChessPieceProfiles(), uiHandler.getBoardImage(), getGameTypeSelected());
 
 			if (loaded && oldLocation.equals(locationInputField.getText())) {
 				if (JOptionPane.showConfirmDialog(null, "Old project may be over-written. Are you sure to continue?",
@@ -632,5 +665,14 @@ public class ProjectSettingPanel extends JPanel {
 
 	public void setFontSizeOfCodeEditors(int size) {
 		codeEditorFontSizeTextField.setText(size + "");
+	}
+	
+	public GameType getGameTypeSelected() {
+		if (addTypeRadio.isSelected())
+			return GameType.ADD_TYPE;
+		else if (moveTypeRadio.isSelected())
+			return GameType.MOVE_TYPE;
+		else
+			return null;
 	}
 }

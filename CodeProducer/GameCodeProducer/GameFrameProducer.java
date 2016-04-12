@@ -2,12 +2,16 @@ package Chreator.CodeProducer.GameCodeProducer;
 
 import javax.swing.ListModel;
 
+import Chreator.UIModule.ProjectSettingPanel.GameType;
+
 public class GameFrameProducer {
 
 	ListModel playerSidesList;
+	GameType type;
 
-	public GameFrameProducer(ListModel<String> playerSidesList) {
+	public GameFrameProducer(ListModel<String> playerSidesList, GameType type) {
 		this.playerSidesList = playerSidesList;
+		this.type = type;
 	}
 
 	public void printGameJavaFrame() {
@@ -24,6 +28,11 @@ public class GameFrameProducer {
 		GameCodeProducer.gameCodes.add("import Executable.PieceModel.Piece;");
 		GameCodeProducer.gameCodes.add("import Executable.UIHandlerModel.UIHandler;");
 		GameCodeProducer.gameCodes.add("import Executable.ObjectModel.*;");
+		
+		if (type.equals(GameType.ADD_TYPE))
+			GameCodeProducer.gameCodes.add("// GameType: ADD_TYPE");
+		else if (type.equals(GameType.MOVE_TYPE))
+			GameCodeProducer.gameCodes.add("// GameType: MOVE_TYPE");
 
 		GameCodeProducer.gameCodes.add("public class Game implements Serializable {");
 
