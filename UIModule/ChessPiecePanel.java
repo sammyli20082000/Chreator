@@ -154,12 +154,12 @@ public class ChessPiecePanel extends JPanel {
 						sharedPieceHeight = 0.1;
 						sharedPieceWidth = 0.1 * d.getHeight() / d.getWidth();
 					}
-					// addPlayerSideToList("RED");
-					// addPlayerSideToList("BLACK");
-					// addChessPieceToList("General");
-					// addChessPieceToList("Cannon");
-					// addChessPieceToList("Advisor");
-					// addChessPieceToList("Horse");
+					addPlayerSideToList("RED");
+					addPlayerSideToList("BLACK");
+					addChessPieceToList("General");
+					addChessPieceToList("Cannon");
+					addChessPieceToList("Advisor");
+					addChessPieceToList("Horse");
 
 					removeComponentListener(this);
 				}
@@ -288,9 +288,9 @@ public class ChessPiecePanel extends JPanel {
 	private void prepareCodeInserterPanel() {
 		componentCounter = 0;
 
-		addFunction1Button = new JButton("Immediate next point at (Single direction)");
-		addFunction2Button = new JButton("Immediate next point at (A set of directions)");
-		addFunction3Button = new JButton("Function 3");
+		addFunction1Button = new JButton("Next point in (Single direction)");
+		addFunction2Button = new JButton("Next point passing through (A set of directions)");
+		addFunction3Button = new JButton("All points in (Singel direction)");
 
 		addFunction1Button.addActionListener(createJButtonActionListener(addFunction1Button));
 		addFunction2Button.addActionListener(createJButtonActionListener(addFunction2Button));
@@ -298,9 +298,12 @@ public class ChessPiecePanel extends JPanel {
 
 		addToPanel(codeInserterPanel, new JLabel("<html><br>Insert code template to editor</html>"),
 				GridBagConstraints.CENTER, GridBagConstraints.NONE);
-		addToPanel(codeInserterPanel, createInserterRow(addFunction1Button, "Test description for function 1"));
-		addToPanel(codeInserterPanel, createInserterRow(addFunction2Button, "Test description for function 2"));
-		addToPanel(codeInserterPanel, createInserterRow(addFunction3Button, "Test description for function 3"));
+		addToPanel(codeInserterPanel,
+				createInserterRow(addFunction1Button, "Get the next point of a specific direction"));
+		addToPanel(codeInserterPanel,
+				createInserterRow(addFunction2Button, "Get the next point passing through a set of directions"));
+		addToPanel(codeInserterPanel,
+				createInserterRow(addFunction3Button, "Get all points along a specific direction"));
 	}
 
 	private JPanel createInserterRow(JButton jb, String msg) {
@@ -424,8 +427,12 @@ public class ChessPiecePanel extends JPanel {
 
 		addToPanel(pieceInfoSettingPanel, new JLabel("Piece Size"), GridBagConstraints.LINE_START,
 				GridBagConstraints.HORIZONTAL);
+		
 		temp = new JPanel(new GridBagLayout());
 		temp.add(syncSizeRadioBtn);
+		addToPanel(pieceInfoSettingPanel, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
+		
+		temp = new JPanel(new GridBagLayout());
 		temp.add(new JLabel(t + "Width(0~1): "), c1);
 		addToPanel(pieceInfoSettingPanel, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
 		temp = new JPanel(new GridBagLayout());
@@ -575,13 +582,11 @@ public class ChessPiecePanel extends JPanel {
 								if (profile2PieceClassName.equals(profile.pieceClassName)
 										&& !profile2PlayerSide.equals(profile.playerSide)) {
 									String temp = sce.getText();
-									temp = temp.replaceAll(
-											profile.playerSide.substring(0, 1).toUpperCase()
-													+ profile.playerSide.substring(1).toLowerCase(),
-											profile2PlayerSide.substring(0, 1).toUpperCase()
-													+ profile2PlayerSide.substring(1).toLowerCase());
+									int copyFrom = pieceProfiles.get(i).code.indexOf("Direction[] dirs;");
+									int copyTo = temp.indexOf("Direction[] dirs;");
 
-									pieceProfiles.get(i).code = temp;
+									pieceProfiles.get(i).code = pieceProfiles.get(i).code.substring(0, copyFrom)
+											+ temp.substring(copyTo);
 								}
 							}
 						}
@@ -657,9 +662,8 @@ public class ChessPiecePanel extends JPanel {
 						if (pieceName != null && !pieceName.toLowerCase().equals("piece"))
 							addChessPieceToList(pieceName);
 						if (pieceName.toLowerCase().equals("piece"))
-							JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
-									"Please choose another name.", "Name duplicates with super class \"Piece\"",
-									JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "Please choose another name.",
+									"Name duplicates with super class \"Piece\"", JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			};
@@ -778,12 +782,11 @@ public class ChessPiecePanel extends JPanel {
 						String codeToAdd = "tempPoint = p.getImmediateNextPointAt(Direction.***);\n"
 								+ "\t\tvalidMoves.add(tempPoint);\n";
 
-						String[] tempCode = new String[2];
-						tempCode[0] = codeEditor.getText().substring(0, caretPos);
-						tempCode[1] = codeEditor.getText().substring(caretPos);
+						try {
+							codeEditor.getStyledDocument().insertString(caretPos, codeToAdd, null);
+						} catch (BadLocationException e1) {
 
-						codeEditor.setText("" + tempCode[0] + codeToAdd + tempCode[1]);
-						codeEditor.setCaretPosition(caretPos + codeToAdd.length());
+						}
 					}
 				}
 			};
@@ -794,15 +797,15 @@ public class ChessPiecePanel extends JPanel {
 					PieceProfile profile = getSelectedProfile();
 					if (profile != null) {
 						int caretPos = codeEditor.getCaretPosition();
-						String codeToAdd = "dirs = new String[] {Direction.***, Direction.***, ...};\n"
-								+ "\t\tempPoint = p.getImmediateNextPointAt(dirs);\n" + "\t\tvalidMoves.add(tempPoint);\n";
+						String codeToAdd = "dirs = new Direction[] {Direction.***, Direction.***, ...};\n"
+								+ "\t\ttempPoint = p.getImmediateNextPointAt(dirs);\n"
+								+ "\t\tvalidMoves.add(tempPoint);\n";
 
-						String[] tempCode = new String[2];
-						tempCode[0] = codeEditor.getText().substring(0, caretPos);
-						tempCode[1] = codeEditor.getText().substring(caretPos);
+						try {
+							codeEditor.getStyledDocument().insertString(caretPos, codeToAdd, null);
+						} catch (BadLocationException e1) {
 
-						codeEditor.setText("" + tempCode[0] + codeToAdd + tempCode[1]);
-						codeEditor.setCaretPosition(caretPos + codeToAdd.length());
+						}
 					}
 				}
 			};
@@ -812,7 +815,17 @@ public class ChessPiecePanel extends JPanel {
 				public void actionPerformed(ActionEvent e) {
 					PieceProfile profile = getSelectedProfile();
 					if (profile != null) {
+						int caretPos = codeEditor.getCaretPosition();
+						String codeToAdd = "tempPointList = p.getPointsAlongDirection(Direction.***);\n"
+								+ "\t\tfor (int i = 0; i < tempPointList.size(); i++) {\n"
+								+ "\t\t\tvalidMoves.add(tempPointList.get(i));\n"
+								+ "\t\t}\n";
+						
+						try {
+							codeEditor.getStyledDocument().insertString(caretPos, codeToAdd, null);
+						} catch (BadLocationException e1) {
 
+						}
 					}
 				}
 			};
@@ -1156,7 +1169,7 @@ public class ChessPiecePanel extends JPanel {
 
 	public void addToPieceProfileList(PieceProfile profile) {
 		DefaultListModel<String> listModel = (DefaultListModel<String>) pieceClassNameList.getModel();
-		
+
 		boolean canAdd = true;
 		for (int i = 0; i < listModel.size(); i++) {
 			String s = listModel.getElementAt(i);
@@ -1165,7 +1178,7 @@ public class ChessPiecePanel extends JPanel {
 		}
 		if (canAdd)
 			listModel.addElement(profile.pieceClassName);
-		
+
 		pieceProfiles.add(profile);
 	}
 

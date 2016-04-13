@@ -93,7 +93,7 @@ public class PieceDataProducer {
 					+ pieceProfiles.get(j).playerSide.substring(1).toLowerCase();
 			if (j == 0) {
 				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2,
-						"if (pieceType.equals(\"" + pieceProfiles.get(j).pieceClassName
+						"if (pieceType.equalsIgnoreCase(\"" + pieceProfiles.get(j).pieceClassName
 								+ "\") && playerSide.equals(PlayerSide." + pieceProfiles.get(j).playerSide + "))");
 				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3,
 						"return new " + tempPlayerSide + tempPieceName + "(playerSide, localDir + \"" + picF.getName()
@@ -102,7 +102,7 @@ public class PieceDataProducer {
 								+ pieceProfiles.get(j).pieceClassName + "\"" + ");");
 			} else {
 				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 2 + addedLines,
-						"else if (pieceType.equals(\"" + pieceProfiles.get(j).pieceClassName
+						"else if (pieceType.equalsIgnoreCase(\"" + pieceProfiles.get(j).pieceClassName
 								+ "\") && playerSide.equals(PlayerSide." + pieceProfiles.get(j).playerSide + "))");
 				DataAndSettingCodeProducer.dataAndSettingCodes.add(i + 3 + addedLines,
 						"return new " + tempPlayerSide + tempPieceName + "(playerSide, localDir + \"" + picF.getName()

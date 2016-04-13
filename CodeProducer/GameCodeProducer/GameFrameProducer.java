@@ -1,16 +1,22 @@
 package Chreator.CodeProducer.GameCodeProducer;
 
+import java.util.ArrayList;
+
+import javax.swing.JRadioButton;
 import javax.swing.ListModel;
 
+import Chreator.ObjectModel.PieceProfile;
 import Chreator.UIModule.ProjectSettingPanel.GameType;
 
 public class GameFrameProducer {
 
-	ListModel playerSidesList;
+	ListModel<String> playerSidesList;
+	ArrayList<PieceProfile> profiles;
 	GameType type;
 
-	public GameFrameProducer(ListModel<String> playerSidesList, GameType type) {
+	public GameFrameProducer(ListModel<String> playerSidesList, ArrayList<PieceProfile> piecePorfiles, GameType type) {
 		this.playerSidesList = playerSidesList;
+		this.profiles = piecePorfiles;
 		this.type = type;
 	}
 
@@ -28,7 +34,7 @@ public class GameFrameProducer {
 		GameCodeProducer.gameCodes.add("import Executable.PieceModel.Piece;");
 		GameCodeProducer.gameCodes.add("import Executable.UIHandlerModel.UIHandler;");
 		GameCodeProducer.gameCodes.add("import Executable.ObjectModel.*;");
-		
+
 		if (type.equals(GameType.ADD_TYPE))
 			GameCodeProducer.gameCodes.add("// GameType: ADD_TYPE");
 		else if (type.equals(GameType.MOVE_TYPE))
@@ -197,8 +203,17 @@ public class GameFrameProducer {
 		for (int i = 0; i < playerSidesList.getSize(); i++) {
 			GameCodeProducer.gameCodes.add(
 					"String " + playerSidesList.getElementAt(i) + " = \"" + playerSidesList.getElementAt(i) + "\";");
-			GameCodeProducer.gameCodes.add("ui.infoPanelUpdatePlayerSideData(DataAndSetting.PieceData.PlayerSide."
-					+ playerSidesList.getElementAt(i) + ", " + playerSidesList.getElementAt(i) + ");");
+			GameCodeProducer.gameCodes.add(
+					"ui.infoPanelUpdatePlayerSideData(\"Player " + i + "\", " + playerSidesList.getElementAt(i) + ");");
+		}
+		for (int i = 0; i < profiles.size(); i++) {
+			if (!profiles.get(i).playerSide.equalsIgnoreCase(playerSidesList.getElementAt(0))) continue;
+			String buttonName = profiles.get(i).pieceClassName.toLowerCase() + "Button";
+			GameCodeProducer.gameCodes.add("JRadioButton " + buttonName + " = new JRadioButton(\""
+					+ profiles.get(i).pieceClassName.toLowerCase() + "\");");
+			GameCodeProducer.gameCodes.add(buttonName + ".setActionCommand(\""
+					+ profiles.get(i).pieceClassName.toLowerCase() + "\");");
+			GameCodeProducer.gameCodes.add("ui.infoPanelUpdateSystemInfoData(" + buttonName + ");");
 		}
 		GameCodeProducer.gameCodes.add("}");
 

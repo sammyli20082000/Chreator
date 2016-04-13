@@ -68,10 +68,9 @@ public class ProjectSettingPanel extends JPanel {
 			return new String[] { XIANGQI.string };
 		}
 	}
-	
+
 	public static enum GameType {
-		ADD_TYPE,
-		MOVE_TYPE;
+		ADD_TYPE, MOVE_TYPE;
 	}
 
 	public class FontDropDownMenuRenderer extends DefaultListCellRenderer {
@@ -242,8 +241,8 @@ public class ProjectSettingPanel extends JPanel {
 		templateDropDownMenu.setEditable(false);
 		fromTemplateRadio.setSelected(true);
 
-//		newProjectButtonGroup.add(customProjectRadio);
-//		newProjectButtonGroup.add(fromTemplateRadio);
+		// newProjectButtonGroup.add(customProjectRadio);
+		// newProjectButtonGroup.add(fromTemplateRadio);
 		newProjectButtonGroup.add(addTypeRadio);
 		newProjectButtonGroup.add(moveTypeRadio);
 		newProjectButtonGroup.add(addMoveTypeRadio);
@@ -256,22 +255,22 @@ public class ProjectSettingPanel extends JPanel {
 		c2.weightx = 1.0;
 		c2.gridwidth = 2;
 		c2.fill = GridBagConstraints.HORIZONTAL;
-//		newProjectPanel.add(createSpaceLabel(), c1);
-//		newProjectPanel.add(customProjectRadio, c2);
+		// newProjectPanel.add(createSpaceLabel(), c1);
+		// newProjectPanel.add(customProjectRadio, c2);
 
 		c1.gridy++;
 		c2.gridy++;
-//		newProjectPanel.add(createSpaceLabel(), c1);
-//		newProjectPanel.add(fromTemplateRadio, c2);
+		// newProjectPanel.add(createSpaceLabel(), c1);
+		// newProjectPanel.add(fromTemplateRadio, c2);
 
 		c1.gridy++;
 		c2.gridy++;
-//		newProjectPanel.add(createSpaceLabel(), c1);
+		// newProjectPanel.add(createSpaceLabel(), c1);
 		c1.gridx++;
 		c2.gridx++;
 		c2.gridwidth--;
-//		newProjectPanel.add(createSpaceLabel(), c1);
-//		newProjectPanel.add(templateDropDownMenu, c2);
+		// newProjectPanel.add(createSpaceLabel(), c1);
+		// newProjectPanel.add(templateDropDownMenu, c2);
 		c1.gridx--;
 		c2.gridx--;
 		c2.gridwidth++;
@@ -396,6 +395,13 @@ public class ProjectSettingPanel extends JPanel {
 			return new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
+					if (!addTypeRadio.isSelected() && !moveTypeRadio.isSelected() && !addMoveTypeRadio.isSelected()
+							&& newProjectRadio.isSelected()) {
+						JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
+								"Please select at least one chess type.", "Game type not selected",
+								JOptionPane.ERROR_MESSAGE);
+						return;
+					}
 					executeProjectSettings();
 				}
 			};
@@ -518,8 +524,7 @@ public class ProjectSettingPanel extends JPanel {
 					addTypeRadio.setSelected(false);
 				}
 			};
-		}
-		else
+		} else
 			return null;
 	}
 
@@ -568,6 +573,7 @@ public class ProjectSettingPanel extends JPanel {
 
 	private boolean loaded = false;
 	private String oldLocation = "";
+
 	private void executeProjectSettings() {
 		if (newProjectRadio.isSelected()) {
 			if (projectFolderNameInputField.getText().equals(""))
@@ -595,7 +601,7 @@ public class ProjectSettingPanel extends JPanel {
 		} else if (openProjectRadio.isSelected()) {
 			UIHandler uiHandler = UIHandler.getInstance(null);
 			uiHandler.onLoadNewAllElements();
-			
+
 			CodeLoader codeLoader = new CodeLoader(locationInputField.getText());
 			if (CodeLoader.baseDir.equals("")) {
 				return;
@@ -607,7 +613,7 @@ public class ProjectSettingPanel extends JPanel {
 				return;
 			}
 		}
-		
+
 		CodeLoader.baseDir = "";
 
 		File file = new File(locationInputField.getText());
@@ -666,7 +672,7 @@ public class ProjectSettingPanel extends JPanel {
 	public void setFontSizeOfCodeEditors(int size) {
 		codeEditorFontSizeTextField.setText(size + "");
 	}
-	
+
 	public GameType getGameTypeSelected() {
 		if (addTypeRadio.isSelected())
 			return GameType.ADD_TYPE;

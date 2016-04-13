@@ -108,7 +108,10 @@ public class HandleUIEventCallBackProducer {
 			codes.add("if (selectedPoint != null && selectedPoint.getPiece() == null) {");
 			
 			codes.add("// add piece");
-			codes.add("");
+			codes.add("Piece newPiece = DataAndSetting.PieceData.makeStandardPiece(ui.getSelectedPiece(), currentSide);");
+			codes.add("selectedPiece = newPiece;");
+			codes.add("currPieces.add(newPiece);");
+			codes.add("selectedPoint.setPiece(selectedPiece);");
 			
 			codes.add("// change side");
 			codes.add("currentSide = sides.get((sides.indexOf(currentSide) + 1) % sides.size());");
@@ -119,6 +122,8 @@ public class HandleUIEventCallBackProducer {
 			codes.add("// reset point and piece");
 			codes.add("selectedPiece = null;");
 			codes.add("selectedPoint = null;");
+			
+			codes.add("ui.refreshWindow();");
 			
 			codes.add("}");
 		}

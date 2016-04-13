@@ -94,6 +94,21 @@ public class PointCodeProducer {
 		BoardModelProducer.pointCodes.add("return point;");
 		BoardModelProducer.pointCodes.add("}");
 		
+		BoardModelProducer.pointCodes.add("public ArrayList<Point> getPointsAlongDirection(Edge.Direction dir) {");
+		BoardModelProducer.pointCodes.add("Point point = this;");
+		BoardModelProducer.pointCodes.add("ArrayList<Point> points = new ArrayList<>();");
+		BoardModelProducer.pointCodes.add("for (;;) {");
+ 		BoardModelProducer.pointCodes.add("try {");
+		BoardModelProducer.pointCodes.add("point = point.getImmediateNextPointAt(dir);");
+		BoardModelProducer.pointCodes.add("if (point == null) break;");
+		BoardModelProducer.pointCodes.add("points.add(point);");
+		BoardModelProducer.pointCodes.add("} catch (Exception e) {");
+		BoardModelProducer.pointCodes.add("break;");
+		BoardModelProducer.pointCodes.add("}");
+		BoardModelProducer.pointCodes.add("}");
+		BoardModelProducer.pointCodes.add("return points;");
+		BoardModelProducer.pointCodes.add("}");
+		
 		// TODO: add more functions facilitating points selections
 		
 		BoardModelProducer.pointCodes.add("public ArrayList<Point> getPieceInsideMovable() {");

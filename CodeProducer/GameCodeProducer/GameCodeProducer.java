@@ -6,12 +6,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.ListModel;
 
 import Chreator.CodeProducer.CodeProducer;
+import Chreator.ObjectModel.PieceProfile;
 import Chreator.UIModule.ProjectSettingPanel.GameType;
 
 public class GameCodeProducer {
@@ -22,10 +24,10 @@ public class GameCodeProducer {
 	HandleFileEventCallBackProducer handleFileEventCallBackProducer;
 	ComputerMakeMoveCodeProducer computerMakeMoveCodeProducer;
 
-	public GameCodeProducer(ListModel<String> playerSidesList, GameType type) {
+	public GameCodeProducer(ListModel<String> playerSidesList, ArrayList<PieceProfile> piecePorfiles, GameType type) {
 		file = new File(CodeProducer.baseDir + "\\Game.java");
 		gameCodes = new LinkedList<>();
-		gameFrameProducer = new GameFrameProducer(playerSidesList, type);
+		gameFrameProducer = new GameFrameProducer(playerSidesList, piecePorfiles, type);
 		handleUIEventCallBackProducer  = new HandleUIEventCallBackProducer(playerSidesList, type);
 		computerMakeMoveCodeProducer = new ComputerMakeMoveCodeProducer();
 		handleFileEventCallBackProducer = new HandleFileEventCallBackProducer();

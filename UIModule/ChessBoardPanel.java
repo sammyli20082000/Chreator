@@ -724,7 +724,7 @@ public class ChessBoardPanel extends JPanel {
 	}
 
 	public String getBoardImage() {
-		if (imageFromFileRadio.isSelected()) {
+		if (imageFromFileRadio.isSelected() && imageFile != null) {
 			File boardPicF = new File("board.png");
 			try {
 				FolderCopyer.copyFolder(imageFile, boardPicF);

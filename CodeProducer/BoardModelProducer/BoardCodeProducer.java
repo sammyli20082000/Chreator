@@ -75,7 +75,10 @@ public class BoardCodeProducer {
 		BoardModelProducer.boardCodes.add("}");
 		
 		BoardModelProducer.boardCodes.add("public String getMoveString(Piece piece, Point fromPoint, Point toPoint) {");
+		BoardModelProducer.boardCodes.add("if (toPoint == null)");
 		BoardModelProducer.boardCodes.add("return piece.getName() + \" from \" + fromPoint.getId() + \" to \" + toPoint.getId();");
+		BoardModelProducer.boardCodes.add("else");
+		BoardModelProducer.boardCodes.add("return piece.getName() + \" added to \" + fromPoint.getId();");
 		BoardModelProducer.boardCodes.add("}");
 		
 		BoardModelProducer.boardCodes.add("public ArrayList<Move> generateAllValidMoves(String side) {");

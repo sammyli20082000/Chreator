@@ -45,13 +45,15 @@ public class CodeProducer {
 		boardModelCodeProducer = new BoardModelProducer(edgeDirectionList);
 		dataAndSettingCodeProducer = new DataAndSettingCodeProducer(arrayList, playerSidesList, piecePorfiles, boardImageLink);
 		pieceModelProducer = new PieceModelProducer(piecePorfiles);
-		gameCodeProducer = new GameCodeProducer(playerSidesList, type);
+		gameCodeProducer = new GameCodeProducer(playerSidesList, piecePorfiles, type);
 	}
 
 	public void produceExecutable() throws Exception {
 		File file = new File(baseDir);
 		if (!file.exists()) {
 			file.mkdirs();
+		} else {
+			file.setWritable(true);
 		}
 
 		File picF = new File(pathname + "\\pic");

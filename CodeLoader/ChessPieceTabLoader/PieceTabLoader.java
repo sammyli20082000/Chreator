@@ -75,11 +75,17 @@ public class PieceTabLoader {
 
 		for (PieceProfile profile : pieceProfiles) {
 			for (int i = 0; i < initPointId.length; i++) {
+				System.out.println(initPointId[i]);
 				String[] temp = initPointId[i].split("\"");
 
-				if (temp.length > 1 && temp[1].contains(profile.pieceClassName.toLowerCase())
-						&& temp[2].substring(11).contains(profile.playerSide)) {
-					profile.initialPointId.addElement(CodeLoader.stripNonDigits(temp[0]));
+				if (temp.length > 1) {
+					System.out.println(profile.pieceClassName.toLowerCase());
+					if (temp[1].toLowerCase().contains(profile.pieceClassName.toLowerCase())
+							&& temp[2].substring(11).contains(profile.playerSide)) {
+						System.out.println(temp[1]);
+						System.out.println(temp[2]);
+						profile.initialPointId.addElement(CodeLoader.stripNonDigits(temp[0]));
+					}
 				}
 			}
 
