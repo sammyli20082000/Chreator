@@ -2,6 +2,7 @@ package Chreator.UIModule;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -148,6 +149,10 @@ public class UIHandler {
 		return chessBoardPanel.getPointList();
 	}
 
+	public ArrayList<PieceProfile> getChessPieceProfile() {
+		return chessPiecePanel.getPieceProfiles();
+	}
+
 	public ArrayList<PieceProfile> getChessPieceProfiles() {
 		return chessPiecePanel.getPieceProfiles();
 	}
@@ -207,7 +212,7 @@ public class UIHandler {
 	public void addPieceProfile(PieceProfile profile) {
 		chessPiecePanel.addToPieceProfileList(profile);
 	}
-	
+
 	public void setGameType(GameType type) {
 		projectSettingPanel.setGameType(type);
 	}
@@ -234,8 +239,16 @@ public class UIHandler {
 
 			tabPane.setSelectedIndex(0);
 			mainWindow.add(tabPane);
-			
+
 			mainWindow.setVisible(true);
 		}
+	}
+
+	public ArrayList<PieceProfile> getPieceProfiles() {
+		return chessPiecePanel.getPieceProfiles();
+	}
+
+	public Font getCodeEditorsSharedFont(){
+		return SimpleCodeEditor.getFontForAllEditors();
 	}
 }

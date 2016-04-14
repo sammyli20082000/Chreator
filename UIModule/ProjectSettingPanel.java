@@ -2,6 +2,7 @@ package Chreator.UIModule;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
@@ -50,7 +51,7 @@ public class ProjectSettingPanel extends JPanel {
 	public interface EventCallback {
 		public boolean onSetJDKLocation(String JDKLocation);
 
-		public void onRunGameExecutable(String projectLocation);
+		public void onRunGameExecutable(Component component, String projectLocation, Font font, Dimension windowSize);
 
 		public void onCompileProject(String projectLocation, ProjectCompiler.AsyncCompilationCallBack callback);
 	}
@@ -106,8 +107,8 @@ public class ProjectSettingPanel extends JPanel {
 		setLayout(new GridBagLayout());
 		setBackground(Color.DARK_GRAY);
 		setupLayout();
-		setFontSizeOfCodeEditors(codeEditorFontSizeTextField.getFont().getSize());
-		setFontOfCodeEditors(codeEditorFontSizeTextField.getFont().getName());
+		setFontOfCodeEditors("Consolas");
+		setFontSizeOfCodeEditors(15);
 	}
 
 	private void setupLayout() {
@@ -388,7 +389,9 @@ public class ProjectSettingPanel extends JPanel {
 				public void actionPerformed(ActionEvent e) {
 					File dir = new File(locationInputField.getText()),
 							proj = new File(projectFolderNameInputField.getText());
-					callback.onRunGameExecutable(new File(dir.getAbsolutePath() + "/" + proj).getAbsolutePath());
+					callback.onRunGameExecutable(UIHandler.getMainWindow(), new File(dir.getAbsolutePath() + "/" + proj).getAbsolutePath(),
+							SimpleCodeEditor.getFontForAllEditors(),
+							new Dimension(UIHandler.getScreenResolution().width / 2, UIHandler.getScreenResolution().height / 2));
 				}
 			};
 		else if (jb == executeSettingButton)
@@ -634,7 +637,7 @@ public class ProjectSettingPanel extends JPanel {
 	}
 
 	private boolean isFolderNameValid(String dir) {
-		String[] banned = { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
+		String[] banned = {"\\", "/", ":", "*", "?", "\"", "<", ">", "|"};
 		for (String s : banned)
 			if (dir.contains(s))
 				return false;
@@ -662,10 +665,11 @@ public class ProjectSettingPanel extends JPanel {
 			 * "start position ----> " + diagnostic.getStartPosition() + "\n" +
 			 * "<---------->"; } System.out.println(msg);
 			 */
-			JOptionPane.showMessageDialog(UIHandler.getMainWindow(),
-					"<html>Compilation failed:<br>"
-							+ (errorList == null ? "Error happened with the compiler" : errorList),
-					"Compilation failed - Chreator", JOptionPane.ERROR_MESSAGE);
+			ProjectCompiler.LogWindow logWindow = new ProjectCompiler.LogWindow(UIHandler.getMainWindow(),
+					"Compilation failed - Chreator", SimpleCodeEditor.getFontForAllEditors(),
+					new Dimension(UIHandler.getScreenResolution().width / 2, UIHandler.getScreenResolution().height / 2)
+			);
+			logWindow.pushLog("Compilation failed:\n" + (errorList == null ? "Error happened with the compiler" : errorList));
 		}
 	}
 

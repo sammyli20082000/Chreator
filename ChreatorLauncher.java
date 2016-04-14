@@ -1,5 +1,8 @@
 package Chreator;
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,8 +44,8 @@ public class ChreatorLauncher {
             }
 
             @Override
-            public void onRunGameExecutable(String projectLocation) {
-                ProjectCompiler.startGameExecutable(new File(projectLocation).getAbsolutePath() + "/" + binaryFolder);
+            public void onRunGameExecutable(Component component, String projectLocation, Font font, Dimension windowSize) {
+                ProjectCompiler.startGameExecutable(component, new File(projectLocation).getAbsolutePath() + "/" + binaryFolder, font, windowSize);
             }
 
             @Override

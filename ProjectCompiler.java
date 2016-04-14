@@ -1,28 +1,171 @@
 package Chreator;
 
-import com.sun.jndi.toolkit.url.Uri;
-
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import Chreator.UIModule.UIUtility;
+
 public abstract class ProjectCompiler {
+
     public interface AsyncCompilationCallBack {
         public void onCompilationFinished(boolean result);
+    }
+
+    public static class LogWindow extends JFrame {
+        private ArrayList<String> logs = new ArrayList<String>(), queue;
+        private Font font;
+        private JScrollBar verticalBar;
+        private JTextArea showLogPanel;
+        private boolean pushed = false, modified = false, setTextByProgram = false;
+        private Thread updateThread;
+        private JScrollPane scrollPane;
+        private JPanel logPanel;
+
+        public LogWindow(Component component, String title, Font font, Dimension windowSize) {
+            setTitle(title);
+            logPanel = new JPanel(new BorderLayout());
+
+            addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    super.componentResized(e);
+                    updateContent();
+                }
+            });
+
+            this.font = font;
+
+            verticalBar = new JScrollBar(JScrollBar.VERTICAL, 0, 0, 0, 0);
+            verticalBar.addAdjustmentListener(new AdjustmentListener() {
+                @Override
+                public void adjustmentValueChanged(AdjustmentEvent e) {
+                    updateContent();
+                }
+            });
+
+            showLogPanel = new JTextArea();
+            showLogPanel.setBackground(Color.BLACK);
+            showLogPanel.setForeground(Color.WHITE);
+            showLogPanel.setFont(font);
+            showLogPanel.setFocusable(false);
+            showLogPanel.addMouseWheelListener(new MouseWheelListener() {
+                @Override
+                public void mouseWheelMoved(MouseWheelEvent e) {
+                    int value = verticalBar.getValue() + e.getScrollAmount() * e.getWheelRotation();
+                    if (value < verticalBar.getMinimum()) value = verticalBar.getMinimum();
+                    if (value > verticalBar.getMaximum()) value = verticalBar.getMaximum();
+                    verticalBar.setValue(value);
+                    updateContent();
+                }
+            });
+            scrollPane = new JScrollPane(showLogPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+            logPanel.add(scrollPane, BorderLayout.CENTER);
+            logPanel.add(verticalBar, BorderLayout.LINE_END);
+
+            add(logPanel);
+            setSize(windowSize);
+            setLocationRelativeTo(component);
+            setVisible(true);
+        }
+
+        private void updateContent() {
+            modified = true;
+            if (updateThread == null || !updateThread.isAlive()) {
+                updateThread = new Thread() {
+                    public void run() {
+                        while (modified) {
+                            modified = false;
+                            boolean getData = pushed;
+                            pushed = false;
+                            Graphics g = showLogPanel.getGraphics();
+                            int numRowCanShow =
+                                    (scrollPane.getHeight() -
+                                            scrollPane.getHorizontalScrollBar()
+                                                    .getHeight()) /
+                                            (g != null ? g.getFontMetrics(font).getHeight() : font.getSize());
+
+                            if (getData) {
+                                ArrayList<String> backup = queue;
+                                queue = null;
+                                if (backup != null) {
+                                    long start = System.nanoTime();
+                                    for (String s : backup) {
+                                        logs.add(s);
+                                        if (logs.size() > 262144) logs.remove(0);
+                                        if (System.nanoTime() - start > 25000000) {
+                                            logs.add("[Too much output to process... Skipped " + backup.size() + " outputs]");
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            verticalBar.setMaximum(logs.size() - numRowCanShow < 0 ? 0 : logs.size() - numRowCanShow);
+                            if (getData) verticalBar.setValue(verticalBar.getMaximum());
+
+                            String msg = "";
+                            for (int i = verticalBar.getValue(); i < logs.size() && i - verticalBar.getValue() < numRowCanShow; i++)
+                                msg += logs.get(i) + "\n";
+                            setTextByProgram = true;
+                            showLogPanel.setText(msg);
+                            setTextByProgram = false;
+                        }
+                    }
+                };
+                updateThread.start();
+            }
+        }
+
+        synchronized public void pushLog(String line) {
+            if (queue == null) queue = new ArrayList<String>();
+            if (line == null)
+                queue.add("null");
+            else {
+                ArrayList<String> choppedLines = UIUtility.splitStringAfterCondition(line, UIUtility.JavaLineTerminator),
+                        filteredLines = new ArrayList<String>();
+                for (String s : choppedLines) {
+                    for (String terminator : UIUtility.JavaLineTerminator)
+                        s = s.replace(terminator, "");
+                    filteredLines.add(s);
+                }
+                for (String s : filteredLines)
+                    queue.add(s);
+
+            }
+            pushed = true;
+            updateContent();
+        }
     }
 
     private static List<Diagnostic<? extends JavaFileObject>> errorMessageList;
@@ -133,17 +276,30 @@ public abstract class ProjectCompiler {
             return true;
     }
 
-    public static void startGameExecutable(String gameBinDirectory) {
+    public static void startGameExecutable(Component component, String gameBinDirectory, Font font, Dimension windowSize) {
         try {
             Process process = new ProcessBuilder("java", "-cp", gameBinDirectory, "Executable.Game").start();
+
+            final LogWindow processOutputWindow = new LogWindow(component, "java -cp " + gameBinDirectory + " Executable.Game", font, windowSize);
+            processOutputWindow.addWindowListener(new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {
+                    if (process.isAlive()) process.destroyForcibly();
+                }
+            });
+
             new Thread() {
                 public void run() {
                     BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                     String line;
                     try {
-                        while (process.isAlive() && (line = err.readLine()) != null)
-                            System.out.println("exe err| " + line);
+                        while ((line = err.readLine()) != null)
+                            processOutputWindow.pushLog(line);
+                        while (process.isAlive()) {
+                            sleep(250);
+                        }
+                        processOutputWindow.pushLog("Process terminated with exit code " + process.exitValue());
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }.start();
@@ -153,8 +309,9 @@ public abstract class ProjectCompiler {
                     String line;
                     try {
                         while (process.isAlive() && (line = in.readLine()) != null)
-                            System.out.println("exe out| " + line);
+                            processOutputWindow.pushLog(line);
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }.start();
