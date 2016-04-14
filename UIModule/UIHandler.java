@@ -27,6 +27,7 @@ import Chreator.CodeProducer.CodeProducer;
 import Chreator.ObjectModel.PieceProfile;
 import Chreator.ObjectModel.Point;
 import Chreator.ObjectModel.Point.InfoPack;
+import Chreator.UIModule.ProjectSettingPanel.GameType;
 
 /**
  * Created by him on 2015/12/20.
@@ -205,6 +206,10 @@ public class UIHandler {
 
 	public void addPieceProfile(PieceProfile profile) {
 		chessPiecePanel.addToPieceProfileList(profile);
+	}
+	
+	public void setGameType(GameType type) {
+		projectSettingPanel.setGameType(type);
 	}
 
 	public void onLoadNewAllElements() {

@@ -70,7 +70,7 @@ public class ProjectSettingPanel extends JPanel {
 	}
 
 	public static enum GameType {
-		ADD_TYPE, MOVE_TYPE;
+		ADD_TYPE, MOVE_TYPE, ADD_MOVE_TYPE;
 	}
 
 	public class FontDropDownMenuRenderer extends DefaultListCellRenderer {
@@ -612,6 +612,15 @@ public class ProjectSettingPanel extends JPanel {
 			} catch (IOException e) {
 				return;
 			}
+			
+			JOptionPane.showMessageDialog(null, "Loading finished.");
+			newProjectRadio.doClick();
+			
+			String temp = locationInputField.getText();
+			locationInputField.setText(temp.substring(0, temp.lastIndexOf("\\")));
+			
+			projectFolderNameInputField.setText(temp.substring(temp.lastIndexOf("\\")+1));
+			executeSettingButton.setText("Execute Setting");
 		}
 
 		CodeLoader.baseDir = "";
@@ -672,12 +681,23 @@ public class ProjectSettingPanel extends JPanel {
 	public void setFontSizeOfCodeEditors(int size) {
 		codeEditorFontSizeTextField.setText(size + "");
 	}
+	
+	public void setGameType(GameType type) {
+		if (type.equals(GameType.ADD_TYPE))
+			addTypeRadio.setSelected(true);
+		else if (type.equals(GameType.MOVE_TYPE))
+			moveTypeRadio.setSelected(true);
+		else if (type.equals(GameType.ADD_MOVE_TYPE))
+			addMoveTypeRadio.setSelected(true);
+	}
 
 	public GameType getGameTypeSelected() {
 		if (addTypeRadio.isSelected())
 			return GameType.ADD_TYPE;
 		else if (moveTypeRadio.isSelected())
 			return GameType.MOVE_TYPE;
+		else if (addMoveTypeRadio.isSelected())
+			return GameType.ADD_MOVE_TYPE;
 		else
 			return null;
 	}

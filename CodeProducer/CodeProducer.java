@@ -48,7 +48,7 @@ public class CodeProducer {
 		gameCodeProducer = new GameCodeProducer(playerSidesList, piecePorfiles, type);
 	}
 
-	public void produceExecutable() throws Exception {
+	public void produceExecutable() throws IOException {
 		File file = new File(baseDir);
 		if (!file.exists()) {
 			file.mkdirs();

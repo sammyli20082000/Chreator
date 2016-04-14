@@ -8,10 +8,12 @@ import javax.swing.JOptionPane;
 
 import Chreator.CodeLoader.ChessBoardTabLoader.BoardTabLoader;
 import Chreator.CodeLoader.ChessPieceTabLoader.PieceTabLoader;
+import Chreator.CodeLoader.ProjectSettingTabLoader.SettingTabLoader;
 
 public class CodeLoader {
 	public static String baseDir = "";
 
+	SettingTabLoader settingTabLoader;
 	BoardTabLoader boardTabLoader;
 	PieceTabLoader pieceTabLoader;
 
@@ -32,6 +34,7 @@ public class CodeLoader {
 
 		boardTabLoader = new BoardTabLoader();
 		pieceTabLoader = new PieceTabLoader();
+		settingTabLoader = new SettingTabLoader();
 	}
 
 	public static String stripNonDigits(final CharSequence input) {
@@ -49,6 +52,7 @@ public class CodeLoader {
 
 	public void loadCodeIntoChreator() throws FileNotFoundException, IOException {
 		if (!baseDir.equals("")) {
+			settingTabLoader.loadToProjectSettingTab();
 			boardTabLoader.loadToChreatorBoardTab();
 			pieceTabLoader.loadToChessPieceTab();
 		}

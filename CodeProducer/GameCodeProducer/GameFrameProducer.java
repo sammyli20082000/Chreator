@@ -39,6 +39,8 @@ public class GameFrameProducer {
 			GameCodeProducer.gameCodes.add("// GameType: ADD_TYPE");
 		else if (type.equals(GameType.MOVE_TYPE))
 			GameCodeProducer.gameCodes.add("// GameType: MOVE_TYPE");
+		else if (type.equals(GameType.ADD_MOVE_TYPE))
+			GameCodeProducer.gameCodes.add("// GameType: ADD_MOVE_TYPE");
 
 		GameCodeProducer.gameCodes.add("public class Game implements Serializable {");
 

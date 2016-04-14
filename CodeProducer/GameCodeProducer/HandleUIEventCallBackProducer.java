@@ -31,6 +31,7 @@ public class HandleUIEventCallBackProducer {
 		GameCodeProducer.gameCodes.add(++j, "public void onCancelMovement() {");
 		GameCodeProducer.gameCodes.add(++j, "selectedPiece = null;");
 		GameCodeProducer.gameCodes.add(++j, "selectedPoint = null;");
+		GameCodeProducer.gameCodes.add(++j, "ui.refreshWindow();");
 		GameCodeProducer.gameCodes.add(++j, "}");
 
 		GameCodeProducer.gameCodes.add(++j, "@Override");
@@ -104,7 +105,7 @@ public class HandleUIEventCallBackProducer {
 
 	private ArrayList<String> printOnConfirmMovementCode() {
 		ArrayList<String> codes = new ArrayList<>();
-		if (type.equals(GameType.ADD_TYPE)) {
+		if (type.equals(GameType.ADD_TYPE) || type.equals(GameType.ADD_MOVE_TYPE)) {
 			codes.add("if (selectedPoint != null && selectedPoint.getPiece() == null) {");
 			
 			codes.add("// add piece");
@@ -132,7 +133,7 @@ public class HandleUIEventCallBackProducer {
 
 	private ArrayList<String> printOnPointSelectedCode() {
 		ArrayList<String> codes = new ArrayList<>();
-		if (type.equals(GameType.MOVE_TYPE)) {
+		if (type.equals(GameType.MOVE_TYPE) || type.equals(GameType.ADD_MOVE_TYPE)) {
 			codes.add("if (selectedPiece != null && point != null) {");
 			codes.add("if (board.getSelectedPieceMovable().contains(point)) {");
 			codes.add("// move");
@@ -164,7 +165,7 @@ public class HandleUIEventCallBackProducer {
 	private ArrayList<String> printOnPieceOnPointSelectedCode() {
 		ArrayList<String> codes = new ArrayList<>();
 
-		if (type.equals(GameType.MOVE_TYPE)) {
+		if (type.equals(GameType.MOVE_TYPE) || type.equals(GameType.ADD_MOVE_TYPE)) {
 			codes.add("if (selectedPiece != null && board.getSelectedPieceMovable().contains(point)) {");
 			codes.add("// capture");
 			codes.add("board.capture(selectedPiece, selectedPoint, point);");
