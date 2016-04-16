@@ -1,15 +1,21 @@
 package Chreator.CodeProducer;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import javax.swing.JOptionPane;
 import javax.swing.ListModel;
 
+import Chreator.ChreatorLauncher;
 import Chreator.CodeProducer.BoardModelProducer.BoardModelProducer;
 import Chreator.CodeProducer.DataAndSettingCodeProducer.DataAndSettingCodeProducer;
 import Chreator.CodeProducer.GameCodeProducer.GameCodeProducer;
@@ -43,7 +49,8 @@ public class CodeProducer {
 			baseDir = pathname + "\\" + folderName + "\\src\\Executable";
 		}
 		boardModelCodeProducer = new BoardModelProducer(edgeDirectionList);
-		dataAndSettingCodeProducer = new DataAndSettingCodeProducer(arrayList, playerSidesList, piecePorfiles, boardImageLink);
+		dataAndSettingCodeProducer = new DataAndSettingCodeProducer(arrayList, playerSidesList, piecePorfiles,
+				boardImageLink);
 		pieceModelProducer = new PieceModelProducer(piecePorfiles);
 		gameCodeProducer = new GameCodeProducer(playerSidesList, piecePorfiles, type);
 	}
@@ -66,16 +73,47 @@ public class CodeProducer {
 		pieceModelProducer.producePieceModel();
 		gameCodeProducer.produceGameJava();
 
-		File uiHandlerModelFile = new File("UIHandlerModel");
-		File uiFile = new File(baseDir + "\\UIHandlerModel");
-		FolderCopyer.copyFolder(uiHandlerModelFile, uiFile);
+		JarFile jar = new JarFile(ChreatorLauncher.class.getProtectionDomain().getCodeSource().getLocation().getPath());
 
-		File fileHandlerModelFile = new File("FileHandlerModel");
-		File fFile = new File(baseDir + "\\FileHandlerModel");
-		FolderCopyer.copyFolder(fileHandlerModelFile, fFile);
+		Enumeration<JarEntry> enumEntries = jar.entries();
 
-		File objectModelFile = new File("ObjectModel");
-		File omFile = new File(baseDir + "\\ObjectModel");
-		FolderCopyer.copyFolder(objectModelFile, omFile);
+		while (enumEntries.hasMoreElements()) {
+
+			JarEntry entry = (JarEntry) enumEntries.nextElement();
+			// JOptionPane.showMessageDialog(null, entry.getName());
+			File uiFile = new File(baseDir + "\\" + entry.getName());
+
+			if (entry.getName().startsWith("UIHandlerModel") || entry.getName().startsWith("FileHandlerModel")
+					|| entry.getName().startsWith("ObjectModel") || entry.getName().startsWith("SocketConnection")) {
+				if (entry.isDirectory()) {
+					uiFile.mkdir();
+					continue;
+				}
+
+				InputStream is = jar.getInputStream(entry);
+				FileOutputStream fos = new FileOutputStream(uiFile);
+				while (is.available() > 0) {
+					fos.write(is.read());
+				}
+				fos.close();
+				is.close();
+			}
+		}
+
+//		File uiHandlerModelFile = new File("UIHandlerModel");
+//		File uiFile = new File(baseDir + "\\UIHandlerModel");
+//		FolderCopyer.copyFolder(uiHandlerModelFile, uiFile);
+//
+//		File fileHandlerModelFile = new File("FileHandlerModel");
+//		File fFile = new File(baseDir + "\\FileHandlerModel");
+//		FolderCopyer.copyFolder(fileHandlerModelFile, fFile);
+//
+//		File objectModelFile = new File("ObjectModel");
+//		File omFile = new File(baseDir + "\\ObjectModel");
+//		FolderCopyer.copyFolder(objectModelFile, omFile);
+//		
+//		File socketConnectionFile = new File("SocketConnection");
+//		File scFile = new File(baseDir + "\\SocketConnection");
+//		FolderCopyer.copyFolder(socketConnectionFile, scFile);
 	}
 }

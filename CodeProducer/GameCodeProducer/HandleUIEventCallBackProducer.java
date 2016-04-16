@@ -118,7 +118,11 @@ public class HandleUIEventCallBackProducer {
 			codes.add("currentSide = sides.get((sides.indexOf(currentSide) + 1) % sides.size());");
 			
 			codes.add("// update move history and status bar");
-			codes.add("updateUIMoveHistoryAndStatusBar(selectedPoint);");
+			codes.add("Move move = new Move(selectedPiece.getName(), selectedPoint.getId());");
+			codes.add("updateUIMoveHistoryAndStatusBar(move);");
+			
+			codes.add("if (server != null) server.sendMove(move);");
+			codes.add("else if (client!= null) client.sendMove(move);");
 			
 			codes.add("// reset point and piece");
 			codes.add("selectedPiece = null;");
@@ -143,8 +147,12 @@ public class HandleUIEventCallBackProducer {
 			codes.add("currentSide = sides.get((sides.indexOf(currentSide) + 1) % sides.size());");
 
 			codes.add("// update move history and status bar");
-			codes.add("updateUIMoveHistoryAndStatusBar(point);");
+			codes.add("Move move = Move.transformingMove(point.getPiece().getName(), selectedPoint.getId(), point.getId());");
+			codes.add("updateUIMoveHistoryAndStatusBar(move);");
 
+			codes.add("if (server != null) server.sendMove(move);");
+			codes.add("else if (client!= null) client.sendMove(move);");
+			
 			codes.add("// reset point and piece");
 			codes.add("selectedPiece = null;");
 			codes.add("selectedPoint = null;");
@@ -174,13 +182,17 @@ public class HandleUIEventCallBackProducer {
 			codes.add("currentSide = sides.get((sides.indexOf(currentSide) + 1) % sides.size());");
 
 			codes.add("// update move history and status bar");
-			codes.add("updateUIMoveHistoryAndStatusBar(point);");
+			codes.add("Move move = Move.transformingMove(point.getPiece().getName(), selectedPoint.getId(), point.getId());");
+			codes.add("updateUIMoveHistoryAndStatusBar(move);");
 
+			codes.add("if (server != null) server.sendMove(move);");
+			codes.add("else if (client!= null) client.sendMove(move);");
+			
 			codes.add("// reset point and piece");
 			codes.add("selectedPiece = null;");
 			codes.add("selectedPoint = null;");
 			codes.add("} else {");
-			codes.add("if (point.getPiece().getSide() == currentSide) {");
+			codes.add("if (point.getPiece().getSide().equals(currentSide)) {");
 			codes.add("board.updateSelectedPieceMovable(point, currentSide);");
 			codes.add("selectedPiece = point.getPiece();");
 			codes.add("selectedPoint = point;");

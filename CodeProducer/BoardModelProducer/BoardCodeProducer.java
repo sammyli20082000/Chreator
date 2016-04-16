@@ -63,7 +63,6 @@ public class BoardCodeProducer {
 		BoardModelProducer.boardCodes.add("return selectedPieceMovable;");
 		BoardModelProducer.boardCodes.add("}");
 		
-		// TODO: select function added to Board.java according chess type selected on board setting tab
 		BoardModelProducer.boardCodes.add("public void capture(Piece piece, Point fromPoint, Point toPoint) {");
 		BoardModelProducer.boardCodes.add("toPoint.setPiece(piece);");
 		BoardModelProducer.boardCodes.add("fromPoint.setPiece(null);");
@@ -81,13 +80,21 @@ public class BoardCodeProducer {
 		BoardModelProducer.boardCodes.add("return piece.getName() + \" added to \" + fromPoint.getId();");
 		BoardModelProducer.boardCodes.add("}");
 		
+		BoardModelProducer.boardCodes.add("public String getMoveString(Move move) {");
+		BoardModelProducer.boardCodes.add("if (move.fromPoint != -1)");
+		BoardModelProducer.boardCodes.add("return move.pieceName + \" from \" + move.fromPoint + \" to \" + move.toPoint;");
+		BoardModelProducer.boardCodes.add("else");
+		BoardModelProducer.boardCodes.add("return move.pieceName + \" added to \" + move.toPoint;");
+		BoardModelProducer.boardCodes.add("}");
+		
+		
 		BoardModelProducer.boardCodes.add("public ArrayList<Move> generateAllValidMoves(String side) {");
 		BoardModelProducer.boardCodes.add("ArrayList<Move> validMoves = new ArrayList<>();");
 		BoardModelProducer.boardCodes.add("for (Point point : points) {");
 		BoardModelProducer.boardCodes.add("if (point.getPiece() != null && point.getPiece().getSide().equals(side)) {");
 		BoardModelProducer.boardCodes.add("ArrayList<Point> tempMovables = point.getPieceInsideMovable();");
 		BoardModelProducer.boardCodes.add("for (Point tempMovable : tempMovables) {");
-		BoardModelProducer.boardCodes.add("validMoves.add(Move.transformingMove(point.getId(), tempMovable.getId()));");
+		BoardModelProducer.boardCodes.add("validMoves.add(Move.transformingMove(point.getPiece().getName(), point.getId(), tempMovable.getId()));");
 		BoardModelProducer.boardCodes.add("}");
 		BoardModelProducer.boardCodes.add("}");
 		BoardModelProducer.boardCodes.add("}");

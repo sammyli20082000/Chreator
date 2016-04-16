@@ -74,6 +74,10 @@ public class PieceCodeProducer {
 		PieceModelProducer.pieceCodes.add("return name;");
 		PieceModelProducer.pieceCodes.add("}");
 		
+		PieceModelProducer.pieceCodes.add("public static void resetIdCounter(){");
+		PieceModelProducer.pieceCodes.add("idCounter = 0;");
+		PieceModelProducer.pieceCodes.add("}");
+		
 		PieceModelProducer.pieceCodes.add("public abstract ArrayList<Point> moveInvolvingOtherPiece(Point p);");
 		
 		PieceModelProducer.pieceCodes.add("}");

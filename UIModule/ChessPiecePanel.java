@@ -154,12 +154,12 @@ public class ChessPiecePanel extends JPanel {
 						sharedPieceHeight = 0.1;
 						sharedPieceWidth = 0.1 * d.getHeight() / d.getWidth();
 					}
-					addPlayerSideToList("RED");
-					addPlayerSideToList("BLACK");
-					addChessPieceToList("General");
-					addChessPieceToList("Cannon");
-					addChessPieceToList("Advisor");
-					addChessPieceToList("Horse");
+//					addPlayerSideToList("RED");
+//					addPlayerSideToList("BLACK");
+//					addChessPieceToList("General");
+//					addChessPieceToList("Cannon");
+//					addChessPieceToList("Advisor");
+//					addChessPieceToList("Horse");
 
 					removeComponentListener(this);
 				}
@@ -184,7 +184,10 @@ public class ChessPiecePanel extends JPanel {
 		codeEditor.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
 		add(scrollPane, BorderLayout.LINE_START);
-		add(new JScrollPane(codeEditor), BorderLayout.CENTER);
+		JPanel jp = new JPanel();
+		jp.setLayout(new BorderLayout());
+		jp.add(codeEditor, BorderLayout.CENTER);
+		add(new JScrollPane(jp), BorderLayout.CENTER);
 		add(pieceProfileEditorPanel, BorderLayout.LINE_END);
 
 		codeEditor.getDocument().addDocumentListener(createDocumentAdapter(codeEditor));
@@ -427,11 +430,11 @@ public class ChessPiecePanel extends JPanel {
 
 		addToPanel(pieceInfoSettingPanel, new JLabel("Piece Size"), GridBagConstraints.LINE_START,
 				GridBagConstraints.HORIZONTAL);
-		
+
 		temp = new JPanel(new GridBagLayout());
 		temp.add(syncSizeRadioBtn);
 		addToPanel(pieceInfoSettingPanel, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
-		
+
 		temp = new JPanel(new GridBagLayout());
 		temp.add(new JLabel(t + "Width(0~1): "), c1);
 		addToPanel(pieceInfoSettingPanel, temp, GridBagConstraints.LINE_START, GridBagConstraints.NONE);
@@ -659,9 +662,10 @@ public class ChessPiecePanel extends JPanel {
 					} else {
 						String pieceName = UIUtility.showVariableInputDialog("New Chess Piece Model",
 								"Input the name of chess piece", "", true);
-						if (pieceName != null && !pieceName.toLowerCase().equals("piece"))
+						if (pieceName != null && !pieceName.toLowerCase().equals("piece")) {
 							addChessPieceToList(pieceName);
-						if (pieceName.toLowerCase().equals("piece"))
+						}
+						if (pieceName != null && pieceName.toLowerCase().equals("piece"))
 							JOptionPane.showMessageDialog(UIHandler.getMainWindow(), "Please choose another name.",
 									"Name duplicates with super class \"Piece\"", JOptionPane.ERROR_MESSAGE);
 					}
@@ -818,9 +822,8 @@ public class ChessPiecePanel extends JPanel {
 						int caretPos = codeEditor.getCaretPosition();
 						String codeToAdd = "tempPointList = p.getPointsAlongDirection(Direction.***);\n"
 								+ "\t\tfor (int i = 0; i < tempPointList.size(); i++) {\n"
-								+ "\t\t\tvalidMoves.add(tempPointList.get(i));\n"
-								+ "\t\t}\n";
-						
+								+ "\t\t\tvalidMoves.add(tempPointList.get(i));\n" + "\t\t}\n";
+
 						try {
 							codeEditor.getStyledDocument().insertString(caretPos, codeToAdd, null);
 						} catch (BadLocationException e1) {
@@ -847,6 +850,8 @@ public class ChessPiecePanel extends JPanel {
 	private void removePiecePic() {
 		PieceProfile profile = getSelectedProfile();
 		profile.pieceImage = null;
+		profile.sourcePicLink = "";
+		piecePicLinkField.setText(profile.sourcePicLink);
 		previewImagePanel.repaint();
 	}
 
@@ -1224,7 +1229,8 @@ public class ChessPiecePanel extends JPanel {
 	private void updateCurrentProfile() {
 		try {
 			PieceProfile profile = getSelectedProfile();
-			profile.sourcePicLink = imageFile == null ? "" : imageFile.getAbsolutePath();
+			if (imageFile != null && profile.sourcePicLink.equals(""))
+				profile.sourcePicLink = imageFile.getAbsolutePath();
 			profile.pieceColor = new Color(Integer.parseInt(pieceColorRedTextField.getText()),
 					Integer.parseInt(pieceColorGreenTextField.getText()),
 					Integer.parseInt(pieceColorBlueTextField.getText()));

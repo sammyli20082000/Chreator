@@ -34,6 +34,7 @@ public class GameFrameProducer {
 		GameCodeProducer.gameCodes.add("import Executable.PieceModel.Piece;");
 		GameCodeProducer.gameCodes.add("import Executable.UIHandlerModel.UIHandler;");
 		GameCodeProducer.gameCodes.add("import Executable.ObjectModel.*;");
+		GameCodeProducer.gameCodes.add("import Executable.SocketConnection.*;");
 
 		if (type.equals(GameType.ADD_TYPE))
 			GameCodeProducer.gameCodes.add("// GameType: ADD_TYPE");
@@ -56,6 +57,8 @@ public class GameFrameProducer {
 		GameCodeProducer.gameCodes.add("Point selectedPoint;");
 		GameCodeProducer.gameCodes.add("UIHandler ui;");
 		GameCodeProducer.gameCodes.add("String gameLocation;");
+		GameCodeProducer.gameCodes.add("Server server;");
+		GameCodeProducer.gameCodes.add("Client client;");
 
 		GameCodeProducer.gameCodes.add("public static void main(String[] args) {");
 		GameCodeProducer.gameCodes.add("new Game();");
@@ -114,12 +117,12 @@ public class GameFrameProducer {
 
 		GameCodeProducer.gameCodes.add("private UIHandler.EventCallBackHandler handleUIEventCallBack()");
 
-		GameCodeProducer.gameCodes.add("private void updateUIMoveHistoryAndStatusBar(Point point) {");
+		GameCodeProducer.gameCodes.add("private void updateUIMoveHistoryAndStatusBar(Move move) {");
 		GameCodeProducer.gameCodes.add("if (!AI.virtualMoving) {");
 		GameCodeProducer.gameCodes
-				.add("ui.updateStatusBarStatus(board.getMoveString(selectedPiece, selectedPoint, point));");
+				.add("ui.updateStatusBarStatus(board.getMoveString(move));");
 		GameCodeProducer.gameCodes
-				.add("ui.addMovementHistoryRecord(board.getMoveString(selectedPiece, selectedPoint, point));");
+				.add("ui.addMovementHistoryRecord(board.getMoveString(move));");
 		GameCodeProducer.gameCodes.add("}");
 		GameCodeProducer.gameCodes.add("Map<Integer, Integer> state = new HashMap<>();");
 		GameCodeProducer.gameCodes.add("for (Point everyPoint : board.getPoints()) {");
@@ -127,9 +130,9 @@ public class GameFrameProducer {
 		GameCodeProducer.gameCodes.add("state.put(everyPoint.getId(), everyPoint.getPiece().getId());");
 		GameCodeProducer.gameCodes.add("}");
 		GameCodeProducer.gameCodes
-				.add("history.add(new Node(state, currentSide, selectedPoint.getId(), point.getId(),");
+				.add("history.add(new Node(state, currentSide, selectedPoint.getId(), move.toPoint,");
 		GameCodeProducer.gameCodes
-				.add("board.getMoveString(selectedPiece, selectedPoint, point), history.get(history.size() - 1)));");
+				.add("move, history.get(history.size() - 1)));");
 		GameCodeProducer.gameCodes.add("}");
 
 		GameCodeProducer.gameCodes.add("public void undo(int undoStep) {");
@@ -161,12 +164,24 @@ public class GameFrameProducer {
 		GameCodeProducer.gameCodes.add("ui.updateStatusBarStatus(\"Load game\");");
 		GameCodeProducer.gameCodes.add("handleFileEventCallBack().loadGame();");
 		GameCodeProducer.gameCodes.add("break;");
+		GameCodeProducer.gameCodes.add("case MENUITEM_SAVE_GAME:");
+		GameCodeProducer.gameCodes.add("ui.updateStatusBarStatus(\"Save game\");");
+		GameCodeProducer.gameCodes.add("handleFileEventCallBack().saveGame();");
+		GameCodeProducer.gameCodes.add("break;");
 		GameCodeProducer.gameCodes.add("case MENUITEM_STEP_REDO:");
 		GameCodeProducer.gameCodes.add("ui.updateStatusBarStatus(\"Step redo\");");
 		GameCodeProducer.gameCodes.add("break;");
 		GameCodeProducer.gameCodes.add("//case MENUITEM_GAME_DISTRIBUTE_COMPUTING:");
 		GameCodeProducer.gameCodes.add("//ui.updateStatusBarStatus(\"Distributed computing\");");
 		GameCodeProducer.gameCodes.add("//break;");
+		GameCodeProducer.gameCodes.add("case MENUITEM_SERVER:");
+		GameCodeProducer.gameCodes.add("ui.updateStatusBarStatus(\"Waiting for connection as server\");");
+		GameCodeProducer.gameCodes.add("server = new Server(this);");
+		GameCodeProducer.gameCodes.add("break;");
+		GameCodeProducer.gameCodes.add("case MENUITEM_CLIENT:");
+		GameCodeProducer.gameCodes.add("ui.updateStatusBarStatus(\"Establishing connection with server\");");
+		GameCodeProducer.gameCodes.add("client = new Client(this);");
+		GameCodeProducer.gameCodes.add("break;");
 		GameCodeProducer.gameCodes.add("case MENUITEM_VIEW_SHOW_DEBUG:");
 		GameCodeProducer.gameCodes.add("ui.updateStatusBarStatus(\"Show Debug: \" + ui.getIsShowDebug());");
 		GameCodeProducer.gameCodes.add("break;");

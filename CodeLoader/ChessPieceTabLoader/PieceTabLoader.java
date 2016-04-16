@@ -61,7 +61,6 @@ public class PieceTabLoader {
 					pieceProfile.imageRelativeHeight = Double.parseDouble(CodeLoader.stripNonDigits(temp2[3]));
 					pieceProfile.sourcePicLink = CodeLoader.baseDir + "\\pic\\" + temp3[1];
 					pieceProfile.pieceImage = ImageIO.read(new File(CodeLoader.baseDir + "\\pic\\" + temp3[1]));
-
 					String tempPlayerSide = side.substring(0, 1).toUpperCase() + side.substring(1).toLowerCase();
 					String tempPieceName = pieceName.substring(0, 1).toUpperCase()
 							+ pieceName.substring(1).toLowerCase();

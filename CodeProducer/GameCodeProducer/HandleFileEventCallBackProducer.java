@@ -1,5 +1,10 @@
 package Chreator.CodeProducer.GameCodeProducer;
 
+import java.io.File;
+
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
 public class HandleFileEventCallBackProducer {
 	public HandleFileEventCallBackProducer() {
 		
@@ -17,6 +22,7 @@ public class HandleFileEventCallBackProducer {
 		GameCodeProducer.gameCodes.add(++j, "board = new Board();");
 		GameCodeProducer.gameCodes.add(++j, "currentSide = \"\";");
 		GameCodeProducer.gameCodes.add(++j, "currPieces = null;");
+		GameCodeProducer.gameCodes.add(++j, "Piece.resetIdCounter();");
 		GameCodeProducer.gameCodes.add(++j, "ai = new AI(game);");
 		GameCodeProducer.gameCodes.add(++j, "ui.setBoard(board);");
 		GameCodeProducer.gameCodes.add(++j, "ui.enableStartGameButton();");
@@ -24,6 +30,8 @@ public class HandleFileEventCallBackProducer {
 		GameCodeProducer.gameCodes.add(++j, "ui.restoreMovementHistoryList();");
 		GameCodeProducer.gameCodes.add(++j, "selectedPiece = null;");
 		GameCodeProducer.gameCodes.add(++j, "selectedPoint = null;");
+		GameCodeProducer.gameCodes.add(++j, "server = null;");
+		GameCodeProducer.gameCodes.add(++j, "client = null;");
 		GameCodeProducer.gameCodes.add(++j, "ui.refreshWindow();");
 		GameCodeProducer.gameCodes.add(++j, "}");
 
@@ -31,10 +39,16 @@ public class HandleFileEventCallBackProducer {
 		GameCodeProducer.gameCodes.add(++j, "public void saveGame() {");
 		GameCodeProducer.gameCodes.add(++j, "FileOutputStream fout = null;");
 		GameCodeProducer.gameCodes.add(++j, "ObjectOutputStream oos = null;");
+		GameCodeProducer.gameCodes.add(++j, "JFileChooser chooser = new JFileChooser();");
+		GameCodeProducer.gameCodes.add(++j, "chooser.setSelectedFile(new File(\"save.bghis\"));");
 		GameCodeProducer.gameCodes.add(++j, "try {");
-		GameCodeProducer.gameCodes.add(++j, "fout = new FileOutputStream(\"save.chesshis\");");
+		GameCodeProducer.gameCodes.add(++j, "if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {");
+		GameCodeProducer.gameCodes.add(++j, "fout = new FileOutputStream(chooser.getSelectedFile());");
 		GameCodeProducer.gameCodes.add(++j, "oos = new ObjectOutputStream(fout);");
 		GameCodeProducer.gameCodes.add(++j, "oos.writeObject(history);");
+		GameCodeProducer.gameCodes.add(++j, "} else {");
+		GameCodeProducer.gameCodes.add(++j, "JOptionPane.showMessageDialog(null, \"Game cannot be saved.\", \"Saving Error\",JOptionPane.YES_OPTION);");
+		GameCodeProducer.gameCodes.add(++j, "}");
 		GameCodeProducer.gameCodes.add(++j, "} catch (Exception e) {");
 		GameCodeProducer.gameCodes.add(++j, "// e.printStackTrace();");
 		GameCodeProducer.gameCodes.add(++j, "JOptionPane.showMessageDialog(null, \"Game cannot be saved.\", \"Saving Error\", JOptionPane.YES_OPTION);");
@@ -50,8 +64,11 @@ public class HandleFileEventCallBackProducer {
 		GameCodeProducer.gameCodes.add(++j, "public void loadGame() {");
 		GameCodeProducer.gameCodes.add(++j, "FileInputStream fin = null;");
 		GameCodeProducer.gameCodes.add(++j, "ObjectInputStream ois = null;");
+		GameCodeProducer.gameCodes.add(++j, "JFileChooser chooser = new JFileChooser();");
+		GameCodeProducer.gameCodes.add(++j, "chooser.setSelectedFile(new File(\"save.bghis\"));");
 		GameCodeProducer.gameCodes.add(++j, "try {");
-		GameCodeProducer.gameCodes.add(++j, "fin = new FileInputStream(\"save.chesshis\");");
+		GameCodeProducer.gameCodes.add(++j, "if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {");
+		GameCodeProducer.gameCodes.add(++j, "fin = new FileInputStream(chooser.getSelectedFile());");
 		GameCodeProducer.gameCodes.add(++j, "ois = new ObjectInputStream(fin);");
 		GameCodeProducer.gameCodes.add(++j, "ArrayList<Node> oldHistory = (ArrayList<Node>) ois.readObject();");
 		GameCodeProducer.gameCodes.add(++j, "newGame();");
@@ -68,9 +85,12 @@ public class HandleFileEventCallBackProducer {
 		GameCodeProducer.gameCodes.add(++j, "history.add(new Node(state, currentSide));");
 		GameCodeProducer.gameCodes.add(++j, "ui.addMovementHistoryRecord(\"Initial\");");
 		GameCodeProducer.gameCodes.add(++j, "for (int i = 1; i < oldHistory.size(); i++) {");
-		GameCodeProducer.gameCodes.add(++j, "computerMakeMove(Move.transformingMove(oldHistory.get(i).movedFromPointId, oldHistory.get(i).movedToPointId));");
+		GameCodeProducer.gameCodes.add(++j, "computerMakeMove(oldHistory.get(i).causingMove);");
 		GameCodeProducer.gameCodes.add(++j, "}");
 		GameCodeProducer.gameCodes.add(++j, "ui.refreshWindow();");
+		GameCodeProducer.gameCodes.add(++j, "} else {");
+		GameCodeProducer.gameCodes.add(++j, "JOptionPane.showMessageDialog(null, \"Game cannot be loaded.\", \"Loading Error\",JOptionPane.YES_OPTION);");
+		GameCodeProducer.gameCodes.add(++j, "}");
 		GameCodeProducer.gameCodes.add(++j, "} catch (Exception e) {");
 		GameCodeProducer.gameCodes.add(++j, "// e.printStackTrace();");
 		GameCodeProducer.gameCodes.add(++j, "JOptionPane.showMessageDialog(null, \"Game cannot be loaded.\", \"Loading Error\", JOptionPane.YES_OPTION);");
